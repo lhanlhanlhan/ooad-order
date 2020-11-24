@@ -5,8 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
+ * Order Service 应用程序入口
  * @author Han Li
- * Created at 11/5/2020 14:48
+ * Created at 2020/11/5 14:48
+ * Modified by Han Li at 2020/11/24 9:35
  **/
 @SpringBootApplication
 @MapperScan("cn.edu.xmu.oomall.order.mapper")

@@ -14,7 +14,7 @@ import java.util.List;
  * 订单控制器类
  * @author Han Li
  * Created at 2020/11/5 15:21
- * Modified at 2020/11/5 15:21
+ * Modified by Han Li at 2020/11/5 15:21
  **/
 @Api(value = "订单服务", tags = "order")
 @RestController
@@ -39,6 +39,9 @@ public class OrderController {
     })
     @GetMapping("orders/states")
     public Object getAllStatus() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get orders/states");
+        }
         return null;
     }
 
@@ -62,6 +65,9 @@ public class OrderController {
                                  @RequestParam(required = false) Integer state,
                                  @RequestParam(required = false) Integer page,
                                  @RequestParam(required = false) Integer pageSize) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get orders; id=" + orderSn + " state=" + state + " page=" + page + " pageSize=" + pageSize);
+        }
         return null;
     }
 
@@ -83,6 +89,9 @@ public class OrderController {
     })
     @PostMapping("orders")
     public Object createOrder(@RequestBody NewOrderVo orderInfo) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("post orders; vo=" + orderInfo);
+        }
         return null;
     }
 
@@ -104,6 +113,9 @@ public class OrderController {
     })
     @GetMapping("orders/{id}")
     public Object getDetailedOrder(@PathVariable Integer id) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get orders/{id}; id=" + id);
+        }
         return null;
     }
 
@@ -126,6 +138,9 @@ public class OrderController {
     })
     @PutMapping("orders/{id}")
     public Object modifyOrder(@PathVariable Integer id, @RequestBody EditOrderVo editOrderVo) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("put orders/{id}; id=" + id + " vo=" + editOrderVo);
+        }
         return null;
     }
 
@@ -147,6 +162,9 @@ public class OrderController {
     })
     @DeleteMapping("orders/{id}")
     public Object deleteOrCancelOrder(@PathVariable Integer id) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("delete orders/{id}; id=" + id);
+        }
         return null;
     }
 }
