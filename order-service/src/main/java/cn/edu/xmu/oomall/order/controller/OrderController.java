@@ -61,7 +61,7 @@ public class OrderController {
         return ResponseUtils.ok(orderStatusVos);
     }
 
-//    @Inspect  // 需要登入
+    @Inspect  // 需要登入
     @GetMapping("orders")
     public Object getAllOrders(@RequestParam(required = false) String orderSn,
                                @RequestParam(required = false) Integer state,
