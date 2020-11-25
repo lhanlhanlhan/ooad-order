@@ -5,16 +5,19 @@ import cn.edu.xmu.oomall.order.aspects.Inspect;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.model.vo.EditOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
+import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
+import cn.edu.xmu.oomall.order.service.OrderService;
+import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
-import org.apache.ibatis.annotations.Delete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -29,7 +32,12 @@ import java.util.List;
 @RequestMapping(value = "/order", produces = "application/json;charset=UTF-8")
 public class OrderController {
 
+    // 日志记录器
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+
+    // 订单服务
+    @Autowired
+    private OrderService orderService;
 
     /**
      * o1: 获得订单的所有状态 [DONE]
@@ -61,16 +69,60 @@ public class OrderController {
         return ResponseUtils.ok(orderStatusVos);
     }
 
+
+    /**
+     * o2: 买家查询名下订单 (概要)
+     *
+     * @author Han Li
+     * Created at 25/11/2020 15:30
+     * Created by Han Li at 25/11/2020 15:30
+     * @param orderSn 订单号
+     * @param state 订单状态
+     * @param beginTime 开始时间
+     * @param endTime 结束时间
+     * @param page 页数
+     * @param pageSize 每页包括的记录数量
+     * @param customerId 用户 ID
+     * @return java.lang.Object
+     */
+    @ApiOperation(value = "买家查询名下订单 (概要)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
     @Inspect  // 需要登入
     @GetMapping("orders")
     public Object getAllOrders(@RequestParam(required = false) String orderSn,
-                               @RequestParam(required = false) Integer state,
+                               @RequestParam(required = false) Byte state,
                                @RequestParam(required = false) String beginTime,
                                @RequestParam(required = false) String endTime,
                                @RequestParam(required = false) Integer page,
                                @RequestParam(required = false) Integer pageSize,
-                               @LoginUser Integer customerId) {
-        return null;
+                               @LoginUser Long customerId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get states: orderSn=" + orderSn +
+                    " state=" + state + " beginTime=" + beginTime +
+                    " endTime=" + endTime + " page=" + page +
+                    " pageSize=" + pageSize + " customerId=" + customerId);
+        }
+        // 判断是否需要分页
+        APIReturnObject<?> returnObject;
+        if (page != null && pageSize != null) {
+            // 获取数据
+            returnObject = orderService.getPagedCustomerOrders(
+                    orderSn, state, beginTime, endTime, page, pageSize, customerId
+            );
+            // 处理分页
+            return ResponseUtils.makePaged((APIReturnObject<PageInfo<?>>) returnObject);
+        } else {
+            // 获取数据
+            returnObject = orderService.getCustomerOrders(
+                    orderSn, state, beginTime, endTime, customerId
+            );
+            return ResponseUtils.make(returnObject);
+        }
     }
 
 

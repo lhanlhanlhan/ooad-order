@@ -159,10 +159,20 @@
         </table>
 
         <!-- 表 4 -->
+        <!-- OrderPo 完整对象 -->
         <table tableName="order" domainObjectName="OrderPo"
                enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="false">
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>
+        <!-- OrderSimplePo 概要对象 -->
+        <table tableName="order" domainObjectName="OrderSimplePo"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="true"
+               selectByExampleQueryId="false">
+            <!-- 注意：enableSelectByExample = true，以允许不确定参数查询 -->
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
         </table>

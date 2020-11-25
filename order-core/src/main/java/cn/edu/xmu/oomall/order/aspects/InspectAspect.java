@@ -88,14 +88,14 @@ public class InspectAspect {
         if (token == null) {
             // 未有附带 token，返回错误
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtils.makeResponse(ResponseCode.NEED_LOGIN);
+            return ResponseUtils.make(ResponseCode.NEED_LOGIN);
         }
 
         // 从 其他模块 获取用户资料
         UserInfo userInfo = userConnector.verifyTokenAndGetUserInfo(token);
         if (null == userInfo) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtils.makeResponse(ResponseCode.INVALID_JWT);
+            return ResponseUtils.make(ResponseCode.INVALID_JWT);
         }
         Long userId = userInfo.getId();
 

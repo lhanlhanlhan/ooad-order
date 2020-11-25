@@ -13,6 +13,7 @@ public enum ResponseCode {
      * 用户自己的错误
      */
     NEED_LOGIN(401, "需要登入才可使用"),
+    RESOURCE_NOT_EXIST(404, "资源不存在"),
 
     /**
      * 服务器内部错误
