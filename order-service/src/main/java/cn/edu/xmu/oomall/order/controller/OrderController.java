@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.order.controller;
 
+import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.Inspect;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.model.vo.EditOrderVo;
@@ -31,7 +32,7 @@ public class OrderController {
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     /**
-     * o1: 获得订单的所有状态
+     * o1: 获得订单的所有状态 [DONE]
      *
      * @author Han Li
      * Created at 25/11/2020 08:34
@@ -60,29 +61,15 @@ public class OrderController {
         return ResponseUtils.ok(orderStatusVos);
     }
 
-
-    /**
-     * o2: 买家查询名下订单 (概要)
-     * @return Object
-     * @author Han Li
-     * Created at 2020/11/5 15:33
-     * Modified at 2020/11/5 15:33
-     */
-    @ApiOperation(value = "买家查询名下订单 (概要)")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
+//    @Inspect  // 需要登入
     @GetMapping("orders")
-    public Object getSimpleOrder(@RequestParam(required = false) String orderSn,
-                                 @RequestParam(required = false) Integer state,
-                                 @RequestParam(required = false) Integer page,
-                                 @RequestParam(required = false) Integer pageSize) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("get orders; id=" + orderSn + " state=" + state + " page=" + page + " pageSize=" + pageSize);
-        }
+    public Object getAllOrders(@RequestParam(required = false) String orderSn,
+                               @RequestParam(required = false) Integer state,
+                               @RequestParam(required = false) String beginTime,
+                               @RequestParam(required = false) String endTime,
+                               @RequestParam(required = false) Integer page,
+                               @RequestParam(required = false) Integer pageSize,
+                               @LoginUser Integer customerId) {
         return null;
     }
 
