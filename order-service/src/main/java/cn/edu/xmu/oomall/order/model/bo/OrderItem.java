@@ -28,6 +28,16 @@ public class OrderItem implements VoCreatable, AuthenticObject {
     }
 
     /**
+     * 获取对象的签名
+     *
+     * @return 对象的签名
+     */
+    @Override
+    public String calcSignature() {
+        return "";
+    }
+
+    /**
      * 创建 Vo 对象
      *
      * @return Vo 对象

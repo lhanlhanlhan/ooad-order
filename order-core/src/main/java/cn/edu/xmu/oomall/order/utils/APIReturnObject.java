@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.order.utils;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 /**
  * API 返回对象
@@ -15,12 +16,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class APIReturnObject<T> {
 
+    private HttpStatus status = HttpStatus.OK;
     private ResponseCode code = ResponseCode.OK;
     private String errmsg = null;
     private T data = null;
 
     /**
-     * 带数据的 API 返回对象
+     * 带数据的 200 返回对象
      * @param data 数据
      */
     public APIReturnObject(T data) {
@@ -28,7 +30,7 @@ public class APIReturnObject<T> {
     }
 
     /**
-     * 带自定义错误码的 API 返回对象
+     * 带自定义错误码的 200 返回对象
      * @param code 错误码
      */
     public APIReturnObject(ResponseCode code) {
@@ -36,12 +38,33 @@ public class APIReturnObject<T> {
     }
 
     /**
-     * 带自定义错误码、返回讯息的 API 返回对象
+     * 带自定义错误码、返回讯息、HTTP 状态码的 xxx 返回对象
+     * @param code 错误码
+     * @param status http 状态码
+     */
+    public APIReturnObject(HttpStatus status, ResponseCode code) {
+        this.code = code;
+        this.status = status;
+    }
+
+    /**
+     * 带自定义错误码、返回讯息的 200 返回对象
      * @param code 错误码
      * @param errMsg 返回讯息
      */
     public APIReturnObject(ResponseCode code, String errMsg) {
         this(code);
+        this.errmsg = errMsg;
+    }
+
+    /**
+     * 带自定义错误码、返回讯息、HTTP 状态码的 xxx 返回对象
+     * @param code 错误码
+     * @param errMsg 返回讯息
+     */
+    public APIReturnObject(HttpStatus status, ResponseCode code, String errMsg) {
+        this(code);
+        this.status = status;
         this.errmsg = errMsg;
     }
 

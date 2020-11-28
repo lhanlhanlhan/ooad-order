@@ -21,26 +21,35 @@ public enum OrderStatus {
     SHIPPED(11, "发货中"),
     REACHED(12, "到货"),
     SIGNED(13, "已签收"),
-    REFUNDED(14, "已签收"),
+    REFUNDED(14, "已退款"),
     TERMINATED(15, "订单中止"),
-    PRE_SALE_TERMINATED(16, "订单中止"),
+    PRE_SALE_TERMINATED(16, "预售中止"),
     CANCELLED(17, "订单取消"),
     AFTER_SALE_PENDING_SHIPMENT(18, "售后单待发货"),
     ;
 
-    private final int code;
+    private final byte code;
     private final String name;
 
     OrderStatus(int code, String desc) {
-        this.code = code;
+        this.code = (byte) code;
         this.name = desc;
     }
 
-    public int getCode() {
+    public byte getCode() {
         return code;
     }
 
     public String getName() {
         return name;
+    }
+
+    public static OrderStatus getByCode(int code) {
+        byte b = (byte) code;
+        OrderStatus[] statuses = OrderStatus.values();
+        if (b > statuses.length) {
+            return null;
+        }
+        return statuses[b];
     }
 }

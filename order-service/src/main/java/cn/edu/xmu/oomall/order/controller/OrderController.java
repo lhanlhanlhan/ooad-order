@@ -191,7 +191,7 @@ public class OrderController {
     }
 
     /**
-     * o6: 买家取消 / 逻辑删除本人名下订单 [DONE]
+     * o6: 买家取消 / 逻辑删除本人名下订单
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -214,6 +214,60 @@ public class OrderController {
             logger.debug("delete orders/{id}; id=" + id);
         }
         // 调用服务层
-        return ResponseUtils.make(orderService.buyerDelOrder(id, customerId));
+        return ResponseUtils.make(orderService.buyerDelOrCancelOrder(id, customerId));
+    }
+
+    /**
+     * o7: 买家确认收货
+     * @return Object
+     * @author Han Li
+     * Created at 2020/11/5 15:50
+     * Modified at 2020/11/5 15:50
+     */
+    @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 800, message = "订单状态禁止"),
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @Inspect
+    @PutMapping("orders/{id}/confirm")
+    public Object confirmOrder(@PathVariable Long id,
+                               @LoginUser Long customerId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("put orders/{id}/confirm; id=" + id);
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.buyerConfirm(id, customerId));
+    }
+
+    /**
+     * o8: 买家将团购订单改换为普通订单
+     * @return Object
+     * @author Han Li
+     * Created at 2020/11/5 15:50
+     * Modified at 2020/11/5 15:50
+     */
+    @ApiOperation(value = "买家将团购订单改换为普通订单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 800, message = "订单状态禁止"),
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @Inspect
+    @PostMapping("orders/{id}/groupon-normal")
+    public Object changeOrderTo(@PathVariable Long id,
+                                @LoginUser Long customerId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("put orders/{id}/confirm; id=" + id);
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.buyerChangeGroupon(id, customerId));
     }
 }

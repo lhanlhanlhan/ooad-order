@@ -170,12 +170,12 @@ public class OrderDao {
 
 
     /**
-     * 获取订单概要信息
+     * 获取订单信息 (不含 Item、Customer、Shop)
      * @param orderId 订单 id
      * @param customerId 客户 id
      * @return 订单
      */
-    public APIReturnObject<OrderSimpleVo> getSimpleOrder(Long orderId, Long customerId) {
+    public APIReturnObject<Order> getSimpleOrder(Long orderId, Long customerId) {
         // 调用 Mapper 查询 OrderPo
         OrderPo orderPo;
         try {
@@ -202,25 +202,14 @@ public class OrderDao {
         }
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
-        return new APIReturnObject<>(order.createSimpleVo());
+        return new APIReturnObject<>(order);
     }
 
     /**
      * 无条件修改订单信息
      * @return 返回
      */
-    public APIReturnObject<?> modifyOrder(Long id, OrderEditVo vo) {
-        OrderEditPo po = new OrderEditPo();
-        po.setId(id);
-        // 买家内容
-        po.setAddress(vo.getAddress());
-        po.setConsignee(vo.getConsignee());
-        po.setMobile(vo.getMobile());
-        po.setRegionId(vo.getRegionId());
-        po.setBeDeleted(vo.getBeDeleted());
-        // 卖家内容
-        po.setMessage(vo.getMessage());
-
+    public APIReturnObject<?> modifyOrder(OrderEditPo po) {
         // 尝试修改
         int affected = 0;
         try {

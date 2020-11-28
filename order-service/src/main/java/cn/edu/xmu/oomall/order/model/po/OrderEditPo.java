@@ -13,6 +13,8 @@ import lombok.Data;
 public class OrderEditPo {
 
     private Long id;
+    private String signature;
+    private Byte orderType;
 
     // 下列字段都是可被更新的字段
     private String consignee;
@@ -21,5 +23,6 @@ public class OrderEditPo {
     private String mobile;
     private String message;
     private Boolean beDeleted;
+    private Byte state;
 
 }

@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
+import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.interfaces.AuthenticObject;
 import cn.edu.xmu.oomall.order.interfaces.SimpleVoCreatable;
 import cn.edu.xmu.oomall.order.interfaces.VoCreatable;
@@ -91,9 +92,127 @@ public class Order implements VoCreatable, SimpleVoCreatable, AuthenticObject {
         return true;
     }
 
+    /**
+     * 获取对象的签名
+     *
+     * @return 对象的签名
+     */
+    @Override
+    public String calcSignature() {
+        return "213612837125";
+    }
 
-    /*
-    Getters
+    /**
+     * 判断该对象是否可被客户修改
+     */
+    public boolean isCustomerModifiable() {
+        // 订单状态为空，不给修改
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给修改
+        if (status == null) {
+            return false;
+        }
+        // 只有「发货中」才能让客户修改
+        return status == OrderStatus.SHIPPED;
+    }
+
+    /**
+     * 判断该对象是否可被删除
+     */
+    public boolean isDeletable() {
+        // 订单状态为空，不给删除
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给删除
+        if (status == null) {
+            return false;
+        }
+        // 只有已签收 or 已取消 or 已退款 or 订单终止 or 预售终止的才让删除
+        switch (status) {
+            case SIGNED:
+            case REFUNDED:
+            case TERMINATED:
+            case PRE_SALE_TERMINATED:
+            case CANCELLED:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * 判断该 订单 是否可被取消
+     */
+    public boolean isCancelable() {
+        // 订单状态为空，不给取消
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给不给取消
+        if (status == null) {
+            return false;
+        }
+        switch (status) {
+            case PENDING_DEPOSIT:
+            case PENDING_PAY:
+            case PENDING_GROUP:
+            case DEPOSIT_PAID:
+            case PENDING_REM_BALANCE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * 判断该 订单 是否可被签收
+     */
+    public boolean isCustomerCanSign() {
+        // 订单状态为空，不给签收
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给签收
+        if (status == null) {
+            return false;
+        }
+        // 只有订单状态为「已到货」的可以签收
+        return status == OrderStatus.REACHED;
+    }
+
+    /**
+     * 判断该 订单 是否可被从团购转为普通订单
+     */
+    public boolean isCustomerCanChangeToNormalOrder() {
+        // 订单状态为空，不给转换
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给转换
+        if (status == null) {
+            return false;
+        }
+        Byte type = this.getOrderType();
+        // 订单类型为空，不给转换
+        if (type == null) {
+            return false;
+        }
+
+        // 只有订单类型为团购、订单状态为「未到达门槛」的可以改成普通订单
+        return type == 1 && status == OrderStatus.GROUP_FAILED;
+    }
+
+
+    /**
+     * Getters
      */
 
     public Long getId() {

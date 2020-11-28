@@ -4,6 +4,7 @@ import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.connector.UserConnector;
 import cn.edu.xmu.oomall.order.enums.Constants;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
+import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -15,6 +16,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -87,15 +89,16 @@ public class InspectAspect {
         String token = request.getHeader(Constants.LOGIN_TOKEN_KEY);
         if (token == null) {
             // 未有附带 token，返回错误
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtils.make(ResponseCode.NEED_LOGIN);
+            APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.NEED_LOGIN);
+            return ResponseUtils.make(object);
         }
 
         // 从 其他模块 获取用户资料
         Map<String, Object> userInfo = userConnector.verifyTokenAndGetCustomerInfo(token);
         if (null == userInfo) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtils.make(ResponseCode.INVALID_JWT);
+            // 未有附带 token，返回错误
+            APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_JWT);
+            return ResponseUtils.make(object);
         }
         Long userId = (Long) userInfo.get("id");
 
