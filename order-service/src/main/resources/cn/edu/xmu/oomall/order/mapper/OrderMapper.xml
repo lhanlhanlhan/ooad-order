@@ -8,7 +8,7 @@
     <sql id="Order_Column_List">
         id, customer_id, shop_id, order_sn, pid, consignee, region_id, address, mobile, message,
         order_type, freight_price, coupon_id, coupon_activity_id, discount_price, origin_price,
-        presale_id, groupon_id, groupon_discount, rebate_num, confirm_time, shipment_sn, state, substate,
+        presale_id, groupon_discount, rebate_num, confirm_time, shipment_sn, state, substate,
         be_deleted, gmt_created, gmt_modified
     </sql>
 
@@ -44,7 +44,7 @@
         </collection>
     </resultMap>
 
-    <!-- 查询及返回 OrderPo 的方法定义 -->
+    <!-- 查找订单 (不拼装订单项目) -->
     <select id="findOrder" resultType="OrderPo">
         SELECT
         <!-- 用 <include> 汇入已经定义好的 SQL 块 -->
@@ -52,14 +52,14 @@
         FROM `orders`
         <!-- 用 <where> 构造一系列 where -->
         <where>
-            <!-- 忽略掉被逻辑删除的订单 -->
-            be_deleted is null
-            and id = #{param1}
-            and customer_id = #{param2}
+            id = #{param1}
+            <if test="customerId != null">and customer_id = #{param2}</if>
+            <if test="shopId != null">and shop_id = #{param3}</if>
+            <if test="includeDeleted == false">and be_deleted is null</if>
         </where>
     </select>
 
-    <!-- 可以利用 resultMap 自定义返回值的拼装规则 -->
+    <!-- 查找订单 (拼装订单项目) -->
     <select id="findOrderWithItem" resultMap="OrderAndOrderItemResultMap">
         SELECT
         <!-- 以下是 order 的资讯 -->
@@ -105,11 +105,29 @@
         FROM `orders` o LEFT JOIN `order_item` oi
         ON o.id = oi.order_id
         <where>
-            <!-- 忽略掉被逻辑删除的订单 -->
-            o.be_deleted is null
-            and o.id = #{param1}
-            and o.customer_id = #{param2}
+            o.id = #{param1}
+            <if test="customerId != null">and o.customer_id = #{param2}</if>
+            <if test="shopId != null">and o.shop_id = #{param3}</if>
+            <if test="includeDeleted == false">and o.be_deleted is null</if>
         </where>
     </select>
+
+    <!-- 修改订单 -->
+    <update id="updateOrder" parameterType="OrderEditPo">
+        UPDATE `orders`
+        <!-- 用 <set> 指定一系列 update set 的字段 -->
+        <set>
+            <if test="consignee!=null and consignee!=''">consignee = #{consignee}, </if>
+            <if test="regionId!=null">region_id = #{regionId}, </if>
+            <if test="address!=null and address!=''">address = #{address}, </if>
+            <if test="mobile!=null and mobile!=''">mobile = #{mobile}, </if>
+            <if test="message!=null and message!=''">message = #{message}, </if>
+            <if test="beDeleted!=null and beDeleted==true">be_deleted = 1, </if>
+            <if test="beDeleted!=null and beDeleted==false">be_deleted = null, </if>
+            gmt_modified = CURRENT_TIME
+        </set>
+        WHERE id = #{id}
+    </update>
+
 </mapper>
 

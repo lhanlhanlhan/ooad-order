@@ -5,11 +5,12 @@ import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.mapper.OrderMapper;
 import cn.edu.xmu.oomall.order.mapper.OrderSimplePoMapper;
 import cn.edu.xmu.oomall.order.model.bo.Order;
-import cn.edu.xmu.oomall.order.model.bo.OrderItem;
+import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.OrderPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePoExample;
-import cn.edu.xmu.oomall.order.model.vo.OrderVo;
+import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
+import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -18,11 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 订单 Dao
@@ -144,7 +142,7 @@ public class OrderDao {
         // 调用 Mapper 查询经过拼接 Item 的 OrderPo
         OrderPo orderPo;
         try {
-            orderPo = orderMapper.findOrderWithItem(orderId, customerId);
+            orderPo = orderMapper.findOrderWithItem(orderId, customerId, null, false);
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
@@ -168,5 +166,72 @@ public class OrderDao {
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
         return new APIReturnObject<>(order);
+    }
+
+
+    /**
+     * 获取订单概要信息
+     * @param orderId 订单 id
+     * @param customerId 客户 id
+     * @return 订单
+     */
+    public APIReturnObject<OrderSimpleVo> getSimpleOrder(Long orderId, Long customerId) {
+        // 调用 Mapper 查询 OrderPo
+        OrderPo orderPo;
+        try {
+            orderPo = orderMapper.findOrder(orderId, customerId, null, false);
+        } catch (Exception e) {
+            // 严重数据库错误
+            logger.error(e.getMessage());
+            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+        }
+        // 不获取已被逻辑删除及根本不存在的订单
+        if (orderPo == null || (orderPo.getBeDeleted() != null)) {
+            if (logger.isInfoEnabled()) {
+                logger.info("订单不存在或已被删除或不属于该用户：id = " + orderId);
+            }
+            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 不属于用户");
+        }
+        // 订单被篡改过所以是不合法的
+        Order order = new Order(orderPo);
+        if (!order.isAuthentic()) {
+            if (logger.isInfoEnabled()) {
+                logger.info("订单被篡改了：id = " + orderId);
+            }
+            return new APIReturnObject<>(ResponseCode.ORDER_DISTORTED);
+        }
+
+        // 把 orderPo 转换成 bo 对象，再转为 Po 对象
+        return new APIReturnObject<>(order.createSimpleVo());
+    }
+
+    /**
+     * 无条件修改订单信息
+     * @return 返回
+     */
+    public APIReturnObject<?> modifyOrder(Long id, OrderEditVo vo) {
+        OrderEditPo po = new OrderEditPo();
+        po.setId(id);
+        // 买家内容
+        po.setAddress(vo.getAddress());
+        po.setConsignee(vo.getConsignee());
+        po.setMobile(vo.getMobile());
+        po.setRegionId(vo.getRegionId());
+        po.setBeDeleted(vo.getBeDeleted());
+        // 卖家内容
+        po.setMessage(vo.getMessage());
+
+        // 尝试修改
+        int affected = 0;
+        try {
+            affected = orderMapper.updateOrder(po);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        // 检查修改结果
+        if (affected <= 0) {
+            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST);
+        }
+        return new APIReturnObject<>();
     }
 }

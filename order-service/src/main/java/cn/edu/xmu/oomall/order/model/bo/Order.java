@@ -50,13 +50,15 @@ public class Order implements VoCreatable, SimpleVoCreatable, AuthenticObject {
     public Order(OrderPo orderPo) {
         this.orderPo = orderPo;
 
-        // 把 orderItemList 中的每个 Item 转换成 bo 对象
-        this.orderItemList =
-                orderPo.getOrderItemList()
-                .stream()
-                .map(OrderItem::new)
-                .filter(OrderItem::isAuthentic)
-                .collect(Collectors.toList());
+        // 把 orderItemList 中的每个 Item 转换成 bo 对象 (如有)
+        if (orderPo.getOrderItemList() != null) {
+            this.orderItemList =
+                    orderPo.getOrderItemList()
+                            .stream()
+                            .map(OrderItem::new)
+                            .filter(OrderItem::isAuthentic)
+                            .collect(Collectors.toList());
+        }
     }
 
     /**

@@ -3,13 +3,11 @@ package cn.edu.xmu.oomall.order.controller;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.Inspect;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
-import cn.edu.xmu.oomall.order.model.vo.EditOrderVo;
+import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
-import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
-import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +163,7 @@ public class OrderController {
 
 
     /**
-     * o5: 买家修改本人名下订单
+     * o5: 买家修改本人名下订单 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:44
@@ -180,16 +178,20 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
+    @Inspect // 需要登入
     @PutMapping("orders/{id}")
-    public Object modifyOrder(@PathVariable Integer id, @RequestBody EditOrderVo editOrderVo) {
+    public Object modifyOrder(@PathVariable Long id,
+                              @RequestBody OrderEditVo orderEditVo,
+                              @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put orders/{id}; id=" + id + " vo=" + editOrderVo);
+            logger.debug("put orders/{id}; id=" + id + " vo=" + orderEditVo);
         }
-        return null;
+        // 调用服务层
+        return ResponseUtils.make(orderService.buyerModifyOrder(id, customerId, orderEditVo));
     }
 
     /**
-     * o6: 买家取消 / 逻辑删除本人名下订单
+     * o6: 买家取消 / 逻辑删除本人名下订单 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -204,11 +206,14 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
+    @Inspect
     @DeleteMapping("orders/{id}")
-    public Object deleteOrCancelOrder(@PathVariable Integer id) {
+    public Object deleteOrCancelOrder(@PathVariable Long id,
+                                      @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("delete orders/{id}; id=" + id);
         }
-        return null;
+        // 调用服务层
+        return ResponseUtils.make(orderService.buyerDelOrder(id, customerId));
     }
 }

@@ -3,15 +3,17 @@ package cn.edu.xmu.oomall.order.service;
 import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.bo.Order;
+import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
+import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
-import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,9 +55,9 @@ public class OrderService {
      * Created by Han Li at 25/11/2020 16:58
      */
     public APIReturnObject<?> getCustomerOrders(String orderSn, Byte state,
-                                                                  String beginTime, String endTime,
-                                                                  Integer page, Integer pageSize,
-                                                                  Long customerId) {
+                                                String beginTime, String endTime,
+                                                Integer page, Integer pageSize,
+                                                Long customerId) {
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
         // 需要分页
@@ -114,7 +116,7 @@ public class OrderService {
      * @param customerId 用户 id
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<java.util.Map<java.lang.String,java.lang.Object>>
      */
-    public APIReturnObject<OrderVo> getOrder(Long id, Long customerId) {
+    public APIReturnObject<?> getOrder(Long id, Long customerId) {
         // 获取订单 Bo、Vo
         APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId);
         if (returnObject.getCode() != ResponseCode.OK) {
@@ -134,5 +136,62 @@ public class OrderService {
 
         // 封装并返回【标准返回】
         return new APIReturnObject<>(vo);
+    }
+
+
+    /**
+     * 服务 o3：买家修改订单信息
+     *
+     * @author Han Li
+     * Created at 28/11/2020 15:13
+     * Created by Han Li at 28/11/2020 15:13
+     * @param id 订单号
+     * @param customerId 消费者号
+     * @param orderEditVo 修改信息对象
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     */
+    @Transactional // 涉及到写操作的是一个事务
+    public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderEditVo orderEditVo) {
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        APIReturnObject<OrderSimpleVo> returnObject = orderDao.getSimpleOrder(id, customerId);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于用户【404 返回】
+            return new APIReturnObject<>(returnObject.getCode(), returnObject.getErrMsg());
+        }
+
+        // TODO - 检查是否修改过
+        // TODO - 检查本来地址、新地址的地区一致性
+
+        // 修改信息前的准备，mask 掉一些字段
+        orderEditVo.setMessage(null);
+        orderEditVo.setBeDeleted(null);
+
+        // 修改信息
+        return orderDao.modifyOrder(id, orderEditVo);
+    }
+
+    /**
+     * 服务 o4：买家删掉订单
+     *
+     * @author Han Li
+     * Created at 28/11/2020 15:13
+     * Created by Han Li at 28/11/2020 15:13
+     * @param id 订单号
+     * @param customerId 消费者号
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     */
+    @Transactional // 涉及到写操作的是一个事务
+    public APIReturnObject<?> buyerDelOrder(Long id, Long customerId) {
+        // 查询订单，检查所有者
+        APIReturnObject<OrderSimpleVo> returnObject = orderDao.getSimpleOrder(id, customerId);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于用户【404 返回】
+            return new APIReturnObject<>(returnObject.getCode(), returnObject.getErrMsg());
+        }
+
+        // 删除订单
+        OrderEditVo delVo = new OrderEditVo();
+        delVo.setBeDeleted(true);
+        return orderDao.modifyOrder(id, delVo);
     }
 }

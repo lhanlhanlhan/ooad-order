@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.order.mapper;
 
+import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.OrderPo;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -13,8 +14,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface OrderMapper {
 
-    OrderPo findOrder(Long id);
+    OrderPo findOrder(Long id, Long customerId, Long shopId, boolean includeDeleted);
 
-    OrderPo findOrderWithItem(Long id, Long customerId);
+    OrderPo findOrderWithItem(Long id, Long customerId, Long shopId, boolean includeDeleted);
+
+    int updateOrder(OrderEditPo editPo);
 
 }
