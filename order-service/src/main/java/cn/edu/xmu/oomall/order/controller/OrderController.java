@@ -5,7 +5,6 @@ import cn.edu.xmu.oomall.order.aspects.Inspect;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.model.vo.EditOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
-import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -71,7 +70,7 @@ public class OrderController {
 
 
     /**
-     * o2: 买家查询名下订单 (概要)
+     * o2: 买家查询名下订单 (概要) [DONE]
      *
      * @author Han Li
      * Created at 25/11/2020 15:30
@@ -107,22 +106,10 @@ public class OrderController {
                     " endTime=" + endTime + " page=" + page +
                     " pageSize=" + pageSize + " customerId=" + customerId);
         }
-        // 判断是否需要分页
-        APIReturnObject<?> returnObject;
-        if (page != null && pageSize != null) {
-            // 获取数据
-            returnObject = orderService.getPagedCustomerOrders(
-                    orderSn, state, beginTime, endTime, page, pageSize, customerId
-            );
-            // 处理分页
-            return ResponseUtils.makePaged((APIReturnObject<PageInfo<?>>) returnObject);
-        } else {
-            // 获取数据
-            returnObject = orderService.getCustomerOrders(
-                    orderSn, state, beginTime, endTime, customerId
-            );
-            return ResponseUtils.make(returnObject);
-        }
+        // 获取数据并返回
+        return ResponseUtils.make(orderService.getCustomerOrders(
+                orderSn, state, beginTime, endTime, page, pageSize, customerId
+        ));
     }
 
 
@@ -151,7 +138,7 @@ public class OrderController {
 
 
     /**
-     * o4: 买家查询订单完整信息 (普通，团购，预售)
+     * o4: 买家查询订单完整信息 (普通，团购，预售) [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:44
@@ -165,12 +152,15 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
+    @Inspect
     @GetMapping("orders/{id}")
-    public Object getDetailedOrder(@PathVariable Integer id) {
+    public Object getDetailedOrder(@PathVariable Long id,
+                                   @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get orders/{id}; id=" + id);
         }
-        return null;
+        // 调用服务层
+        return ResponseUtils.make(orderService.getOrder(id, customerId));
     }
 
 

@@ -85,33 +85,20 @@ public class ResponseUtils {
     }
 
     /**
-     * (200) 用 Paged APIReturnObject 创造 API 标准返回
+     * (xxx) 创造表示 任何返回码 的 API 标准返回，不包含数据
      *
      * @author Han Li
-     * Created at 25/11/2020 16:06
-     * Created by Han Li at 25/11/2020 16:06
-     * @param returnObject 原返回 Object
-     * @return java.lang.Object 修饰后的返回 Object
+     * Created at 25/11/2020 08:31
+     * Created by Han Li at 25/11/2020 08:31
+     * @param code 返回码
+     * @param errMsg 返回讯息
+     * @return java.lang.Object
      */
-    public static Object makePaged(APIReturnObject<PageInfo<?>> returnObject) {
-        // 获取 returnObject 中的 PageInfo 对象
-        PageInfo<?> pageInfo = returnObject.getData();
-        Map<String, Object> embedObj = null;
-        // 构造分页返回对象
-        if (pageInfo != null) {
-            embedObj = new HashMap<>();
-            embedObj.put("list", pageInfo.getList());
-            embedObj.put("total", pageInfo.getTotal());
-            embedObj.put("page", pageInfo.getPageNum());
-            embedObj.put("pageSize", pageInfo.getPageSize());
-            embedObj.put("pages", pageInfo.getPages());
-        }
-        // 装入返回体
-        if (embedObj != null) {
-            return ok(embedObj);
-        } else {
-            return ok();
-        }
+    public static Object make(ResponseCode code, String errMsg) {
+        Map<String, Object> obj = new HashMap<String, Object>();
+        obj.put("errno", code.getCode());
+        obj.put("errmsg", errMsg);
+        return obj;
     }
 
     /**

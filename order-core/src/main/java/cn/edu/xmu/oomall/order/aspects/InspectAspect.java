@@ -2,7 +2,6 @@ package cn.edu.xmu.oomall.order.aspects;
 
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.connector.UserConnector;
-import cn.edu.xmu.oomall.order.connector.model.UserInfo;
 import cn.edu.xmu.oomall.order.enums.Constants;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
@@ -24,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * 「审查」的 Aspect 定义
@@ -92,12 +92,12 @@ public class InspectAspect {
         }
 
         // 从 其他模块 获取用户资料
-        UserInfo userInfo = userConnector.verifyTokenAndGetUserInfo(token);
+        Map<String, Object> userInfo = userConnector.verifyTokenAndGetCustomerInfo(token);
         if (null == userInfo) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return ResponseUtils.make(ResponseCode.INVALID_JWT);
         }
-        Long userId = userInfo.getId();
+        Long userId = (Long) userInfo.get("id");
 
         // 将获取到的用户资料注入进 Args 去
         Object[] args = joinPoint.getArgs();

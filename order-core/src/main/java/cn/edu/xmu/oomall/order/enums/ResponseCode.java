@@ -25,6 +25,7 @@ public enum ResponseCode {
     /**
      * 订单模块错误
      */
+    ORDER_DISTORTED(800, "订单被篡改"),
     ORDER_STATE_NOT_ALLOW(801, "订单状态禁止"),
     FREIGHT_MODEL_NAME_SAME(802, "运费模板名重复"),
     REGION_SAME(803, "运费模板中该地区已经定义"),

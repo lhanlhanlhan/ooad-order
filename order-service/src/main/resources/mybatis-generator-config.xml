@@ -4,24 +4,9 @@
         "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 <generatorConfiguration>
 
-    <!--
-        context:生成一组对象的环境
-        id:必选，上下文id，用于在生成错误时提示
-        defaultModelType:指定生成对象的样式
-            1，conditional：类似hierarchical；
-            2，flat：所有内容（主键，blob）等全部生成在一个对象中；
-            3，hierarchical：主键生成一个XXKey对象(key class)，Blob等单独生成一个对象，其他简单属性在一个对象中(record class)
-        targetRuntime:
-            1，MyBatis3：默认的值，生成基于MyBatis3.x以上版本的内容，包括XXXBySample；
-            2，MyBatis3Simple：类似MyBatis3，只是不生成XXXBySample；
-        introspectedColumnImpl：类全限定名，用于扩展MBG
-       -->
-
     <context id="order" targetRuntime="MyBatis3">
 
-        <!-- 自动识别数据库关键字，默认false，如果设置为true，根据SqlReservedWords中定义的关键字列表；
-            一般保留默认值，遇到数据库关键字（Java关键字），使用columnOverride覆盖
-            -->
+        <!-- 自动识别数据库关键字 -->
         <property name="autoDelimitKeywords" value="false"/>
         <!-- 生成的Java文件的编码 -->
         <property name="javaFileEncoding" value="UTF-8"/>
@@ -159,22 +144,30 @@
         </table>
 
         <!-- 表 4 -->
-        <!-- OrderPo 完整对象 -->
-        <table tableName="order" domainObjectName="OrderPo"
-               enableCountByExample="false" enableUpdateByExample="false"
-               enableDeleteByExample="false" enableSelectByExample="false"
-               selectByExampleQueryId="false">
-            <property name="useActualColumnNames" value="false"/>
-            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
-        </table>
+        <!-- OrderPo 完整对象：不用 generator 生成，自己写 -->
         <!-- OrderSimplePo 概要对象 -->
-        <table tableName="order" domainObjectName="OrderSimplePo"
+        <table tableName="orders" domainObjectName="OrderSimplePo"
                enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="true"
-               selectByExampleQueryId="false">
+               selectByExampleQueryId="false" delimitIdentifiers="true">
             <!-- 注意：enableSelectByExample = true，以允许不确定参数查询 -->
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+            <!-- 下面指定 SimplePo 需要选择的列 -->
+            <ignoreColumnsByRegex pattern=".*">
+                <except column="id"/>
+                <except column="order_sn"/>
+                <except column="customer_id"/>
+                <except column="shop_id"/>
+                <except column="pid"/>
+                <except column="order_type"/>
+                <except column="state"/>
+                <except column="substate"/>
+                <except column="gmt_created"/>
+                <except column="origin_price"/>
+                <except column="discount_price"/>
+                <except column="freight_price"/>
+            </ignoreColumnsByRegex>
         </table>
 
         <!-- 表 5 -->
