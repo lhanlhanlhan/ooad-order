@@ -1,7 +1,7 @@
 package cn.edu.xmu.oomall.order.aspects;
 
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
-import cn.edu.xmu.oomall.order.connector.UserConnector;
+import cn.edu.xmu.oomall.order.connector.CustomerConnector;
 import cn.edu.xmu.oomall.order.enums.Constants;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -43,7 +43,7 @@ public class InspectAspect {
 
     // 用户服务连接器组件
     @Autowired
-    private UserConnector userConnector;
+    private CustomerConnector customerConnector;
 
     // 定义此 Aspect 在 Controller 层切点为 @Inspect 注解
     @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.Inspect)")
@@ -94,7 +94,7 @@ public class InspectAspect {
         }
 
         // 从 其他模块 获取用户资料
-        Map<String, Object> userInfo = userConnector.verifyTokenAndGetCustomerInfo(token);
+        Map<String, Object> userInfo = customerConnector.verifyTokenAndGetCustomerInfo(token);
         if (null == userInfo) {
             // 未有附带 token，返回错误
             APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_JWT);

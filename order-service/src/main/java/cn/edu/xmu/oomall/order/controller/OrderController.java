@@ -191,7 +191,7 @@ public class OrderController {
     }
 
     /**
-     * o6: 买家取消 / 逻辑删除本人名下订单
+     * o6: 买家取消 / 逻辑删除本人名下订单 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -218,7 +218,7 @@ public class OrderController {
     }
 
     /**
-     * o7: 买家确认收货
+     * o7: 买家确认收货 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -245,7 +245,7 @@ public class OrderController {
     }
 
     /**
-     * o8: 买家将团购订单改换为普通订单
+     * o8: 买家将团购订单改换为普通订单 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50

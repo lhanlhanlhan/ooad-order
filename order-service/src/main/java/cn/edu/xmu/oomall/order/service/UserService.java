@@ -1,6 +1,6 @@
 package cn.edu.xmu.oomall.order.service;
 
-import cn.edu.xmu.oomall.order.connector.UserConnector;
+import cn.edu.xmu.oomall.order.connector.CustomerConnector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ import java.util.Map;
 public class UserService {
 
     @Autowired
-    private UserConnector userConnector;
+    private CustomerConnector customerConnector;
 
     /**
      * 验证 token 并获取顾客用户资料
@@ -26,7 +26,7 @@ public class UserService {
      * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
      */
     public Map<String, Object> verifyTokenAndGetCustomerInfo(String token) {
-        return userConnector.verifyTokenAndGetCustomerInfo(token);
+        return customerConnector.verifyTokenAndGetCustomerInfo(token);
     }
 
     /**
@@ -36,6 +36,6 @@ public class UserService {
      * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
      */
     public Map<String, Object> getCustomerInfo(Long userId) {
-        return userConnector.getCustomerInfo(userId);
+        return customerConnector.getCustomerInfo(userId);
     }
 }

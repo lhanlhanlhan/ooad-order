@@ -1,13 +1,7 @@
 package cn.edu.xmu.oomall.order.model.vo;
 
-import cn.edu.xmu.oomall.order.connector.ShopConnector;
-import cn.edu.xmu.oomall.order.connector.UserConnector;
 import cn.edu.xmu.oomall.order.model.bo.Order;
-import cn.edu.xmu.oomall.order.model.bo.OrderItem;
 import lombok.Data;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;

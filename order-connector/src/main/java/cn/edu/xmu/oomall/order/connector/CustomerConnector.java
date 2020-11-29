@@ -13,7 +13,7 @@ import java.util.Map;
  * Modified by Han Li at 25/11/2020 9:33 上午
  */
 @Component
-public class UserConnector {
+public class CustomerConnector {
 
     /**
      * TODO - 从其他模块验证 token 并获取顾客用户资料
