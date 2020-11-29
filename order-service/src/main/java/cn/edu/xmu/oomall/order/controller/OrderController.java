@@ -6,6 +6,7 @@ import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
+import cn.edu.xmu.oomall.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
@@ -327,5 +328,38 @@ public class OrderController {
         return ResponseUtils.make(orderService.getShopOrders(
                 shopId, customerId, orderSn, state, beginTime, endTime, page, pageSize
         ));
+    }
+
+    /**
+     * o10: 管理员建立售后订单 [DONE]
+     *
+     * @author Han Li
+     * Created at 29/11/2020 13:24
+     * Created by Han Li at 29/11/2020 13:24
+     * @param orderVo 订单详情
+     * @return java.lang.Object
+     */
+    @ApiOperation(value = "管理员建立售后订单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 800, message = "商品库存不足"),
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @InspectAdmin // 管理员登入
+    @PostMapping("shops/{shopId}/orders")
+    public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
+                                       @PathVariable Long shopId,
+                                       @LoginUser Long adminId,
+                                       @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("post orders; vo=" + orderVo);
+        }
+        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        return ResponseUtils.make(orderService.createAfterSaleOrder(adminShopId, orderVo));
     }
 }

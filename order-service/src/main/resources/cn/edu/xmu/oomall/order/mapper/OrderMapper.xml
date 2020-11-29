@@ -14,12 +14,11 @@
 
     <!-- TODO - Order 表在插入时要插入的列 -->
     <sql id="Order_Insert_List">
-        cuseomer_id
-    </sql>
-
-    <!-- TODO - OrderItem 表在插入时要插入的列 -->
-    <sql id="OrderItem_Insert_List">
-        order_id
+        customer_id, shop_id, order_sn, pid, consignee,
+        region_id, address, mobile, message, order_type, freight_price,
+        coupon_id, coupon_activity_id, discount_price, origin_price, presale_id, groupon_discount,
+        rebate_num, confirm_time, shipment_sn, state, substate,
+        gmt_created, gmt_modified
     </sql>
 
     <!-- 将 Order 的所有 OrderItem 取出并创建 1-n 联系的 ResultMap -->
@@ -130,6 +129,17 @@
         </set>
         WHERE id = #{id}
     </update>
+
+    <!-- TODO - 创建订单 -->
+    <!-- keyProperty="id" useGeneratedKeys="true"，mybatis 会帮把刚加入的记录的 id 放入 OrderPo 里的 id字段 -->
+    <insert id="addOrder" parameterType="OrderPo" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO `orders`(<include refid="Order_Insert_List"/>)
+        VALUES(#{customerId}, #{shopId}, #{orderSn}, #{pid}, #{consignee},
+        #{regionId}, #{address}, #{mobile}, #{message}, #{orderType}, #{freightPrice},
+        #{couponId}, #{couponActivityId}, #{discountPrice}, #{originPrice}, #{presaleId}, #{grouponDiscount},
+        #{rebateNum}, #{confirmTime}, #{shipmentSn}, #{state}, #{substate},
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
 
 </mapper>
 

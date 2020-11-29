@@ -2,13 +2,11 @@ package cn.edu.xmu.oomall.order.dao;
 
 import cn.edu.xmu.oomall.order.controller.OrderController;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
+import cn.edu.xmu.oomall.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.oomall.order.mapper.OrderMapper;
 import cn.edu.xmu.oomall.order.mapper.OrderSimplePoMapper;
 import cn.edu.xmu.oomall.order.model.bo.Order;
-import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
-import cn.edu.xmu.oomall.order.model.po.OrderPo;
-import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
-import cn.edu.xmu.oomall.order.model.po.OrderSimplePoExample;
+import cn.edu.xmu.oomall.order.model.po.*;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -42,6 +40,10 @@ public class OrderDao {
     // Order 的 Mapper
     @Autowired
     private OrderMapper orderMapper;
+
+    // OrderItem 的 Mapper
+    @Autowired
+    private OrderItemPoMapper orderItemPoMapper;
 
     // 邱明规定的 Date Formatter
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-M-d");
@@ -215,5 +217,23 @@ public class OrderDao {
             return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST);
         }
         return new APIReturnObject<>();
+    }
+
+    /**
+     * 插入订单项目
+     *
+     * @param po 订单项目 Po
+     */
+    public int addOrderItem(OrderItemPo po) {
+        return orderItemPoMapper.insert(po);
+    }
+
+    /**
+     * 插入订单
+     *
+     * @param po 订单项目 Po
+     */
+    public int addOrder(OrderPo po) {
+        return orderMapper.addOrder(po);
     }
 }

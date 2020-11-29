@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.order.connector;
 
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,23 +24,27 @@ public class ShopConnector {
      */
     public Map<String, Object> getShopInfo(Long shopId) {
         // 在这里把其他模块的 Model 转为统一的 Map
-        return buildShopInfo(1L, "XMU Shopping Centre", "2020-11-22T00:00:00", "2020-11-22T00:00:00");
+        Map<String, Object> shopInfo = new HashMap<>();
+        shopInfo.put("id", shopId);
+        shopInfo.put("name", "厦大百货");
+        shopInfo.put("gmtCreate", LocalDateTime.now().toString());
+        shopInfo.put("gmtModified", null);
+        return shopInfo;
     }
 
     /**
-     * 创建商铺信息在订单模块的字典
-     * @param id
-     * @param name
-     * @param gmtCreate
-     * @param gmtModified
-     * @return
+     * TODO - 从商品模块获取商品资料
+     *
+     * @param skuId 商铺 Id
+     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
      */
-    private Map<String, Object> buildShopInfo(Long id, String name, String gmtCreate, String gmtModified) {
+    public Map<String, Object> getSkuInfo(Long skuId) {
+        // 在这里把其他模块的 Model 转为统一的 Map
         Map<String, Object> shopInfo = new HashMap<>();
-        shopInfo.put("id", id);
-        shopInfo.put("name", name);
-        shopInfo.put("gmtCreate", gmtCreate);
-        shopInfo.put("gmtModified", gmtModified);
+        shopInfo.put("id", skuId);
+        shopInfo.put("name", "Apple MacBook Pro 2020 13' Grey");
+        shopInfo.put("price", 1324500L);
         return shopInfo;
     }
+
 }

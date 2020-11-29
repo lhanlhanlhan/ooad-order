@@ -1,6 +1,7 @@
 package cn.edu.xmu.oomall.order.service;
 
 import cn.edu.xmu.oomall.order.connector.ShopConnector;
+import cn.edu.xmu.oomall.order.exceptions.NotInStockException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,5 +28,26 @@ public class ShopService {
      */
     public Map<String, Object> getShopInfo(Long shopId) {
         return shopConnector.getShopInfo(shopId);
+    }
+
+    /**
+     * TODO - 获取商品资料
+     *
+     * @param skuId 商品 Sku Id
+     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
+     */
+    public Map<String, Object> getSkuInfo(Long skuId) {
+        return shopConnector.getSkuInfo(skuId);
+    }
+
+    /**
+     * TODO - 扣库存
+     *
+     * @param skuId 商品 Id
+     * @param count 商品 购入数量
+     * @return 0：成功；1：商品不够
+     */
+    public int decreaseStock(Long skuId, Integer count) {
+        return 0;
     }
 }
