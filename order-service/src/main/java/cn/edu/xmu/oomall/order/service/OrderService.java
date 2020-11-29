@@ -36,7 +36,7 @@ public class OrderService {
     private OrderDao orderDao;
 
     @Autowired
-    private UserService userService;
+    private CustomerService customerService;
 
     @Autowired
     private ShopService shopService;
@@ -127,7 +127,7 @@ public class OrderService {
         OrderVo vo = order.createVo();
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        Map<String, Object> customer = userService.getCustomerInfo(id);
+        Map<String, Object> customer = customerService.getCustomerInfo(id);
         vo.setCustomer(customer);
         // 补充 Vo 的 Shop 信息：联系商品模块
         Long shopId = order.getShopId();

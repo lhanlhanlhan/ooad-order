@@ -36,17 +36,17 @@ import java.util.Map;
  */
 @Aspect
 @Component
-public class InspectAspect {
+public class InspectCustomerAspect {
 
     // 审查日志组件
-    private static final Logger logger = LoggerFactory.getLogger(InspectAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(InspectCustomerAspect.class);
 
     // 用户服务连接器组件
     @Autowired
     private CustomerConnector customerConnector;
 
     // 定义此 Aspect 在 Controller 层切点为 @Inspect 注解
-    @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.Inspect)")
+    @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.InspectCustomer)")
     public void inspectAspect() {
     }
 

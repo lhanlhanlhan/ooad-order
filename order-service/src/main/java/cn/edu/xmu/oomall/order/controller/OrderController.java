@@ -1,7 +1,7 @@
 package cn.edu.xmu.oomall.order.controller;
 
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
-import cn.edu.xmu.oomall.order.aspects.Inspect;
+import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
@@ -51,7 +51,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Inspect // 需要登入
+    @InspectCustomer // 需要登入
     @GetMapping("orders/states")
     public Object getAllStatus() {
         if (logger.isDebugEnabled()) {
@@ -89,7 +89,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Inspect  // 需要登入
+    @InspectCustomer  // 需要登入
     @GetMapping("orders")
     public Object getAllOrders(@RequestParam(required = false) String orderSn,
                                @RequestParam(required = false) Byte state,
@@ -150,7 +150,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Inspect
+    @InspectCustomer
     @GetMapping("orders/{id}")
     public Object getDetailedOrder(@PathVariable Long id,
                                    @LoginUser Long customerId) {
@@ -178,7 +178,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Inspect // 需要登入
+    @InspectCustomer // 需要登入
     @PutMapping("orders/{id}")
     public Object modifyOrder(@PathVariable Long id,
                               @RequestBody OrderEditVo orderEditVo,
@@ -206,7 +206,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @Inspect
+    @InspectCustomer
     @DeleteMapping("orders/{id}")
     public Object deleteOrCancelOrder(@PathVariable Long id,
                                       @LoginUser Long customerId) {
@@ -233,7 +233,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @Inspect
+    @InspectCustomer
     @PutMapping("orders/{id}/confirm")
     public Object confirmOrder(@PathVariable Long id,
                                @LoginUser Long customerId) {
@@ -260,7 +260,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @Inspect
+    @InspectCustomer
     @PostMapping("orders/{id}/groupon-normal")
     public Object changeOrderTo(@PathVariable Long id,
                                 @LoginUser Long customerId) {

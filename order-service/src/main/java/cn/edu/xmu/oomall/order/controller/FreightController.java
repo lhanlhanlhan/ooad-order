@@ -1,7 +1,7 @@
 package cn.edu.xmu.oomall.order.controller;
 
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
-import cn.edu.xmu.oomall.order.aspects.Inspect;
+import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class FreightController {
 
 
 
-    @Inspect //登录
+    @InspectCustomer //登录
     @GetMapping("shops/{id}/freightmodel")
     public Object getFreightModel(@RequestParam(required = true) Integer shopId,
                                   @RequestParam(required = false) String name,

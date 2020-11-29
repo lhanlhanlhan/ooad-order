@@ -14,7 +14,7 @@ import java.util.Map;
  * Modified by Han Li at 28/11/2020 11:15 上午
  */
 @Service
-public class UserService {
+public class CustomerService {
 
     @Autowired
     private CustomerConnector customerConnector;
