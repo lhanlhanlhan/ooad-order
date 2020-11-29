@@ -1,7 +1,6 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
-import cn.edu.xmu.oomall.order.interfaces.AuthenticObject;
 import cn.edu.xmu.oomall.order.interfaces.SimpleVoCreatable;
 import cn.edu.xmu.oomall.order.interfaces.VoCreatable;
 import cn.edu.xmu.oomall.order.model.po.OrderPo;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  * Modified by Han Li at 25/11/2020 4:44 下午
  */
 @Data
-public class Order implements VoCreatable, SimpleVoCreatable, AuthenticObject {
+public class Order implements VoCreatable, SimpleVoCreatable {
 
     private List<OrderItem> orderItemList;
 
@@ -57,7 +56,6 @@ public class Order implements VoCreatable, SimpleVoCreatable, AuthenticObject {
                     orderPo.getOrderItemList()
                             .stream()
                             .map(OrderItem::new)
-                            .filter(OrderItem::isAuthentic)
                             .collect(Collectors.toList());
         }
     }
@@ -80,26 +78,6 @@ public class Order implements VoCreatable, SimpleVoCreatable, AuthenticObject {
     @Override
     public OrderVo createVo() {
         return new OrderVo(this);
-    }
-
-    /**
-     * 判断该对象是否被篡改
-     *
-     * @return 是否被篡改，若被篡改，返回 false
-     */
-    @Override
-    public boolean isAuthentic() {
-        return true;
-    }
-
-    /**
-     * 获取对象的签名
-     *
-     * @return 对象的签名
-     */
-    @Override
-    public String calcSignature() {
-        return "213612837125";
     }
 
     /**

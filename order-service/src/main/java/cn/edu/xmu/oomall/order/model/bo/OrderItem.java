@@ -1,6 +1,5 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
-import cn.edu.xmu.oomall.order.interfaces.AuthenticObject;
 import cn.edu.xmu.oomall.order.interfaces.VoCreatable;
 import cn.edu.xmu.oomall.order.model.po.OrderItemPo;
 import cn.edu.xmu.oomall.order.model.vo.OrderItemVo;
@@ -10,31 +9,11 @@ import cn.edu.xmu.oomall.order.model.vo.OrderItemVo;
  * Created at 26/11/2020 3:15 下午
  * Modified by Han Li at 26/11/2020 3:15 下午
  */
-public class OrderItem implements VoCreatable, AuthenticObject {
+public class OrderItem implements VoCreatable {
 
     private OrderItemPo orderItemPo = null;
     public OrderItem(OrderItemPo po) {
         this.orderItemPo = po;
-    }
-
-    /**
-     * 判断该对象是否被篡改
-     *
-     * @return 是否被篡改，若被篡改，返回 false
-     */
-    @Override
-    public boolean isAuthentic() {
-        return true;
-    }
-
-    /**
-     * 获取对象的签名
-     *
-     * @return 对象的签名
-     */
-    @Override
-    public String calcSignature() {
-        return "";
     }
 
     /**

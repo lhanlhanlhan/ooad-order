@@ -74,7 +74,6 @@ public class OrderService {
             // 转为业务对象列表
             orders = orderSimplePos.getList().stream()
                     .map(Order::new)
-                    .filter(Order::isAuthentic)
                     .map(Order::createSimpleVo)
                     .collect(Collectors.toList());
             // 用 Map 封装
@@ -94,7 +93,6 @@ public class OrderService {
             // 转为业务对象列表
             orders = orderSimplePos.stream()
                     .map(Order::new)
-                    .filter(Order::isAuthentic)
                     .map(Order::createSimpleVo)
                     .collect(Collectors.toList());
             // 用 Map 封装
@@ -179,9 +177,6 @@ public class OrderService {
         po.setMobile(orderEditVo.getMobile());
         po.setRegionId(orderEditVo.getRegionId());
 
-        // 计算、更新签名
-        po.setSignature(order.calcSignature());
-
         return orderDao.modifyOrder(po);
     }
 
@@ -224,9 +219,6 @@ public class OrderService {
         }
         delPo.setId(id);
 
-        // 计算、更新签名
-        delPo.setSignature(order.calcSignature());
-
         return orderDao.modifyOrder(delPo);
     }
 
@@ -261,9 +253,6 @@ public class OrderService {
         po.setId(id);
         po.setState(OrderStatus.SIGNED.getCode());
 
-        // 计算、更新签名
-        po.setSignature(order.calcSignature());
-
         return orderDao.modifyOrder(po);
     }
 
@@ -297,9 +286,6 @@ public class OrderService {
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
         po.setOrderType((byte) 1);
-
-        // 计算、更新签名
-        po.setSignature(order.calcSignature());
 
         return orderDao.modifyOrder(po);
     }
