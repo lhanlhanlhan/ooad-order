@@ -21,6 +21,7 @@ public enum ResponseCode {
     INTERNAL_SERVER_ERR(500,"服务器内部错误"),
     INVALID_JWT(501,"JWT不合法"),
     JWT_EXPIRED(502,"JWT过期"),
+    INVALID_USER(503,"用户不存在或不可使用"),
 
     /**
      * 订单模块错误

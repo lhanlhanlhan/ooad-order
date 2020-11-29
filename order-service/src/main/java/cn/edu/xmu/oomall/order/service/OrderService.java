@@ -66,7 +66,7 @@ public class OrderService {
         if (page != null && pageSize != null) {
             PageHelper.startPage(page, pageSize);
             // 调用 Dao 层
-            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId);
+            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
@@ -85,7 +85,7 @@ public class OrderService {
         // 不必分页
         else {
             // 调用 Dao 层
-            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId);
+            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, null);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
@@ -285,8 +285,74 @@ public class OrderService {
         // 更改订单类型为普通订单
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setOrderType((byte) 1);
+        po.setOrderType((byte) 0); // 普通订单：0
+        po.setState(OrderStatus.PAID.getCode()); // 状态改为已支付
 
         return orderDao.modifyOrder(po);
+    }
+
+    /**
+     * 服务 o7：获取商铺下所有订单概要
+     *
+     * @param orderSn    订单号
+     * @param state      状态码
+     * @param beginTime  开始时间
+     * @param endTime    结束时间
+     * @param page       页码
+     * @param pageSize   页大小
+     * @param customerId 用户 id
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @author Han Li
+     * Created at 25/11/2020 16:58
+     * Created by Han Li at 25/11/2020 16:58
+     */
+    public APIReturnObject<?> getShopOrders(Long shopId, Long customerId,
+                                            String orderSn, Byte state,
+                                            String beginTime, String endTime,
+                                            Integer page, Integer pageSize) {
+        List<OrderSimpleVo> orders;
+        Map<String, Object> returnObj = new HashMap<>();
+        // 需要分页
+        if (page != null && pageSize != null) {
+            PageHelper.startPage(page, pageSize);
+            // 调用 Dao 层
+            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId);
+            if (returnObject.getCode() != ResponseCode.OK) {
+                return returnObject;
+            }
+            PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
+            // 转为业务对象列表
+            orders = orderSimplePos.getList().stream()
+                    .map(Order::new)
+                    .map(Order::createSimpleVo)
+                    .collect(Collectors.toList());
+            // 用 Map 封装
+            returnObj.put("page", orderSimplePos.getPageNum());
+            returnObj.put("pageSize", orderSimplePos.getPageSize());
+            returnObj.put("total", orderSimplePos.getTotal());
+            returnObj.put("pages", orderSimplePos.getPages());
+        }
+        // 不必分页
+        else {
+            // 调用 Dao 层
+            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId);
+            if (returnObject.getCode() != ResponseCode.OK) {
+                return returnObject;
+            }
+            List<OrderSimplePo> orderSimplePos = returnObject.getData();
+            // 转为业务对象列表
+            orders = orderSimplePos.stream()
+                    .map(Order::new)
+                    .map(Order::createSimpleVo)
+                    .collect(Collectors.toList());
+            // 用 Map 封装
+            returnObj.put("page", 1);
+            returnObj.put("pageSize", orders.size());
+            returnObj.put("total", orders.size());
+            returnObj.put("pages", 1);
+        }
+        // 返回【标准返回】
+        returnObj.put("list", orders);
+        return new APIReturnObject<>(returnObj);
     }
 }

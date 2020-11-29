@@ -62,8 +62,9 @@ public class OrderDao {
     public APIReturnObject<PageInfo<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
                                                                     String beginTime, String endTime,
                                                                     int page, int pageSize,
-                                                                    Long customerId) {
-        APIReturnObject<List<OrderSimplePo>> orderSimplePos = getSimpleOrders(orderSn, state, beginTime, endTime, customerId);
+                                                                    Long customerId,
+                                                                    Long shopId) {
+        APIReturnObject<List<OrderSimplePo>> orderSimplePos = getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId);
         if (orderSimplePos.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(orderSimplePos.getCode(), orderSimplePos.getErrMsg());
         }
@@ -83,7 +84,7 @@ public class OrderDao {
      */
     public APIReturnObject<List<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
                                                                 String beginTime, String endTime,
-                                                                Long customerId) {
+                                                                Long customerId, Long shopId) {
         // 创建 PoExample 对象，以实现多参数查询
         OrderSimplePoExample example = new OrderSimplePoExample();
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
@@ -118,8 +119,12 @@ public class OrderDao {
                 return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "结束日期格式错误");
             }
         }
-        // 将用户 id 放到查询规则里面去
-        criteria.andCustomerIdEqualTo(customerId);
+        if (shopId != null) {
+            criteria.andShopIdEqualTo(shopId);
+        }
+        if (customerId != null) {
+            criteria.andCustomerIdEqualTo(customerId);
+        }
         // 执行查询
         List<OrderSimplePo> orderSimplePoList;
         try {

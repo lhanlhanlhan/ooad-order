@@ -1,17 +1,22 @@
 package cn.edu.xmu.oomall.order.controller;
 
+import cn.edu.xmu.oomall.order.annotations.AdminShop;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
+import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
 import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
+import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -93,6 +98,7 @@ public class OrderController {
     @GetMapping("orders")
     public Object getAllOrders(@RequestParam(required = false) String orderSn,
                                @RequestParam(required = false) Byte state,
+                               @RequestParam(required = false) Byte type, // API 没有但以备不时之需
                                @RequestParam(required = false) String beginTime,
                                @RequestParam(required = false) String endTime,
                                @RequestParam(required = false) Integer page,
@@ -245,13 +251,13 @@ public class OrderController {
     }
 
     /**
-     * o8: 买家将团购订单改换为普通订单 [DONE]
+     * o8: 买家将团购订单转为普通订单 [DONE]
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
      * Modified at 2020/11/5 15:50
      */
-    @ApiOperation(value = "买家将团购订单改换为普通订单")
+    @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
             @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
@@ -262,12 +268,64 @@ public class OrderController {
     })
     @InspectCustomer
     @PostMapping("orders/{id}/groupon-normal")
-    public Object changeOrderTo(@PathVariable Long id,
-                                @LoginUser Long customerId) {
+    public Object exchangeToNormalOrder(@PathVariable Long id,
+                                        @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put orders/{id}/confirm; id=" + id);
+            logger.debug("post orders/{id}/groupon-normal; id=" + id + " customerId=" + customerId);
         }
         // 调用服务层
         return ResponseUtils.make(orderService.buyerChangeGroupon(id, customerId));
+    }
+
+
+    /**
+     * o9: 店家查询商户所有订单 (概要) [DONE]
+     *
+     * @author Han Li
+     * Created at 25/11/2020 15:30
+     * Created by Han Li at 25/11/2020 15:30
+     * @param orderSn 订单号
+     * @param state 订单状态
+     * @param beginTime 开始时间
+     * @param endTime 结束时间
+     * @param page 页数
+     * @param pageSize 每页包括的记录数量
+     * @param customerId 用户 ID
+     * @return java.lang.Object
+     */
+    @ApiOperation(value = "店家查询商户所有订单 (概要)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @InspectAdmin  // 需要管理员登入
+    @GetMapping("shops/{shopId}/orders")
+    public Object adminGetShopAllOrders(@PathVariable Long shopId,
+                                        @RequestParam(required = false) Long customerId,
+                                        @RequestParam(required = false) String orderSn,
+                                        @RequestParam(required = false) Byte state, // API 没有但以备不时之需
+                                        @RequestParam(required = false) Byte type, // API 没有但以备不时之需
+                                        @RequestParam(required = false) String beginTime,
+                                        @RequestParam(required = false) String endTime,
+                                        @RequestParam(required = false) Integer page,
+                                        @RequestParam(required = false) Integer pageSize,
+                                        @LoginUser Long adminId,
+                                        @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get states: shopId=" + shopId + " customerId=" + customerId + " orderSn=" + orderSn +
+                    " state=" + state + " beginTime=" + beginTime +
+                    " endTime=" + endTime + " page=" + page +
+                    " pageSize=" + pageSize + " adminId=" + adminId);
+        }
+        // 检查是否具有查询对应店铺订单的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        // 获取数据并返回
+        return ResponseUtils.make(orderService.getShopOrders(
+                shopId, customerId, orderSn, state, beginTime, endTime, page, pageSize
+        ));
     }
 }

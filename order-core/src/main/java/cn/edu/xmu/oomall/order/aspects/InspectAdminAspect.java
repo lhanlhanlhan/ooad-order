@@ -1,7 +1,9 @@
 package cn.edu.xmu.oomall.order.aspects;
 
+import cn.edu.xmu.oomall.order.annotations.AdminShop;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.connector.CustomerConnector;
+import cn.edu.xmu.oomall.order.connector.PrivilegeConnector;
 import cn.edu.xmu.oomall.order.enums.Constants;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -28,26 +30,26 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * 「审查」的 Aspect 定义
+ * 「审查管理员」的 Aspect 定义
  *
  * @author Han Li
- * Created at 25/11/2020 8:59 上午
- * Modified by Han Li at 25/11/2020 8:59 上午
+ * Created at 29/11/2020 11:30 上午
+ * Modified by Han Li at 29/11/2020 11:30 上午
  */
 @Aspect
 @Component
-public class InspectCustomerAspect {
+public class InspectAdminAspect {
 
     // 审查日志组件
     private static final Logger logger = LoggerFactory.getLogger(InspectCustomerAspect.class);
 
-    // 用户服务连接器组件
+    // 权限服务连接器组件
     @Autowired
-    private CustomerConnector customerConnector;
+    private PrivilegeConnector privilegeConnector;
 
     // 定义此 Aspect 在 Controller 层切点为 @Inspect 注解
-    @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.InspectCustomer)")
-    public void inspectAspect() {
+    @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.InspectAdmin)")
+    public void inspectAdminAspect() {
     }
 
     /**
@@ -58,7 +60,7 @@ public class InspectCustomerAspect {
      * Created by Han Li at 25/11/2020 09:04
      * @param joinPoint 在 Controller 层的切点
      */
-    @Before("inspectAspect()")
+    @Before("inspectAdminAspect()")
     public void doBefore(JoinPoint joinPoint) {
     }
 
@@ -72,7 +74,7 @@ public class InspectCustomerAspect {
      * @param joinPoint 在 Controller 层的切点
      * @return java.lang.Object
      */
-    @Around("inspectAspect()")
+    @Around("inspectAdminAspect()")
     public Object around(JoinPoint joinPoint) {
         if (logger.isDebugEnabled()) {
             logger.debug("around: begin joinPoint = "+ joinPoint);
@@ -93,14 +95,15 @@ public class InspectCustomerAspect {
             return ResponseUtils.make(object);
         }
 
-        // 从 其他模块 获取用户资料
-        Map<String, Object> userInfo = customerConnector.verifyTokenAndGetCustomerInfo(token);
+        // 从 权限模块 获取用户资料
+        Map<String, Object> userInfo = privilegeConnector.verifyTokenAndGetAdminInfo(token);
         if (null == userInfo) {
-            // 未有附带 token，返回错误
-            APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_JWT);
+            // 未有附带 token，返回错误或无权限
+            APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_USER);
             return ResponseUtils.make(object);
         }
-        Long userId = (Long) userInfo.get("id");
+        Long adminId = (Long) userInfo.get("id");
+        Long shopId = (Long) userInfo.get("shopId");
 
         // 将获取到的用户资料注入进 Args 去
         Object[] args = joinPoint.getArgs();
@@ -116,9 +119,10 @@ public class InspectCustomerAspect {
                 // LoginUser.class：注入用户 id
                 if (annotation.annotationType().equals(LoginUser.class)) {
                     // 将 id 注入进去
-                    args[i] = userId;
-                    // 只注入一个，节省 CPU 时间
-                    break;
+                    args[i] = adminId;
+                } else if (annotation.annotationType().equals(AdminShop.class)) {
+                    // 将 shopId 注入进去
+                    args[i] = shopId;
                 }
             }
         }

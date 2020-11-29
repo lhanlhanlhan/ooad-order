@@ -80,6 +80,9 @@ public class ResponseUtils {
         Map<String, Object> body = new HashMap<>();
         body.put("errno", returnObject.getCode().getCode());
         body.put("errmsg", returnObject.getErrMsg());
+        if (returnObject.getData() != null) {
+            body.put("data", returnObject.getData());
+        }
         return new ResponseEntity<>(body, returnObject.getStatus());
     }
 }
