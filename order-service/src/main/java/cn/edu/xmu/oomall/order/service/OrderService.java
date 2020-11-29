@@ -1,10 +1,8 @@
 package cn.edu.xmu.oomall.order.service;
 
-import cn.edu.xmu.oomall.order.controller.PaymentController;
 import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
-import cn.edu.xmu.oomall.order.exceptions.NotInStockException;
 import cn.edu.xmu.oomall.order.model.bo.Order;
 import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.OrderItemPo;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +125,7 @@ public class OrderService {
      */
     public APIReturnObject<?> getOrder(Long id, Long customerId) {
         // 获取订单 Bo、Vo
-        APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId);
+        APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -163,7 +160,7 @@ public class OrderService {
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderEditVo orderEditVo) {
         // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId);
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, true);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -203,7 +200,7 @@ public class OrderService {
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerDelOrCancelOrder(Long id, Long customerId) {
         // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId);
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -245,7 +242,7 @@ public class OrderService {
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerConfirm(Long id, Long customerId) {
         // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId);
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -279,7 +276,7 @@ public class OrderService {
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerChangeGroupon(Long id, Long customerId) {
         // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId);
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -451,7 +448,7 @@ public class OrderService {
         }
 
         // 获取订单完整资讯并返回
-        APIReturnObject<Order> returnObject = orderDao.getOrder(orderId, orderVo.getCustomerId());
+        APIReturnObject<Order> returnObject = orderDao.getOrder(orderId, orderVo.getCustomerId(), null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
@@ -465,5 +462,125 @@ public class OrderService {
         Map<String, Object> shop = shopService.getShopInfo(order.getShopId());
         vo.setShop(shop);
         return new APIReturnObject<>(vo);
+    }
+
+    /**
+     * 服务 o9：店家修改订单信息 [DONE]
+     *
+     * @author Han Li
+     * Created at 28/11/2020 15:13
+     * Created by Han Li at 28/11/2020 15:13
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     */
+    @Transactional // 涉及到写操作的是一个事务
+    public APIReturnObject<?> shopModifyOrder(Long id, Long shopId, OrderEditVo orderEditVo) {
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于店铺【404 返回】
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        }
+        // 自定义修改字段
+        OrderEditPo po = new OrderEditPo();
+        po.setId(id);
+        po.setMessage(orderEditVo.getMessage());
+
+        return orderDao.modifyOrder(po);
+    }
+
+    /**
+     * 服务 o10：获取店铺名下订单完整信息
+     *
+     * @author Han Li
+     * Created at 26/11/2020 11:15
+     * Created by Han Li at 26/11/2020 11:15
+     * @param id 订单 id
+     * @param shopId 店铺 id
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<java.util.Map<java.lang.String,java.lang.Object>>
+     */
+    public APIReturnObject<?> getShopOrder(Long id, Long shopId) {
+        // 获取订单 Bo、Vo
+        APIReturnObject<Order> returnObject = orderDao.getOrder(id, null, shopId, true);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于店铺【404 返回】
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        }
+        Order order = returnObject.getData();
+        OrderVo vo = order.createVo();
+
+        // 补充 Vo 的 Customer 信息：联系其他模块
+        Map<String, Object> customer = customerService.getCustomerInfo(id);
+        vo.setCustomer(customer);
+        // 补充 Vo 的 Shop 信息：联系商品模块
+        Map<String, Object> shop = shopService.getShopInfo(shopId);
+        vo.setShop(shop);
+
+        // 封装并返回【标准返回】
+        return new APIReturnObject<>(vo);
+    }
+
+    /**
+     * 服务 o11：店铺取消订单订单
+     *
+     * @author Han Li
+     * Created at 28/11/2020 15:13
+     * Created by Han Li at 28/11/2020 15:13
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     */
+    @Transactional // 涉及到写操作的是一个事务
+    public APIReturnObject<?> shopCancelOrder(Long id, Long shopId) {
+        // 查询订单，检查所有者
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于 shop【404 返回】
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        }
+
+        // 创造更改体
+        OrderEditPo delPo;
+        // 检查订单状态是否允许
+        Order order = returnObject.getData();
+        if (!order.isShopCancelable()) {
+            // 方法不被允许【403 返回】
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+        }
+        delPo = new OrderEditPo();
+        delPo.setState(OrderStatus.CANCELLED.getCode());
+        delPo.setId(id);
+
+        return orderDao.modifyOrder(delPo);
+    }
+
+    /**
+     * 服务 o12：店铺发货
+     *
+     * @author Han Li
+     * Created at 28/11/2020 15:13
+     * Created by Han Li at 28/11/2020 15:13
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     */
+    @Transactional // 涉及到写操作的是一个事务
+    public APIReturnObject<?> shopDeliverOrder(Long id, Long shopId, String deliverSn) {
+        // 查询订单，检查所有者
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于 shop【404 返回】
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        }
+
+        // 创造更改体
+        OrderEditPo delPo;
+        // 检查订单状态是否允许
+        Order order = returnObject.getData();
+        if (!order.isShopCanDeliver()) {
+            // 方法不被允许【403 返回】
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+        }
+        delPo = new OrderEditPo();
+        delPo.setShipmentSn(deliverSn);
+        delPo.setState(OrderStatus.SHIPPED.getCode());
+        delPo.setId(id);
+
+        return orderDao.modifyOrder(delPo);
     }
 }

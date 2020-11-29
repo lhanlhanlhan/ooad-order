@@ -25,4 +25,6 @@ public class OrderEditPo {
     private Boolean beDeleted;
     private Byte state;
 
+    private String shipmentSn; // 發貨單號。。。
+
 }

@@ -145,11 +145,11 @@ public class OrderDao {
      * @param customerId 客户 id
      * @return 订单
      */
-    public APIReturnObject<Order> getOrder(Long orderId, Long customerId) {
+    public APIReturnObject<Order> getOrder(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
         // 调用 Mapper 查询经过拼接 Item 的 OrderPo
         OrderPo orderPo;
         try {
-            orderPo = orderMapper.findOrderWithItem(orderId, customerId, null, false);
+            orderPo = orderMapper.findOrderWithItem(orderId, customerId, shopId, includeDeleted);
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
@@ -176,11 +176,11 @@ public class OrderDao {
      * @param customerId 客户 id
      * @return 订单
      */
-    public APIReturnObject<Order> getSimpleOrder(Long orderId, Long customerId) {
+    public APIReturnObject<Order> getSimpleOrder(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
         // 调用 Mapper 查询 OrderPo
         OrderPo orderPo;
         try {
-            orderPo = orderMapper.findOrder(orderId, customerId, null, false);
+            orderPo = orderMapper.findOrder(orderId, customerId, shopId, includeDeleted);
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
@@ -191,7 +191,7 @@ public class OrderDao {
             if (logger.isInfoEnabled()) {
                 logger.info("订单不存在或已被删除或不属于该用户：id = " + orderId);
             }
-            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 不属于用户");
+            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 無檢視權限");
         }
         // 创建订单业务对象
         Order order = new Order(orderPo);

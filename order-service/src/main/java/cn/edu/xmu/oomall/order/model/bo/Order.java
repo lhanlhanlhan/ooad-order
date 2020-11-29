@@ -124,7 +124,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     /**
-     * 判断该 订单 是否可被取消
+     * 判断该 订单 是否可被客户取消
      */
     public boolean isCancelable() {
         // 订单状态为空，不给取消
@@ -149,6 +149,29 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     /**
+     * 判断该 订单 是否可被商户取消
+     */
+    public boolean isShopCancelable() {
+        // 订单状态为空，不给取消
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给取消
+        if (status == null) {
+            return false;
+        }
+        switch (status) {
+            case PENDING_DEPOSIT:
+            case PENDING_PAY:
+            case PENDING_GROUP:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
      * 判断该 订单 是否可被签收
      */
     public boolean isCustomerCanSign() {
@@ -163,6 +186,29 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         }
         // 只有订单状态为「已到货」的可以签收
         return status == OrderStatus.REACHED;
+    }
+
+    /**
+     * 判断该 订单 是否可被发货
+     */
+    public boolean isShopCanDeliver() {
+        // 订单状态为空，不给发货
+        if (this.getState() == null) {
+            return false;
+        }
+        OrderStatus status = OrderStatus.getByCode(this.getState());
+        // 订单状态非法，不给发货
+        if (status == null) {
+            return false;
+        }
+        switch (status) {
+            case REM_BALANCE_PAID:
+            case PAID:
+            case GROUP_FORMED:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**

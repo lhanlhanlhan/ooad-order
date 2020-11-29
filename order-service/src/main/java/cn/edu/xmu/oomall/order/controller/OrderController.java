@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单控制器类
@@ -361,5 +362,139 @@ public class OrderController {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
         }
         return ResponseUtils.make(orderService.createAfterSaleOrder(adminShopId, orderVo));
+    }
+
+    /**
+     * o11: 店家修改订单 (留言) [DONE]
+     *
+     * @author Han Li
+     * Created at 29/11/2020 17:23
+     * Created by Han Li at 29/11/2020 17:23
+     * @return java.lang.Object
+     */
+    @ApiOperation(value = "店家修改订单 (留言)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="body", required = true, dataType="Object", paramType="body")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @InspectAdmin // 需要登入
+    @PutMapping("shops/{shopId}/orders/{id}")
+    public Object shopModifyOrder(@PathVariable Long id,
+                                  @PathVariable Long shopId,
+                                  @RequestBody OrderEditVo orderEditVo,
+                                  @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id + " vo=" + orderEditVo);
+        }
+        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.shopModifyOrder(id, shopId, orderEditVo));
+    }
+
+    /**
+     * o12: 店家查询店内订单完整信息 (普通，团购，预售) [DONE]
+     * @return Object
+     * @author Han Li
+     * Created at 2020/11/5 15:44
+     * Modified at 2020/11/5 15:44
+     */
+    @ApiOperation(value = "店家查询店内订单完整信息 (普通，团购，预售)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @InspectAdmin
+    @GetMapping("shops/{shopId}/orders/{id}")
+    public Object getDetailedOrder(@PathVariable Long id,
+                                   @PathVariable Long shopId,
+                                   @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id);
+        }
+        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.getShopOrder(id, shopId));
+    }
+
+    /**
+     * o13: 店铺取消订单 [DONE]
+     * @return Object
+     * @author Han Li
+     * Created at 2020/11/5 15:50
+     * Modified at 2020/11/5 15:50
+     */
+    @ApiOperation(value = "店铺取消订单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 800, message = "订单状态禁止"),
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @InspectAdmin
+    @DeleteMapping("shops/{shopId}/orders/{id}")
+    public Object shopCancelOrder(@PathVariable Long shopId,
+                                  @PathVariable Long id,
+                                  @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id);
+        }
+        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.shopCancelOrder(id, shopId));
+    }
+
+    /**
+     * o14: 店铺发货 [DONE]
+     * @return Object
+     * @author Han Li
+     * Created at 2020/11/5 15:50
+     * Modified at 2020/11/5 15:50
+     */
+    @ApiOperation(value = "店铺发货")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 800, message = "订单状态禁止"),
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @InspectAdmin
+    @PutMapping("shops/{shopId}/orders/{id}/deliver")
+    public Object shopDeliverOrder(@PathVariable Long shopId,
+                                   @PathVariable Long id,
+                                   @RequestBody Map<String, String> body,
+                                   @AdminShop Long adminShopId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("shops/{shopId}/orders/{id}/deliver; shopId=" + shopId + " id=" + id);
+        }
+        // 检查是否具有发货的权限，若没有返回 404
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+        }
+        String sn = body.get("freightSn");
+        if (null == sn) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+        }
+        // 调用服务层
+        return ResponseUtils.make(orderService.shopDeliverOrder(id, shopId, sn));
     }
 }

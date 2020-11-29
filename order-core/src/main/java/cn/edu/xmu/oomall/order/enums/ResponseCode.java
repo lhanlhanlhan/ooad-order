@@ -12,8 +12,10 @@ public enum ResponseCode {
     /**
      * 用户自己的错误
      */
+    BAD_REQUEST(400,"您的輸入有誤"),
     NEED_LOGIN(401, "需要登入才可使用"),
     RESOURCE_NOT_EXIST(404, "资源不存在"),
+    INVALID_USER(405,"用户不存在或不可使用"),
 
     /**
      * 服务器内部错误
@@ -21,7 +23,6 @@ public enum ResponseCode {
     INTERNAL_SERVER_ERR(500,"服务器内部错误"),
     INVALID_JWT(501,"JWT不合法"),
     JWT_EXPIRED(502,"JWT过期"),
-    INVALID_USER(503,"用户不存在或不可使用"),
 
     /**
      * 订单模块错误
