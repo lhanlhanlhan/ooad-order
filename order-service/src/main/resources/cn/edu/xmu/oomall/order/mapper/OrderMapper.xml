@@ -87,7 +87,7 @@
         substate,
         be_deleted,
         o.gmt_create as gmt_create,
-        o.gmt_modifie as gmt_modifie,
+        o.gmt_modified as gmt_modified,
         <!-- 以下是 order item 的资讯 (没有放 oi.order_id 因为没必要) -->
         oi.id as item_id,
         oi.goods_sku_id as item_goods_sku_id,
