@@ -1,6 +1,6 @@
 package cn.edu.xmu.oomall.order.controller;
 
-import cn.edu.xmu.oomall.order.aspects.Inspect;
+import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.model.vo.PayPatternsVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentStatusVo;
@@ -50,7 +50,7 @@ public class PaymentController {
     @ApiResponses({
             @ApiResponse(code=0,message="成功"),
     })
-    @Inspect//需要登录
+    @InspectCustomer//需要登录
     @GetMapping("payments/states")
     public Object getPaymentStatus() {
         if(logger.isDebugEnabled()){
@@ -76,9 +76,9 @@ public class PaymentController {
             @ApiImplicitParam(name="authorization",value="Token",required=true,dataType="String",paramType="header")
     })
     @ApiResponses({
-            @ApiResponse(code=002,message="成功")
+            @ApiResponse(code = 0, message = "成功")
     })
-    @Inspect//需要登录
+    @InspectCustomer//需要登录
     @GetMapping("payments/patterns")
     public Object getPaymentPattern(){
         if(logger.isDebugEnabled()){
@@ -88,7 +88,7 @@ public class PaymentController {
         return ResponseUtils.ok(payPatternsVo);
     }
     /**
-     * 03: 买家为订单创建支付订单[DONE]
+     * 03: 买家为订单创建支付订单
      *
      * @author 苗新宇
      * Creted ai 27/11/2020 08:32
