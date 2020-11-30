@@ -4,6 +4,7 @@ import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import lombok.Data;
 
 /**
+ * 支付状态VO
  * @author 苗新宇
  * Created at 27/11/2020 9:05
  * Modified by  苗新宇 at  27/11/2020 9:05

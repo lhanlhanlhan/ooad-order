@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.order.controller;
 
+import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.model.vo.PayPatternsVo;
@@ -10,10 +11,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,10 +101,14 @@ public class PaymentController {
             @ApiResponse(code=0,message="成功"),
     })
     @GetMapping("orders/{id}/payments")
-    public Object getPaymentBill(@PathVariable Integer id){
+    public Object getPaymentBill(@RequestBody PayPatternsVo payPatternsVo,
+                                 @PathVariable Integer id,
+                                 @LoginUser Long customerId){
         if(logger.isDebugEnabled()){
             logger.debug("get orders/{id}/payments;id="+id);
         }
+
+
         return null;
     }
 
