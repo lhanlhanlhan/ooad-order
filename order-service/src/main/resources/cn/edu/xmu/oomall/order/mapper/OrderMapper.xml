@@ -9,7 +9,7 @@
         id, customer_id, shop_id, order_sn, pid, consignee, region_id, address, mobile, message,
         order_type, freight_price, coupon_id, coupon_activity_id, discount_price, origin_price,
         presale_id, groupon_discount, rebate_num, confirm_time, shipment_sn, state, substate,
-        be_deleted, gmt_created, gmt_modified
+        be_deleted, gmt_create, gmt_modified
     </sql>
 
     <!-- TODO - Order 表在插入时要插入的列 -->
@@ -18,7 +18,7 @@
         region_id, address, mobile, message, order_type, freight_price,
         coupon_id, coupon_activity_id, discount_price, origin_price, presale_id, groupon_discount,
         rebate_num, confirm_time, shipment_sn, state, substate,
-        gmt_created, gmt_modified
+        gmt_create, gmt_modified
     </sql>
 
     <!-- 将 Order 的所有 OrderItem 取出并创建 1-n 联系的 ResultMap -->
@@ -38,7 +38,7 @@
             <result property="couponId" column="item_coupon_id"/>
             <result property="couponActivityId" column="item_coupon_activity_id"/>
             <result property="beShareId" column="item_be_share_id"/>
-            <result property="gmtCreated" column="item_gmt_created"/>
+            <result property="gmtCreate" column="item_gmt_create"/>
             <result property="gmtModified" column="item_gmt_modified"/>
         </collection>
     </resultMap>
@@ -86,8 +86,8 @@
         state,
         substate,
         be_deleted,
-        o.gmt_created as gmt_created,
-        o.gmt_modified as gmt_modified,
+        o.gmt_create as gmt_create,
+        o.gmt_modifie as gmt_modifie,
         <!-- 以下是 order item 的资讯 (没有放 oi.order_id 因为没必要) -->
         oi.id as item_id,
         oi.goods_sku_id as item_goods_sku_id,
@@ -98,7 +98,7 @@
         oi.coupon_id as item_coupon_id,
         oi.coupon_activity_id as item_coupon_activity_id,
         oi.be_share_id as item_be_share_id,
-        oi.gmt_created as item_gmt_created,
+        oi.gmt_create as item_gmt_create,
         oi.gmt_modified as item_gmt_modified
 
         FROM `orders` o LEFT JOIN `order_item` oi

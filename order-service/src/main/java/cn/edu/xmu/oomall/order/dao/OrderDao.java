@@ -100,7 +100,7 @@ public class OrderDao {
         if (beginTime != null) {
             try {
                 LocalDate time = LocalDate.parse(beginTime, dateFormatter);
-                criteria.andGmtCreatedGreaterThanOrEqualTo(time.atStartOfDay());
+                criteria.andGmtCreateGreaterThanOrEqualTo(time.atStartOfDay());
             } catch (Exception e) {
                 // 日期 parse 错误
                 if (logger.isInfoEnabled()) {
@@ -112,7 +112,7 @@ public class OrderDao {
         if (endTime != null) {
             try {
                 LocalDate time = LocalDate.parse(endTime, dateFormatter);
-                criteria.andGmtCreatedLessThanOrEqualTo(time.plusDays(1).atStartOfDay());
+                criteria.andGmtCreateLessThanOrEqualTo(time.plusDays(1).atStartOfDay());
             } catch (Exception e) {
                 // 日期 parse 错误
                 if (logger.isInfoEnabled()) {
