@@ -163,7 +163,7 @@
                 <except column="order_type"/>
                 <except column="state"/>
                 <except column="substate"/>
-                <except column="gmt_created"/>
+                <except column="gmt_create"/>
                 <except column="origin_price"/>
                 <except column="discount_price"/>
                 <except column="freight_price"/>
@@ -176,7 +176,6 @@
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="false">
             <property name="useActualColumnNames" value="false"/>
-            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
         </table>
 

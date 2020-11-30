@@ -433,7 +433,7 @@ public class OrderService {
             orderItemPo.setPrice(0L);
             orderItemPo.setDiscount(0L);
             orderItemPo.setName((String) skuInfo.get("name"));
-            orderItemPo.setGmtCreated(LocalDateTime.now());
+            orderItemPo.setGmtCreate(LocalDateTime.now());
 
             // 记录进订单系统
             try {
