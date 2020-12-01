@@ -197,4 +197,4 @@ CREATE TABLE `weight_freight_model` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-30 22:24:30
+-- Dump completed on 2020-12-01 17:07:54
