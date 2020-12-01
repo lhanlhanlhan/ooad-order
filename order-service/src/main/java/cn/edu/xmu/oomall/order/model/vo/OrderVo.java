@@ -1,8 +1,10 @@
 package cn.edu.xmu.oomall.order.model.vo;
 
 import cn.edu.xmu.oomall.order.model.bo.Order;
+import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +66,8 @@ public class OrderVo {
         this.orderItems = order.getOrderItemList().stream().map(OrderItemVo::new).collect(Collectors.toList());
 
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
-        this.gmtCreate = order.getGmtCreated().toString();
+        LocalDateTime gmtCreate = order.getGmtCreated();
+        this.gmtCreate = gmtCreate == null ? ResponseUtils.UNIX_TIMESTAMP_START : gmtCreate.toString();
     }
 
     private Map<String, Object> buildCustomerVo(Map<String, Object> data) {

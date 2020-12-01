@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.order.service;
 
 import cn.edu.xmu.oomall.order.connector.PrivilegeConnector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import java.util.Map;
  * Created at 29/11/2020 11:46 上午
  * Modified by Han Li at 29/11/2020 11:46 上午
  */
+@Service
 public class PrivilegeService {
 
     @Autowired

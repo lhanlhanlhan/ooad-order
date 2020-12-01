@@ -340,7 +340,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     public LocalDateTime getGmtCreated() {
-        return orderPo == null ? orderSimplePo.getGmtCreate() : orderPo.getGmtCreated();
+        return orderPo == null ? orderSimplePo.getGmtCreate() : orderPo.getGmtCreate();
     }
 
     public LocalDateTime getGmtModified() {

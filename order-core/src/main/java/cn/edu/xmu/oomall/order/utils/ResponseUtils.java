@@ -5,6 +5,9 @@ import com.github.pagehelper.PageInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +20,8 @@ import java.util.Map;
  * Modified by Han Li at 25/11/2020 8:16 上午
  */
 public class ResponseUtils {
+
+    public static final String UNIX_TIMESTAMP_START = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).toString();
 
     /**
      * (200) 创造表示 OK 的 API 标准返回，无任何数据

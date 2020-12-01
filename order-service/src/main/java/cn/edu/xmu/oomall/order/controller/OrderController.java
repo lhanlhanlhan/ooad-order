@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -134,12 +135,22 @@ public class OrderController {
             @ApiResponse(code = 900, message = "商品库存不足"),
             @ApiResponse(code = 0, message = "成功"),
     })
+    @InspectCustomer
     @PostMapping("orders")
-    public Object createOrder(@RequestBody NewOrderVo orderInfo) {
+    public Object createOrder(@LoginUser Long customerId, @Validated @RequestBody NewOrderVo orderInfo) {
         if (logger.isDebugEnabled()) {
             logger.debug("post orders; vo=" + orderInfo);
         }
-        return null;
+        // TODO - region id 合法性检查
+
+        // 判断订单申请种类
+        if (orderInfo.getGrouponId() != null) {
+            return ResponseUtils.make(orderService.createGrouponOrder(orderInfo));
+        } else if (orderInfo.getPresaleId() != null) {
+            return ResponseUtils.make(orderService.createPreSaleOrder(orderInfo));
+        } else {
+            return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
+        }
     }
 
 

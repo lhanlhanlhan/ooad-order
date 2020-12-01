@@ -64,7 +64,7 @@ public class OrderPo {
 
     private Byte beDeleted;
 
-    private LocalDateTime gmtCreated;
+    private LocalDateTime gmtCreate;
 
     private LocalDateTime gmtModified;
 

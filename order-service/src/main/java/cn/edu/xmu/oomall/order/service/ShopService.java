@@ -21,7 +21,7 @@ public class ShopService {
     private ShopConnector shopConnector;
 
     /**
-     * 获取商铺资料
+     * TODO - 获取商铺资料
      *
      * @param shopId 商铺 Id
      * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
@@ -47,7 +47,7 @@ public class ShopService {
      * @param count 商品 购入数量
      * @return 0：成功；1：商品不够
      */
-    public int decreaseStock(Long skuId, Integer count) {
+    public int decreaseStock(Long skuId, Long count) {
         return 0;
     }
 }
