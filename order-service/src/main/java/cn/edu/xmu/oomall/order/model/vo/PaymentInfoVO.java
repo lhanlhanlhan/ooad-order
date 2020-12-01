@@ -8,11 +8,11 @@ package cn.edu.xmu.oomall.order.model.vo;
  */
 import lombok.Data;
 @Data
-public class PaymentInfoVo {
+public class PaymentInfoVO {
     private Long price;
     private String paymentPattern;
 
-    public PaymentInfoVo(Long price, String paymentPattern){
+    public PaymentInfoVO(Long price,String paymentPattern){
         this.price=price;
         this.paymentPattern=paymentPattern;
     }
@@ -23,10 +23,9 @@ public class PaymentInfoVo {
      * @param price
      * @param payPatternsVo
      */
-    public PaymentInfoVo(Long price, PayPatternsVo payPatternsVo)
+    public PaymentInfoVO(Long price,PayPatternsVo payPatternsVo)
     {
         this.price=price;
         this.paymentPattern=payPatternsVo.getPayPattern();
-
     }
 }
