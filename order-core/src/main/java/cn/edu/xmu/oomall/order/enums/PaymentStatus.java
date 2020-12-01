@@ -7,14 +7,14 @@ package cn.edu.xmu.oomall.order.enums;
  * Modified by  苗新宇 at  27/11/2020 9:26
  */
 public enum  PaymentStatus {
-    PENDING_PAY(0,"待支付"),
-    PAID(1,"已支付"),
-    FAILED(2,"支付失败"),
+    PAID((byte)0,"已支付"),
+    PENDING_PAY((byte)1,"未支付"),
+    FAILED((byte)2,"支付失败"),
     ;
-    private final int code;
+    private final Byte code;
     private final String desc;
 
-    PaymentStatus(int code, String desc) {
+    PaymentStatus(Byte code, String desc) {
         this.code=code;
         this.desc=desc;
     }
