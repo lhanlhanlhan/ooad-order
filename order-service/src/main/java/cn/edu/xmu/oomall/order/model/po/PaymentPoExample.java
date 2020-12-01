@@ -924,6 +924,66 @@ public class PaymentPoExample {
             addCriterion("gmt_modified not between", value1, value2, "gmtModified");
             return (Criteria) this;
         }
+
+        public Criteria andAftersaleIdIsNull() {
+            addCriterion("aftersale_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdIsNotNull() {
+            addCriterion("aftersale_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdEqualTo(Long value) {
+            addCriterion("aftersale_id =", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdNotEqualTo(Long value) {
+            addCriterion("aftersale_id <>", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdGreaterThan(Long value) {
+            addCriterion("aftersale_id >", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("aftersale_id >=", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdLessThan(Long value) {
+            addCriterion("aftersale_id <", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdLessThanOrEqualTo(Long value) {
+            addCriterion("aftersale_id <=", value, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdIn(List<Long> values) {
+            addCriterion("aftersale_id in", values, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdNotIn(List<Long> values) {
+            addCriterion("aftersale_id not in", values, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdBetween(Long value1, Long value2) {
+            addCriterion("aftersale_id between", value1, value2, "aftersaleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andAftersaleIdNotBetween(Long value1, Long value2) {
+            addCriterion("aftersale_id not between", value1, value2, "aftersaleId");
+            return (Criteria) this;
+        }
     }
 
     /**
