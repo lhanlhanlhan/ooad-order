@@ -4,8 +4,10 @@ import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.model.vo.PayPatternsVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.oomall.order.service.PaymentService;
+import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import java.util.List;
 
 /**
  * 支付控制器类
+ *
  * @author Miao Xinyu
  * Created at 2020/11/5 15:23
  * Modified by Han Li at 2020/11/5 15:23
@@ -37,26 +40,26 @@ public class PaymentController {
     /**
      * 01: 获得支付单的所有状态[DONE]
      *
+     * @return java.lang.Object
      * @author 苗新宇
      * Creted ai 27/11/2020 08:32
-     * @return java.lang.Object
      */
-    @ApiOperation(value="获得支付单的所有状态")
+    @ApiOperation(value = "获得支付单的所有状态")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required=true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code=0,message="成功"),
+            @ApiResponse(code = 0, message = "成功"),
     })
     @InspectCustomer//需要登录
     @GetMapping("payments/states")
     public Object getPaymentStatus() {
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("get payments/states");
         }
         //创造对应枚举数组
-        List<PaymentStatusVo> paymentStatusVos=new ArrayList<>();
-        for(PaymentStatus ps: PaymentStatus.values()){
+        List<PaymentStatusVo> paymentStatusVos = new ArrayList<>();
+        for (PaymentStatus ps : PaymentStatus.values()) {
             paymentStatusVos.add(new PaymentStatusVo(ps));
         }
         //返回
@@ -67,52 +70,52 @@ public class PaymentController {
      * 02: 获得支付渠道，目前只返回002模拟支付渠道
      * Created at 29/11/2020 11:28
      * Created by 苗新宇at 29/11/2020 11:28
+     *
      * @return java.lang.Object
      */
-    @ApiOperation(value="获得支付渠道，目前只返回002，模拟支付渠道")
+    @ApiOperation(value = "获得支付渠道，目前只返回002，模拟支付渠道")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization",value="Token",required=true,dataType="String",paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
     @InspectCustomer//需要登录
     @GetMapping("payments/patterns")
-    public Object getPaymentPattern(){
-        if(logger.isDebugEnabled()){
+    public Object getPaymentPattern() {
+        if (logger.isDebugEnabled()) {
             logger.debug("get payments/patterns");
         }
-        PayPatternsVo payPatternsVo=new PayPatternsVo("002","成功");
+        PayPatternsVo payPatternsVo = new PayPatternsVo("002", "成功");
         return ResponseUtils.ok(payPatternsVo);
     }
+
     /**
      * 03: 买家为订单创建支付订单
      *
+     * @return java.lang.Object
      * @author 苗新宇
      * Creted ai 27/11/2020 08:32
-     * @return java.lang.Object
      */
-    @ApiOperation(value="买家为订单创建支付单")
+    @ApiOperation(value = "买家为订单创建支付单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization",value="Token",required=true,dataType="String",paramType="header"),
-            @ApiImplicitParam(name="id",required=true,dataType="Integer",paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
-            @ApiResponse(code=0,message="成功"),
+            @ApiResponse(code = 0, message = "成功"),
     })
-    @GetMapping("orders/{id}/payments")
-    public Object getPaymentBill(@RequestBody PayPatternsVo payPatternsVo,
-                                 @PathVariable Integer id,
-                                 @LoginUser Long customerId){
-        if(logger.isDebugEnabled()){
-            logger.debug("get orders/{id}/payments;id="+id);
+    @PostMapping("orders/{id}/payments")
+    public Object createPaymentBill(@RequestBody PaymentInfoVo paymentInfoVO,
+                                    @PathVariable Long id,
+                                    @LoginUser Long customerId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("get orders/{id}/payments;id=" + id);
         }
 
-
-        return null;
+        APIReturnObject object = paymentService.createPaymentOrder(customerId, id, paymentInfoVO);
+        return object.getData();
     }
-
-
 }
 
 
