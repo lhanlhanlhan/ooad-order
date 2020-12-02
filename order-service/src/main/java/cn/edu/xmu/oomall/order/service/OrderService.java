@@ -11,6 +11,7 @@ import cn.edu.xmu.oomall.order.model.po.OrderPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.vo.*;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
+import cn.edu.xmu.oomall.order.utils.Accessories;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -402,8 +403,8 @@ public class OrderService {
         orderPo.setMessage(orderVo.getMessage());
         orderPo.setConsignee(orderVo.getConsignee());
         orderPo.setShopId(shopId);
-        // 订单的各种价格都是 0
-        orderPo.setOriginPrice(0L);
+        orderPo.setOrderSn(Accessories.genSerialNumber()); // TODO - 暂时用 UUID 生成 sn
+        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(0L);
         // 订单种类为普通订单，订单状态为已支付 (售后单待发货)
@@ -649,6 +650,7 @@ public class OrderService {
         orderPo.setOrderType(OrderType.NORMAL.getCode());
         orderPo.setState(OrderStatus.PENDING_PAY.getCode());
         orderPo.setGmtCreate(nowTime);
+        orderPo.setOrderSn(Accessories.genSerialNumber());
 
         // 写入订单系统
         if (!insertOrderPo(orderPo)) {
@@ -724,6 +726,7 @@ public class OrderService {
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(totalFreight);
         orderPo.setGmtCreate(nowTime);
+        orderPo.setOrderSn(Accessories.genSerialNumber());
         orderPo.setOrderType(type.getCode()); // 订单种类为团购/预售订单，订单状态为待支付/待支付定金
         if (type == OrderType.PRE_SALE) {
             // 预售订单，待支付定金
