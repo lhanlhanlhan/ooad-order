@@ -1,6 +1,7 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.interfaces.SimpleVoCreatable;
 import cn.edu.xmu.oomall.order.interfaces.VoCreatable;
 import cn.edu.xmu.oomall.order.model.po.OrderPo;
@@ -214,7 +215,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被从团购转为普通订单
      */
-    public boolean isCustomerCanChangeToNormalOrder() {
+    public boolean isCustomerCanChangeFromGrouponToNormal() {
         // 订单状态为空，不给转换
         if (this.getState() == null) {
             return false;
@@ -224,14 +225,14 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (status == null) {
             return false;
         }
-        Byte type = this.getOrderType();
+        OrderType type = this.getOrderType();
         // 订单类型为空，不给转换
         if (type == null) {
             return false;
         }
 
         // 只有订单类型为团购、订单状态为「未到达门槛」的可以改成普通订单
-        return type == 1 && status == OrderStatus.GROUP_FAILED;
+        return type == OrderType.GROUPON && status == OrderStatus.GROUP_FAILED;
     }
 
 
@@ -279,8 +280,10 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         return orderPo == null ? null : orderPo.getMessage();
     }
 
-    public Byte getOrderType() {
-        return orderPo == null ? orderSimplePo.getOrderType() : orderPo.getOrderType();
+    public OrderType getOrderType() {
+        return orderPo == null
+                ? OrderType.getTypeFromCode(orderSimplePo.getOrderType())
+                : OrderType.getTypeFromCode(orderPo.getOrderType());
     }
 
     public Long getFreightPrice() {

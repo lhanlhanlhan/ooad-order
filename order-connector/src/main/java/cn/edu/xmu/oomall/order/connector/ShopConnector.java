@@ -44,6 +44,7 @@ public class ShopConnector {
         shopInfo.put("id", skuId);
         shopInfo.put("name", "Apple MacBook Pro 2020 13' Grey");
         shopInfo.put("price", 1324500L);
+        shopInfo.put("shopId", 99123674500L);
         return shopInfo;
     }
 

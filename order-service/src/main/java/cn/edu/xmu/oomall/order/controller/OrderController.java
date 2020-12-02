@@ -5,6 +5,7 @@ import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
@@ -145,9 +146,9 @@ public class OrderController {
 
         // 判断订单申请种类
         if (orderInfo.getGrouponId() != null) {
-            return ResponseUtils.make(orderService.createGrouponOrder(orderInfo));
+            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.GROUPON));
         } else if (orderInfo.getPresaleId() != null) {
-            return ResponseUtils.make(orderService.createPreSaleOrder(orderInfo));
+            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.PRE_SALE));
         } else {
             return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
         }

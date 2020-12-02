@@ -19,6 +19,7 @@ import java.util.Map;
 @ApiModel("新订单申请传值对象")
 public class NewOrderVo {
     @NotNull(message = "订单项目列表为空")
+    @Size(min = 1, message = "订单项目列表至少要有 1 个订单项")
     private List<Map<String, Long>> orderItems;
 
     @NotBlank(message = "姓名为空")

@@ -50,7 +50,7 @@ public class OrderVo {
         // 构造下述对象
         this.id = order.getId();
         this.pid = order.getPid();
-        this.orderType = order.getOrderType();
+        this.orderType = order.getOrderType().getCode();
         this.state = order.getState();
         this.subState = order.getSubstate();
         this.originPrice = order.getOriginPrice();
@@ -62,7 +62,7 @@ public class OrderVo {
         this.mobile = order.getMobile();
         this.consignee = order.getConsignee();
         this.couponId = order.getCouponId();
-        this.grouponId = order.getGrouponId();
+        this.grouponId = order.getGrouponId(); // TODO - 问邱明：没有 preSaleId?
         this.orderItems = order.getOrderItemList().stream().map(OrderItemVo::new).collect(Collectors.toList());
 
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
