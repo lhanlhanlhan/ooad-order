@@ -1,7 +1,11 @@
 package cn.edu.xmu.oomall.order.service;
 
+import cn.edu.xmu.oomall.order.connector.service.CouponService;
+import cn.edu.xmu.oomall.order.connector.service.CustomerService;
+import cn.edu.xmu.oomall.order.connector.service.ShopService;
 import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.bo.Order;
 import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
@@ -10,6 +14,7 @@ import cn.edu.xmu.oomall.order.model.po.OrderPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.vo.*;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
+import cn.edu.xmu.oomall.order.utils.Accessories;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -21,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +53,9 @@ public class OrderService {
 
     @Autowired
     private ShopService shopService;
+
+    @Autowired
+    private CouponService couponService;
 
     /**
      * 服务 o1：获取用户名下所有订单概要
@@ -284,7 +293,7 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isCustomerCanChangeToNormalOrder()) {
+        if (!order.isCustomerCanChangeFromGrouponToNormal()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -292,7 +301,7 @@ public class OrderService {
         // 更改订单类型为普通订单
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setOrderType((byte) 0); // 普通订单：0
+        po.setOrderType(OrderType.NORMAL.getCode()); // 普通订单：0
         po.setState(OrderStatus.PAID.getCode()); // 状态改为已支付
 
         return orderDao.modifyOrder(po);
@@ -376,7 +385,7 @@ public class OrderService {
         List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
         for (Map<String, Object> item : orderItemList) {
             Long skuId = ((Integer) item.get("skuId")).longValue();
-            Integer quantity = (Integer) item.get("quantity");
+            Long quantity = ((Integer) item.get("quantity")).longValue();
             // 联系商品模块扣库存
             int decreaseStatus = shopService.decreaseStock(skuId, quantity);
             if (decreaseStatus == 1) {
@@ -385,6 +394,8 @@ public class OrderService {
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
             }
         }
+
+        LocalDateTime nowTime = LocalDateTime.now();
 
         // 创建订单
         OrderPo orderPo = new OrderPo();
@@ -395,28 +406,25 @@ public class OrderService {
         orderPo.setMessage(orderVo.getMessage());
         orderPo.setConsignee(orderVo.getConsignee());
         orderPo.setShopId(shopId);
-        // 订单的各种价格都是 0
-        orderPo.setOriginPrice(0L);
+        orderPo.setOrderSn(Accessories.genSerialNumber()); // TODO - 暂时用 UUID 生成 sn
+        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(0L);
         // 订单种类为普通订单，订单状态为已支付 (售后单待发货)
-        orderPo.setOrderType((byte) 0);
+        orderPo.setOrderType(OrderType.NORMAL.getCode());
         orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode());
+        orderPo.setGmtCreate(nowTime);
 
         // 写入订单系统
-        try {
-            int response = orderDao.addOrder(orderPo);
-            if (response <= 0) {
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+        if (!insertOrderPo(orderPo)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         // 获取刚刚创建订单的 id
         Long orderId = orderPo.getId();
 
         // 记录进订单系统
+        List<OrderItemPo> orderItemPoList = new ArrayList<>(orderItemList.size());
         for (Map<String, Object> item : orderItemList) {
             Long skuId = ((Integer) item.get("skuId")).longValue();
             Integer quantity = (Integer) item.get("quantity");
@@ -433,36 +441,20 @@ public class OrderService {
             orderItemPo.setPrice(0L);
             orderItemPo.setDiscount(0L);
             orderItemPo.setName((String) skuInfo.get("name"));
-            orderItemPo.setGmtCreate(LocalDateTime.now());
+            orderItemPo.setGmtCreate(nowTime);
 
             // 记录进订单系统
-            try {
-                int response = orderDao.addOrderItem(orderItemPo);
-                if (response <= 0) {
-                    return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage());
+            if (!insertOrderItemPo(orderItemPo)) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
+            orderItemPoList.add(orderItemPo);
         }
 
         // 获取订单完整资讯并返回
-        APIReturnObject<Order> returnObject = orderDao.getOrder(orderId, orderVo.getCustomerId(), null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
-        }
-        Order order = returnObject.getData();
-        OrderVo vo = order.createVo();
-        // 补充 Vo 的 Customer 信息：联系其他模块下载
-        Map<String, Object> customer = customerService.getCustomerInfo(order.getCustomerId());
-        vo.setCustomer(customer);
-        // 补充 Vo 的 Shop 信息：联系其他模块下载
-        Map<String, Object> shop = shopService.getShopInfo(order.getShopId());
-        vo.setShop(shop);
-        return new APIReturnObject<>(vo);
+        return makeFullOrder(orderPo, orderItemPoList);
     }
+
 
     /**
      * 服务 o9：店家修改订单信息 [DONE]
@@ -582,5 +574,284 @@ public class OrderService {
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);
+    }
+
+    /**
+     * 创建普通订单
+     * TODO - 秒杀订单的创建
+     * @param newOrderVo 新订单申请
+     * @return APIReturnObject<?>
+     */
+    @Transactional
+    public APIReturnObject<?> createNormalOrder(Long customerId, NewOrderVo newOrderVo) {
+        // TODO - 秒杀的认定
+
+        // TODO - 优惠活动金额的计算
+        List<Map<String, Long>> orderItems = newOrderVo.getOrderItems();
+        int calcRet = couponService.computeDiscount(orderItems);
+        if (calcRet != 0) {
+            // TODO - 计算出错，返回对应错误
+            return new APIReturnObject<>(ResponseCode.BAD_REQUEST);
+        }
+        // 下单，扣库存
+        for (Map<String, Long> itemInfo : orderItems) {
+            if (!decreaseStock(itemInfo)) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
+            }
+        }
+
+        // TODO - 用优惠券计算优惠金额 我晕了
+        long totalDiscount = 0L;
+
+        // TODO - 核销优惠券
+
+
+        // TODO - 计算运费
+        long totalFreight = 0L;
+
+        /* 以下是数据库部分 */
+
+        LocalDateTime nowTime = LocalDateTime.now();
+
+        // 计算各商品的价格及其对应 Po
+        List<OrderItemPo> orderItemPos = new ArrayList<>(orderItems.size());
+        long totalPrice = 0L;
+        for (Map<String, Long> item : orderItems) {
+            Long skuId = item.get("skuId");
+            Integer quantity = item.get("quantity").intValue();
+            // 创建新 po，设置除了 orderId、beSharedId 以外的资料
+            OrderItemPo orderItemPo = new OrderItemPo();
+            orderItemPo.setGoodsSkuId(skuId);
+            orderItemPo.setQuantity(quantity);
+            // 联系商品模块获取商品资料
+            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            orderItemPo.setGoodsSkuId(skuId);
+            orderItemPo.setQuantity(quantity);
+            // 计算各种价格
+            Long price = (Long) skuInfo.get("price");
+            totalPrice += price * quantity;
+            Long discount = item.get("discount");
+            totalDiscount += discount;
+            // 填写各种价格
+            orderItemPo.setPrice(price);
+            orderItemPo.setDiscount(discount);
+            orderItemPo.setName((String) skuInfo.get("name"));
+            orderItemPo.setGmtCreate(nowTime);
+            // 放入容器
+            orderItemPos.add(orderItemPo);
+        }
+
+        // 创建订单对应 Vo
+        OrderPo orderPo = createNewOrderPo(customerId, newOrderVo);
+        orderPo.setShopId(null); // TODO - 店铺 id 暂时为空，等支付后分单再说
+        // 填入订单的各种价格
+        orderPo.setOriginPrice(totalPrice);
+        orderPo.setDiscountPrice(totalDiscount);
+        orderPo.setFreightPrice(totalFreight);
+        // 订单种类为普通订单，订单状态为待支付
+        orderPo.setOrderType(OrderType.NORMAL.getCode());
+        orderPo.setState(OrderStatus.PENDING_PAY.getCode());
+        orderPo.setGmtCreate(nowTime);
+        orderPo.setOrderSn(Accessories.genSerialNumber());
+
+        // 写入订单系统
+        if (!insertOrderPo(orderPo)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        // 获取刚刚创建订单的 id
+        Long orderId = orderPo.getId();
+
+        // TODO - 核销分享
+
+        // 填入刚刚创建的订单的 id，放入所有 orderItemPo 中，并且写入数据库
+        for (OrderItemPo itemPo : orderItemPos) {
+            itemPo.setOrderId(orderId);
+            itemPo.setBeShareId(null); // TODO - 分享 id？
+            // 记录进订单系统
+            if (!insertOrderItemPo(itemPo)) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
+        }
+
+        // 获取订单完整资讯并返回
+        return makeFullOrder(orderPo, orderItemPos);
+    }
+
+    /**
+     * 创建单品订单 (团购/预售)
+     * @param newOrderVo 新订单申请
+     * @return APIReturnObject<?>
+     */
+    @Transactional
+    public APIReturnObject<?> createOneItemOrder(Long customerId, NewOrderVo newOrderVo, OrderType type) {
+        Map<String, Long> itemInfo = newOrderVo.getOrderItems().get(0);
+        // 扣库存
+        if (!decreaseStock(itemInfo)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
+        }
+
+        // TODO - 计算运费
+        long totalFreight = 0L;
+
+        // TODO - 用团购/预售规则计算商品优惠
+        long totalDiscount = 0L;
+
+        /* 以下是数据库部分 */
+
+        // 创建对应 Po
+        Long skuId = itemInfo.get("skuId");
+        Integer quantity = itemInfo.get("quantity").intValue();
+        // 联系商品模块获取商品资料
+        Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+        Long price = (Long) skuInfo.get("price");
+
+        LocalDateTime nowTime = LocalDateTime.now();
+
+        // 创建新 OrderItemPo，设置除了 orderId、beSharedId 以外的资料
+        OrderItemPo orderItemPo = new OrderItemPo();
+        orderItemPo.setGoodsSkuId(skuId);
+        orderItemPo.setQuantity(quantity);
+        orderItemPo.setGoodsSkuId(skuId);
+        orderItemPo.setQuantity(quantity);
+        orderItemPo.setPrice(price * quantity);
+        orderItemPo.setDiscount(totalDiscount);
+        orderItemPo.setName((String) skuInfo.get("name"));
+        orderItemPo.setGmtCreate(nowTime);
+
+        // 创建订单对应 Po
+        OrderPo orderPo = createNewOrderPo(customerId, newOrderVo);
+        orderPo.setShopId((Long) skuInfo.get("shopId")); // 团购/预售的商铺号已知，因此订单的店铺 id 设为商品的店铺 Id
+        orderPo.setOriginPrice(price);
+        orderPo.setDiscountPrice(0L);
+        orderPo.setFreightPrice(totalFreight);
+        orderPo.setGmtCreate(nowTime);
+        orderPo.setOrderSn(Accessories.genSerialNumber());
+        orderPo.setOrderType(type.getCode()); // 订单种类为团购/预售订单，订单状态为待支付/待支付定金
+        if (type == OrderType.PRE_SALE) {
+            // 预售订单，待支付定金
+            orderPo.setState(OrderStatus.PENDING_DEPOSIT.getCode());
+            orderPo.setPresaleId(newOrderVo.getPresaleId());
+        } else {
+            // 团购订单，待付款
+            orderPo.setState(OrderStatus.PENDING_PAY.getCode());
+            orderPo.setGrouponId(newOrderVo.getGrouponId());
+        }
+
+        // 写入订单系统
+        if (!insertOrderPo(orderPo)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        // 获取刚刚创建订单的 id
+        Long orderId = orderPo.getId();
+
+        // TODO - 核销分享
+
+        // 填入刚刚创建的订单的 id，放入所有 orderItemPo 中，并且写入数据库
+        orderItemPo.setOrderId(orderId);
+        orderItemPo.setBeShareId(null); // TODO - 分享 id？
+        // 记录进订单项目系统
+        if (!insertOrderItemPo(orderItemPo)) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+
+        // 获取订单完整资讯并返回
+        List<OrderItemPo> orderItemPoList = new ArrayList<>(1);
+        orderItemPoList.add(orderItemPo);
+        return makeFullOrder(orderPo, orderItemPoList);
+    }
+
+    /**
+     * **内部方法**：获取订单完整资讯并返回 (不找数据库)
+     * @param orderPo 订单数据库对象
+     * @param orderItemPoList 订单项目数据库对象列表
+     * @return
+     */
+    private APIReturnObject<OrderVo> makeFullOrder(OrderPo orderPo, List<OrderItemPo> orderItemPoList) {
+        // 把 orderItemPoList 塞入 orderPo 中
+        orderPo.setOrderItemList(orderItemPoList);
+        // 新建业务对象
+        Order order = new Order(orderPo);
+        OrderVo vo = order.createVo();
+        // 补充 Vo 的 Customer 信息：联系其他模块下载
+        Map<String, Object> customer = customerService.getCustomerInfo(order.getCustomerId());
+        vo.setCustomer(customer);
+        // 补充 Vo 的 Shop 信息 (如有)：联系其他模块下载
+        Long shopId = order.getShopId();
+        if (shopId != null) {
+            // 注意到分单前的订单，商铺可能不止一家；这里只针对 shopId 不为空的情况 (团购/预售等商铺号已知的情况)
+            Map<String, Object> shop = shopService.getShopInfo(shopId);
+            vo.setShop(shop);
+        }
+        return new APIReturnObject<>(vo);
+    }
+
+    /**
+     * **内部方法** 根据 Vo 新建 OrderPo
+     * @param customerId
+     * @param newOrderVo
+     * @return
+     */
+    private OrderPo createNewOrderPo(Long customerId, NewOrderVo newOrderVo) {
+        OrderPo orderPo = new OrderPo();
+        orderPo.setCustomerId(customerId);
+        orderPo.setRegionId(newOrderVo.getRegionId());
+        orderPo.setAddress(newOrderVo.getAddress());
+        orderPo.setMobile(newOrderVo.getMobile());
+        orderPo.setMessage(newOrderVo.getMessage());
+        orderPo.setConsignee(newOrderVo.getConsignee());
+        return orderPo;
+    }
+
+    /**
+     * **内部方法** 根据 OrderItemInfo 扣库存
+     * @param itemInfo
+     * @return
+     */
+    private boolean decreaseStock(Map<String, Long> itemInfo) {
+        Long skuId = itemInfo.get("skuId");
+        Long quantity = itemInfo.get("quantity");
+        int decStatus = shopService.decreaseStock(skuId, quantity);
+        if (decStatus == 1) {
+            // 库存不足
+            logger.warn("not in stock: skuid=" + skuId);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * **内部方法**：将 orderItemPo 插入数据库中
+     * @param itemPo
+     * @return
+     */
+    private boolean insertOrderItemPo(OrderItemPo itemPo) {
+        try {
+            int response = orderDao.addOrderItem(itemPo);
+            return response > 0;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * **内部方法**：将 orderItemPo 插入数据库中
+     * @param orderPo
+     * @return
+     */
+    private boolean insertOrderPo(OrderPo orderPo) {
+        try {
+            int response = orderDao.addOrder(orderPo);
+            return response > 0;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 }

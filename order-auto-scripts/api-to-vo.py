@@ -5,10 +5,15 @@ import re
 """
 
 string = """
-"consignee": "string",
+"orderItems": "string",
+  "consignee": "string",
   "regionId": 0,
   "address": "string",
-  "mobile": "string"
+  "mobile": "string",
+  "message": "string",
+  "couponId": 0,
+  "presaleId": 0,
+  "grouponId": 0
 """
 
 if __name__ == '__main__':

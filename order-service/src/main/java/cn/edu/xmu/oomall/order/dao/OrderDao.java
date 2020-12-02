@@ -31,7 +31,7 @@ import java.util.List;
 public class OrderDao {
 
     // 日志记录器
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderDao.class);
 
     // Simple Order Po 的 Mapper
     @Autowired

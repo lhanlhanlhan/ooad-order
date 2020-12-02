@@ -1,8 +1,10 @@
 package cn.edu.xmu.oomall.order.model.vo;
 
 import cn.edu.xmu.oomall.order.model.bo.Order;
+import cn.edu.xmu.oomall.order.utils.ResponseUtils;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +50,7 @@ public class OrderVo {
         // 构造下述对象
         this.id = order.getId();
         this.pid = order.getPid();
-        this.orderType = order.getOrderType();
+        this.orderType = order.getOrderType().getCode();
         this.state = order.getState();
         this.subState = order.getSubstate();
         this.originPrice = order.getOriginPrice();
@@ -60,11 +62,12 @@ public class OrderVo {
         this.mobile = order.getMobile();
         this.consignee = order.getConsignee();
         this.couponId = order.getCouponId();
-        this.grouponId = order.getGrouponId();
+        this.grouponId = order.getGrouponId(); // TODO - 问邱明：没有 preSaleId?
         this.orderItems = order.getOrderItemList().stream().map(OrderItemVo::new).collect(Collectors.toList());
 
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
-        this.gmtCreate = order.getGmtCreated().toString();
+        LocalDateTime gmtCreate = order.getGmtCreated();
+        this.gmtCreate = gmtCreate == null ? ResponseUtils.UNIX_TIMESTAMP_START : gmtCreate.toString();
     }
 
     private Map<String, Object> buildCustomerVo(Map<String, Object> data) {

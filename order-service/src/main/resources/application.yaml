@@ -54,6 +54,15 @@ spring:
     # 连接超时时间（毫秒）
     timeout: 5000
 
+dubbo:
+  application:
+    name: oomall-order-3-4
+  registry:
+    address: zookeeper://conn.han-li.cn:2181
+  protocol:
+    port: 20880
+    name: dubbo
+
 mybatis:
   # po对象的包
   type-aliases-package: cn.edu.xmu.oomall.order.model
@@ -70,6 +79,6 @@ order-service:
   #随机雪崩时间（秒）
   randomtime: 300
 
-#pagehelper分页插件配置
+# Page Helper 分页插件配置
 pagehelper:
   helper-dialect: mysql

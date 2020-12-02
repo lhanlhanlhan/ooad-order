@@ -2,8 +2,7 @@ package cn.edu.xmu.oomall.order.aspects;
 
 import cn.edu.xmu.oomall.order.annotations.AdminShop;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
-import cn.edu.xmu.oomall.order.connector.CustomerConnector;
-import cn.edu.xmu.oomall.order.connector.PrivilegeConnector;
+import cn.edu.xmu.oomall.order.connector.service.PrivilegeService;
 import cn.edu.xmu.oomall.order.enums.Constants;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -45,7 +44,7 @@ public class InspectAdminAspect {
 
     // 权限服务连接器组件
     @Autowired
-    private PrivilegeConnector privilegeConnector;
+    private PrivilegeService privilegeService;
 
     // 定义此 Aspect 在 Controller 层切点为 @Inspect 注解
     @Pointcut("@annotation(cn.edu.xmu.oomall.order.aspects.InspectAdmin)")
@@ -96,7 +95,7 @@ public class InspectAdminAspect {
         }
 
         // 从 权限模块 获取用户资料
-        Map<String, Object> userInfo = privilegeConnector.verifyTokenAndGetAdminInfo(token);
+        Map<String, Object> userInfo = privilegeService.verifyTokenAndGetAdminInfo(token);
         if (null == userInfo) {
             // 未有附带 token，返回错误或无权限
             APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_USER);
