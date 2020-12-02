@@ -5,6 +5,7 @@ import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -134,12 +136,22 @@ public class OrderController {
             @ApiResponse(code = 900, message = "商品库存不足"),
             @ApiResponse(code = 0, message = "成功"),
     })
+    @InspectCustomer
     @PostMapping("orders")
-    public Object createOrder(@RequestBody NewOrderVo orderInfo) {
+    public Object createOrder(@LoginUser Long customerId, @Validated @RequestBody NewOrderVo orderInfo) {
         if (logger.isDebugEnabled()) {
             logger.debug("post orders; vo=" + orderInfo);
         }
-        return null;
+        // TODO - region id 合法性检查
+
+        // 判断订单申请种类
+        if (orderInfo.getGrouponId() != null) {
+            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.GROUPON));
+        } else if (orderInfo.getPresaleId() != null) {
+            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.PRE_SALE));
+        } else {
+            return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
+        }
     }
 
 

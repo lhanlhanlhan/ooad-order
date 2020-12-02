@@ -34,7 +34,7 @@ public class OrderSimpleVo {
         this.customerId = order.getCustomerId();
         this.shopId = order.getShopId();
         this.pid = order.getPid();
-        this.orderType = order.getOrderType();
+        this.orderType = order.getOrderType().getCode();
         this.freightPrice = order.getFreightPrice();
         this.discountPrice = order.getDiscountPrice();
         this.originPrice = order.getOriginPrice();

@@ -139,7 +139,7 @@
         #{regionId}, #{address}, #{mobile}, #{message}, #{orderType}, #{freightPrice},
         #{couponId}, #{couponActivityId}, #{discountPrice}, #{originPrice}, #{presaleId}, #{grouponDiscount},
         #{rebateNum}, #{confirmTime}, #{shipmentSn}, #{state}, #{substate},
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        #{gmtCreate}, #{gmtModified})
     </insert>
 
 </mapper>
