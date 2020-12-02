@@ -7,7 +7,10 @@ package cn.edu.xmu.oomall.order.model.vo;
  * Modified by  苗新宇 at  30/11/2020 20:30
  */
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
+@NoArgsConstructor
 public class PaymentInfoVo {
     private Long price;
     private String paymentPattern;

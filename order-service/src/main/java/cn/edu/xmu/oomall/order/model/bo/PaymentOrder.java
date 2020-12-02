@@ -1,6 +1,7 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentOrderVo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -47,5 +48,13 @@ public class PaymentOrder {
         this.gmtCreate = item.getGmtCreate();
         this.gmtModified = item.getGmtModified();
         this.afterSaleId = item.getAftersaleId();
+    }
+
+    /**
+     * 创建支付单Vo对象
+     * @return 支付单Vo对象
+     */
+    public PaymentOrderVo createSimpleVo(){
+        return new PaymentOrderVo(this);
     }
 }
