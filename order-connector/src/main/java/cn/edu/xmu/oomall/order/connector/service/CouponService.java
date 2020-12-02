@@ -1,4 +1,4 @@
-package cn.edu.xmu.oomall.order.service;
+package cn.edu.xmu.oomall.order.connector.service;
 
 import org.springframework.stereotype.Service;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 优惠/优惠券服务 (功能由【商品模块】或【全局模块】提供，这里负责把它们提供的数据进行来到订单模块后的封装)
+ * 优惠/优惠券服务 (功能由【商品模块】或【全局模块】提供)
  *
  * @author Han Li
  * Created at 1/12/2020 11:46 上午

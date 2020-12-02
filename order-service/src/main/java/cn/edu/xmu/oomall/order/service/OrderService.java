@@ -1,5 +1,8 @@
 package cn.edu.xmu.oomall.order.service;
 
+import cn.edu.xmu.oomall.order.connector.service.CouponService;
+import cn.edu.xmu.oomall.order.connector.service.CustomerService;
+import cn.edu.xmu.oomall.order.connector.service.ShopService;
 import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.enums.OrderType;
