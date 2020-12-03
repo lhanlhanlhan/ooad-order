@@ -37,7 +37,7 @@ public class FreightModelPo {
      *
      * @mbg.generated
      */
-    private String defaultModel;
+    private Byte defaultModel;
 
     /**
      *
@@ -155,7 +155,7 @@ public class FreightModelPo {
      *
      * @mbg.generated
      */
-    public String getDefaultModel() {
+    public Byte getDefaultModel() {
         return defaultModel;
     }
 
@@ -167,8 +167,8 @@ public class FreightModelPo {
      *
      * @mbg.generated
      */
-    public void setDefaultModel(String defaultModel) {
-        this.defaultModel = defaultModel == null ? null : defaultModel.trim();
+    public void setDefaultModel(Byte defaultModel) {
+        this.defaultModel = defaultModel;
     }
 
     /**

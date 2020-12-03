@@ -9,7 +9,7 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="shop_id" jdbcType="BIGINT" property="shopId" />
     <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="default_model" jdbcType="VARCHAR" property="defaultModel" />
+    <result column="default_model" jdbcType="TINYINT" property="defaultModel" />
     <result column="type" jdbcType="TINYINT" property="type" />
     <result column="unit" jdbcType="INTEGER" property="unit" />
     <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
@@ -51,7 +51,7 @@
     insert into freight_model (shop_id, name, default_model, 
       type, unit, gmt_create, 
       gmt_modified)
-    values (#{shopId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{defaultModel,jdbcType=VARCHAR}, 
+    values (#{shopId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{defaultModel,jdbcType=TINYINT}, 
       #{type,jdbcType=TINYINT}, #{unit,jdbcType=INTEGER}, #{gmtCreate,jdbcType=TIMESTAMP}, 
       #{gmtModified,jdbcType=TIMESTAMP})
   </insert>
@@ -95,7 +95,7 @@
         #{name,jdbcType=VARCHAR},
       </if>
       <if test="defaultModel != null">
-        #{defaultModel,jdbcType=VARCHAR},
+        #{defaultModel,jdbcType=TINYINT},
       </if>
       <if test="type != null">
         #{type,jdbcType=TINYINT},
@@ -125,7 +125,7 @@
         name = #{name,jdbcType=VARCHAR},
       </if>
       <if test="defaultModel != null">
-        default_model = #{defaultModel,jdbcType=VARCHAR},
+        default_model = #{defaultModel,jdbcType=TINYINT},
       </if>
       <if test="type != null">
         type = #{type,jdbcType=TINYINT},
@@ -150,7 +150,7 @@
     update freight_model
     set shop_id = #{shopId,jdbcType=BIGINT},
       name = #{name,jdbcType=VARCHAR},
-      default_model = #{defaultModel,jdbcType=VARCHAR},
+      default_model = #{defaultModel,jdbcType=TINYINT},
       type = #{type,jdbcType=TINYINT},
       unit = #{unit,jdbcType=INTEGER},
       gmt_create = #{gmtCreate,jdbcType=TIMESTAMP},
