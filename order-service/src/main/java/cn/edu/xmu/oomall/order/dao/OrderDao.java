@@ -82,7 +82,7 @@ public class OrderDao {
      * @param beginTime 开始时间 yyyy-M-d
      * @param endTime 结束时间 yyyy-M-d
      * @param customerId 用户号
-     * @return 分页的订单概要
+     * @return 不分页的订单概要
      */
     public APIReturnObject<List<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
                                                                 String beginTime, String endTime,

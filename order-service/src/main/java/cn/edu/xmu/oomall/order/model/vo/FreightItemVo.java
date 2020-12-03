@@ -13,6 +13,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FreightItemVo {
-    public Integer skuId;
-    public Integer count;
+    private Long skuId;
+    private Integer count;
 }
