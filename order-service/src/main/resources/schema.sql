@@ -26,12 +26,13 @@ CREATE TABLE `freight_model` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `shop_id` bigint DEFAULT NULL,
   `name` varchar(64) DEFAULT NULL,
-  `default_model` varchar(64) DEFAULT NULL,
+  `default_model` tinyint DEFAULT NULL,
   `type` tinyint DEFAULT NULL,
   `unit` int DEFAULT NULL,
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `gmt_modified` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -155,8 +156,8 @@ CREATE TABLE `refund` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `payment_id` bigint DEFAULT NULL,
   `amout` bigint DEFAULT NULL,
-  `pay_sn` varchar(128) DEFAULT NULL,
-  `bill_id` bigint DEFAULT NULL,
+  `order_id` bigint DEFAULT NULL,
+  `aftersale_id` bigint DEFAULT NULL,
   `state` tinyint DEFAULT NULL,
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `gmt_modified` datetime DEFAULT NULL,
@@ -197,4 +198,4 @@ CREATE TABLE `weight_freight_model` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-12-01 17:07:54
+-- Dump completed on 2020-12-03 21:21:39
