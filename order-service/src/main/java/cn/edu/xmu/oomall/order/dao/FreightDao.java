@@ -11,10 +11,12 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -83,7 +85,7 @@ public class FreightDao {
         } catch (Exception e) {
             // 数据库 错误
             logger.info(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(freightModelPoList);
     }
@@ -105,14 +107,14 @@ public class FreightDao {
             // 根据实际情况做取舍
             if (freightModelPoList.size() == 0) {
                 // 返回不存在
-                return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST);
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
             } else {
                 return new APIReturnObject<>(freightModelPoList.get(0));
             }
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
 
@@ -157,7 +159,7 @@ public class FreightDao {
         } catch (Exception e) {
             // 数据库 错误
             logger.info(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
 
@@ -207,7 +209,6 @@ public class FreightDao {
      * @param type
      * @return
      */
-    @Transactional
     public int deleteFreightModel(Long id, Byte type) {
         // 先删除主表的 model
         int ret = freightModelPoMapper.deleteByPrimaryKey(id);
@@ -216,7 +217,7 @@ public class FreightDao {
             return ret;
         }
         // 再删除分表的 model
-        if (type == 0) {
+        if (type == 1) {
             PieceFreightModelPoExample example = new PieceFreightModelPoExample();
             PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
             criteria.andFreightModelIdEqualTo(id);
@@ -226,11 +227,6 @@ public class FreightDao {
             WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
             criteria.andFreightModelIdEqualTo(id);
             ret = weightFreightModelPoMapper.deleteByExample(example);
-        }
-        // 删除错误的话必须 rollback
-        if (ret <= 0) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ret;
         }
         return ret;
     }
@@ -249,7 +245,8 @@ public class FreightDao {
      * @param po 运费模板概要 Po
      */
     public int updateFreightModel(FreightModelPo po) {
-        return freightModelPoMapper.updateByPrimaryKey(po);
+        po.setGmtModified(LocalDateTime.now());
+        return freightModelPoMapper.updateByPrimaryKeySelective(po);
     }
 
     /**
@@ -276,7 +273,7 @@ public class FreightDao {
      * @param po 重量模板明细 Po
      */
     public int updateWeightFreightModel(WeightFreightModelPo po) {
-        return weightFreightModelPoMapper.updateByPrimaryKey(po);
+        return weightFreightModelPoMapper.updateByPrimaryKeySelective(po);
     }
 
     /**
@@ -285,7 +282,7 @@ public class FreightDao {
      * @param po 运费模板概要 Po
      */
     public int updatePieceFreightModel(PieceFreightModelPo po) {
-        return pieceFreightModelPoMapper.updateByPrimaryKey(po);
+        return pieceFreightModelPoMapper.updateByPrimaryKeySelective(po);
     }
 
 

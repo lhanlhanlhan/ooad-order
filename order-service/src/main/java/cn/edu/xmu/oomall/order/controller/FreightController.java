@@ -189,6 +189,7 @@ public class FreightController {
     })
     @InspectAdmin //登录
     @GetMapping("freightmodels/{id}")
+    // TODO - 主语是谁？商家还是平台管理员？
     public Object getFreightModelSimple(@PathVariable Long id,
                                         @LoginUser Long adminId,
                                         @AdminShop Long adminShopId) {
@@ -225,7 +226,7 @@ public class FreightController {
                                          @LoginUser Long adminId,
                                          @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelModifyVo);
+            logger.debug("put shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelModifyVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
@@ -286,7 +287,8 @@ public class FreightController {
             @ApiResponse(code = 0, message = "成功")
     })
     @InspectAdmin //登录
-    @PostMapping("shops/{shopId}/freight_models/{id}/default")
+    @PostMapping("shops/{shopId}/freightmodels/{id}/default")
+    // TODO 到底freight_models还是freightmodels？？？
     public Object defineDefaultFreightModel(@PathVariable Long shopId,
                                             @PathVariable Long id,
                                             @LoginUser Long adminId,
@@ -463,7 +465,7 @@ public class FreightController {
                                            @LoginUser Long adminId,
                                            @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
+            logger.debug("put shops/{shopId}/weightItems/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
