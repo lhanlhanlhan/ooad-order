@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class FreightController {
      * @return java.lang.Object
      * @author Chen Kechun
      * Created at 1/12/2020 19:45
-     * Created by Chen Kechun at 1/12/2020 19:45
+     * Modified by Chen Kechun at 1/12/2020 19:45
      */
     @ApiOperation(value = "买家用运费模板计算一批订单商品的运费")
     @ApiImplicitParams({
@@ -73,7 +74,7 @@ public class FreightController {
      * @return java.lang.Object
      * @author Chen Kechun
      * Created at 2/12/2020 15:45
-     * Created by Chen Kechun at 2/12/2020 15:45
+     * Modified by Han Li at 4/12/2020 15:45
      */
     @ApiOperation(value = "管理员定义商铺运费模板")
     @ApiImplicitParams({
@@ -87,11 +88,11 @@ public class FreightController {
     @InspectAdmin //登录
     @PostMapping("shops/{id}/freightmodels")
     public Object createFreightModel(@PathVariable Long id,
-                                     @RequestBody FreightModelInfoVo freightModelInfoVo,
+                                     @Validated @RequestBody FreightModelInfoVo freightModelInfoVo,
                                      @LoginUser Long adminId,
                                      @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelInfoVo);
+            logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelInfoVo + " adminId=" + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(id)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
@@ -118,7 +119,7 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @InspectAdmin //管理员登录
     @GetMapping("shops/{id}/freightmodels")
     public Object getFreightModel(@PathVariable Long id,                     //店铺id
                                   @RequestParam(required = false) String name,
@@ -188,17 +189,13 @@ public class FreightController {
     })
     @InspectAdmin //登录
     @GetMapping("freightmodels/{id}")
-    public Object getFreightModelSimple(@PathVariable Long shopId,
-                                        @PathVariable Long id,
+    public Object getFreightModelSimple(@PathVariable Long id,
                                         @LoginUser Long adminId,
                                         @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get freightmodels/{id};id = " + id + " adminId = " + adminId);
         }
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
-        }
-        return ResponseUtils.make(freightService.getFreightModelSimple(id));
+        return ResponseUtils.make(freightService.getFreightModelSimple(id, adminShopId));
     }
 
     /**
@@ -330,7 +327,7 @@ public class FreightController {
                                            @LoginUser Long adminId,
                                            @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
+            logger.debug("put shops/{shopId}/freightmodels/{id}/weightItems;shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));

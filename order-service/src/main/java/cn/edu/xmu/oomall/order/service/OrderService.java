@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  *
  * @author Han Li
  * Created at 25/11/2020 8:53 上午
- * Modified by Han Li at 25/11/2020 8:53 上午
+ * Modified by Han Li at 4/12/2020 2:38 下午
  */
 @Service
 public class OrderService {
@@ -395,6 +395,8 @@ public class OrderService {
             }
         }
 
+        // 数据库部分
+
         LocalDateTime nowTime = LocalDateTime.now();
 
         // 创建订单
@@ -410,9 +412,8 @@ public class OrderService {
         orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(0L);
-        // 订单种类为普通订单，订单状态为已支付 (售后单待发货)
-        orderPo.setOrderType(OrderType.NORMAL.getCode());
-        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode());
+        orderPo.setOrderType(OrderType.NORMAL.getCode()); // 订单种类为普通订单
+        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode()); // 订单状态为已支付 (售后单待发货)
         orderPo.setGmtCreate(nowTime);
 
         // 写入订单系统
@@ -420,6 +421,7 @@ public class OrderService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
+
         // 获取刚刚创建订单的 id
         Long orderId = orderPo.getId();
 

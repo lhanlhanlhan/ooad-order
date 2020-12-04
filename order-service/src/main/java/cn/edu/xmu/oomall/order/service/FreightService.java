@@ -15,8 +15,10 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
@@ -56,15 +58,18 @@ public class FreightService {
     public APIReturnObject<?> createShopGoodsFreightModel(Long shopId,
                                                           FreightModelInfoVo freightModelInfoVo) {
         //创建运费模板
+        LocalDateTime nowTime = LocalDateTime.now();
+
         FreightModelPo freightModelPo = new FreightModelPo();
         freightModelPo.setShopId(shopId);
         freightModelPo.setName(freightModelInfoVo.getName());
         freightModelPo.setType(freightModelInfoVo.getType());
         freightModelPo.setUnit(freightModelInfoVo.getUnit());
-        freightModelPo.setGmtCreate(LocalDateTime.now());
-        freightModelPo.setGmtModified(LocalDateTime.now());
+        freightModelPo.setDefaultModel((byte) 0); // 非默认运费模板
+        freightModelPo.setGmtCreate(nowTime);
+        freightModelPo.setGmtModified(nowTime);
+
         if (!insertFreightModelPo(freightModelPo)) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(freightModelPo);
@@ -79,7 +84,7 @@ public class FreightService {
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
-     * Created by Chen Kechun at 25/11/2020 16:58
+     * Modified by Han Li at 25/11/2020 16:58
      */
     public APIReturnObject<?> getShopGoodsFreightModel(Long shopId, String name, Integer page, Integer pageSize) {
         List<FreightModelSimpleVo> freightModelSampleVos;
@@ -99,7 +104,7 @@ public class FreightService {
             returnObj.put("total", freightModelPoPageInfo.getTotal());
             returnObj.put("pages", freightModelPoPageInfo.getPages());
         } else {
-            APIReturnObject<List<FreightModelPo>> returnObject = freightDao.getFreightModel(name, shopId);
+            APIReturnObject<List<FreightModelPo>> returnObject = freightDao.getFreightModel(null, name, shopId);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
             }
@@ -123,22 +128,83 @@ public class FreightService {
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
-     * Created by Chen Kechun at 25/11/2020 16:58
+     * Modified by Han Li at 25/11/2020 16:58
      */
+    @Transactional
     public APIReturnObject<?> cloneFreightModel(Long shopId, Long id) {
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getFreightModelByShopIdAndId(shopId, id);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        APIReturnObject<FreightModelPo> mainTable = freightDao.getShopFreightModel(id, shopId);
+        if (mainTable.getCode() != ResponseCode.OK) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, mainTable.getCode(), mainTable.getErrMsg());
         }
-        FreightModelPo po = returnObject.getData();
-        po.setGmtCreate(LocalDateTime.now());
-        po.setGmtModified(LocalDateTime.now());
-        po.setName(po.getName() + Accessories.genSerialNumber());
+
+        LocalDateTime nowTime = LocalDateTime.now();
+
+        // 先克隆主表
+        FreightModelPo po = mainTable.getData();
+        // 直接改 Po，再存过一遍
+        po.setId(null); // 将 id 改为空
+        po.setGmtCreate(nowTime);
+        po.setGmtModified(nowTime);
+        po.setName(po.getName() + "-" + Accessories.genSerialNumber());
         if (!insertFreightModelPo(po)) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        return returnObject;
+
+        // 获取主模板 id
+        Long mainId = po.getId();
+
+        // 再克隆分表
+        Byte type = po.getType();
+        if (type == 0) {
+            APIReturnObject<List<PieceFreightModelPo>> pieceTable = freightDao.getPieceFreightModel(id, null);
+            if (pieceTable.getCode() != ResponseCode.OK) {
+                // 分表未查到，回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, pieceTable.getCode(), pieceTable.getErrMsg());
+            }
+            // 如果还没定义明细，就直接返回好了
+            List<PieceFreightModelPo> pieceList = pieceTable.getData();
+            if (pieceList.size() == 0) {
+                return mainTable;
+            }
+            // 克隆所有明细
+            for (PieceFreightModelPo piecePo : pieceList) {
+                piecePo.setId(null);
+                piecePo.setFreightModelId(mainId);
+                piecePo.setGmtCreate(nowTime);
+                piecePo.setGmtModified(nowTime);
+                if (!insertPieceFreightModelPo(piecePo)) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                }
+            }
+        } else {
+            APIReturnObject<List<WeightFreightModelPo>> weightTable = freightDao.getWeightFreightModel(id, null);
+            if (weightTable.getCode() != ResponseCode.OK) {
+                // 分表未查到，回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, weightTable.getCode(), weightTable.getErrMsg());
+            }
+            // 如果还没定义明细，就直接返回好了
+            List<WeightFreightModelPo> weightList = weightTable.getData();
+            if (weightList.size() == 0) {
+                return mainTable;
+            }
+            // 克隆所有明细
+            for (WeightFreightModelPo weightPo : weightList) {
+                weightPo.setId(null);
+                weightPo.setFreightModelId(mainId);
+                weightPo.setGmtCreate(nowTime);
+                weightPo.setGmtModified(nowTime);
+                if (!insertWeightFreightModelPo(weightPo)) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                }
+            }
+        }
+
+        // 返回改动过的主表
+        return mainTable;
     }
 
     /**
@@ -149,9 +215,13 @@ public class FreightService {
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
      */
-    public APIReturnObject<FreightModelPo> getFreightModelSimple(Long id) {
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getFreightModelByShopIdAndId(null, id);
-        return returnObject;
+    public APIReturnObject<?> getFreightModelSimple(Long id, Long shopId) {
+        APIReturnObject<FreightModelPo> poObj = freightDao.getShopFreightModel(id, shopId);
+        if (poObj.getCode() != ResponseCode.OK) {
+            return poObj;
+        }
+        // 构造 Vo 返回
+        return new APIReturnObject<>(new FreightModelVo(poObj.getData()));
     }
 
     /**
@@ -160,31 +230,51 @@ public class FreightService {
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
-     * Created by Chen Kechun at 25/11/2020 16:58
+     * Modified by Han Li at 25/11/2020 16:58
      */
+    @Transactional
     public APIReturnObject<?> modifyShopFreightModel(Long shopId, Long id, FreightModelModifyVo freightModelModifyVo) {
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        // 获取原来信息
+        APIReturnObject<FreightModelPo> returnObject = freightDao.getShopFreightModel(id, shopId);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
-        FreightModelPo po = returnObject.getData();
-        String name = freightModelModifyVo.getName();
-        if (freightDao.isConflictByName(shopId, name) != 0) {
-            return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.FREIGHT_MODEL_NAME_SAME);
-        } else {
-            po.setName(name);
-            po.setUnit(freightModelModifyVo.getUnit());
-            if (!updateFreightModelPo(po)) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
+        Long origShopId = returnObject.getData().getShopId();
+
+        // 判断该商店是否拥有
+        if (!origShopId.equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        return new APIReturnObject<>();
+        // 创建更新体
+        FreightModelPo po = new FreightModelPo();
+        po.setId(id);
+        po.setName(freightModelModifyVo.getName());
+        po.setUnit(freightModelModifyVo.getUnit());
+        po.setGmtModified(LocalDateTime.now());
+
+        // 写入数据库
+        int response;
+        try {
+            response = freightDao.updateFreightModel(po);
+        } catch (DataAccessException e) {
+            logger.info(e.getMessage());
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_MODEL_NAME_SAME);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+
+        // 返回
+        if (response > 0) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
     }
 
 
     /**
-     * 服务 f7：管理员修改店铺的运费模板
+     * 服务 f7：管理员删除店铺的运费模板
      *
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
      * @author Chen Kechun
@@ -192,20 +282,35 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> deleteShopFreightModel(Long shopId, Long id) {
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        // 获取原来信息
+        APIReturnObject<FreightModelPo> returnObject = freightDao.getShopFreightModel(id, shopId);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
         FreightModelPo po = returnObject.getData();
-        if (!deleteFreightModelPo(po)) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        Long origShopId = po.getShopId();
+        Byte type = po.getType();
+
+        // 判断该商店是否拥有
+        if (!origShopId.equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        }
+
+        // 将删除写入数据库
+        int response;
+        try {
+            response = freightDao.deleteFreightModel(id, type);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        APIReturnObject<WeightFreightModelPo> weight = freightDao.getWeightFreightModel(id, null);
-        APIReturnObject<PieceFreightModelPo> piece = freightDao.getPieceFreightModel(id, null);
-        deleteWeightFreightModelPo(weight.getData().getId());
-        deletePieceFreightModelPo(piece.getData().getId());
-        return new APIReturnObject<>();
+
+        // 返回
+        if (response > 0) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
     }
 
     /**
@@ -214,20 +319,40 @@ public class FreightService {
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
-     * Created by Chen Kechun at 25/11/2020 16:58
+     * Modified by Han Li at 25/11/2020 16:58
      */
     public APIReturnObject<?> defineDefaultFreightModel(Long shopId, Long id) {
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        // 获取原来信息
+        APIReturnObject<FreightModelPo> returnObject = freightDao.getShopFreightModel(id, shopId);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
-        FreightModelPo po = returnObject.getData();
+        Long origShopId = returnObject.getData().getShopId();
+
+        // 判断该商店是否拥有
+        if (!origShopId.equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        }
+
+        // 创建更新体
+        FreightModelPo po = new FreightModelPo();
         po.setDefaultModel((byte) 1);
-        if (!updateFreightModelPo(po)) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+        // 写入数据库
+        int response;
+        try {
+            response = freightDao.updateFreightModel(po);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        return new APIReturnObject<>();
+
+        // 返回
+        if (response > 0) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
     }
 
     /**
@@ -239,7 +364,7 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> createWeightFreightModel(Long shopId, Long id, WeightFreightModelVo weightFreightModelVo) {
-        APIReturnObject<FreightModelPo> object = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        APIReturnObject<FreightModelPo> object = freightDao.getShopFreightModel(id, shopId);
         if (object.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, object.getCode(), object.getErrMsg());
         }
@@ -273,12 +398,12 @@ public class FreightService {
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
      */
-    public APIReturnObject<WeightFreightModelPo> getWeightFreightModel(Long shopId, Long id) {
-        APIReturnObject<FreightModelPo> object = freightDao.getFreightModelByShopIdAndId(shopId, id);
+    public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModel(Long shopId, Long id) {
+        APIReturnObject<FreightModelPo> object = freightDao.getShopFreightModel(id, shopId);
         if (object.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, object.getCode(), object.getErrMsg());
         }
-        APIReturnObject<WeightFreightModelPo> returnObject = freightDao.getWeightFreightModel(id, null);
+        APIReturnObject<List<WeightFreightModelPo>> returnObject = freightDao.getWeightFreightModel(id, null);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
@@ -294,7 +419,7 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> createPieceFreightModel(Long shopId, Long id, PieceFreightModelVo pieceFreightModelVo) {
-        APIReturnObject<FreightModelPo> object = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        APIReturnObject<FreightModelPo> object = freightDao.getShopFreightModel(shopId, id);
         if (object.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, object.getCode(), object.getErrMsg());
         }
@@ -325,12 +450,12 @@ public class FreightService {
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
      */
-    public APIReturnObject<PieceFreightModelPo> getPieceFreightModel(Long shopId, Long id) {
-        APIReturnObject<FreightModelPo> object = freightDao.getFreightModelByShopIdAndId(shopId, id);
+    public APIReturnObject<List<PieceFreightModelPo>> getPieceFreightModel(Long shopId, Long id) {
+        APIReturnObject<FreightModelPo> object = freightDao.getShopFreightModel(shopId, id);
         if (object.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, object.getCode(), object.getErrMsg());
         }
-        APIReturnObject<PieceFreightModelPo> returnObject = freightDao.getPieceFreightModel(id, null);
+        APIReturnObject<List<PieceFreightModelPo>> returnObject = freightDao.getPieceFreightModel(id, null);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
@@ -345,13 +470,16 @@ public class FreightService {
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
      */
-    public APIReturnObject<?> modifyWeightFreightModel(Long shopId, Long id, WeightFreightModelVo vo) {
-        APIReturnObject<FreightModelPo> judge = freightDao.getFreightModelByShopIdAndId(shopId, id);
+    public APIReturnObject<?> modifyWeightFreightModel(Long shopId, Long detailId, WeightFreightModelVo vo) {
+        // TODO
+        Long id = 1L;
+        APIReturnObject<FreightModelPo> judge = freightDao.getShopFreightModel(id, shopId);
         if (judge.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, judge.getCode(), judge.getErrMsg());
         }
-        APIReturnObject<WeightFreightModelPo> object = getWeightFreightModel(shopId, id);
-        WeightFreightModelPo po = object.getData();
+//        APIReturnObject<WeightFreightModelPo> object = getWeightFreightModel(shopId, detailId);
+        // TODO
+        WeightFreightModelPo po = null;
         if (freightDao.isConflictByRegionIdForWeight(vo.getRegionId()) > 0 && !vo.getRegionId().equals(po.getRegionId())) {
             return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.REGION_SAME);
         }
@@ -378,9 +506,10 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> deleteWeightFreightModel(Long shopId, Long id) {
-        APIReturnObject<WeightFreightModelPo> object = freightDao.getWeightFreightModel(null, id);
-        WeightFreightModelPo po = object.getData();
-        APIReturnObject<FreightModelPo> judge = freightDao.getFreightModelByShopIdAndId(shopId, po.getFreightModelId());
+//        APIReturnObject<WeightFreightModelPo> object = freightDao.getWeightFreightModel(null, id);
+        // TODO
+        WeightFreightModelPo po = null;
+        APIReturnObject<FreightModelPo> judge = null;
         if (judge.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, judge.getCode(), judge.getErrMsg());
         }
@@ -401,11 +530,11 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> modifyPieceFreightModel(Long shopId, Long id, PieceFreightModelVo vo) {
-        APIReturnObject<FreightModelPo> judge = freightDao.getFreightModelByShopIdAndId(shopId, id);
+        APIReturnObject<FreightModelPo> judge = null;
         if (judge.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, judge.getCode(), judge.getErrMsg());
         }
-        APIReturnObject<PieceFreightModelPo> object = getPieceFreightModel(shopId, id);
+        APIReturnObject<PieceFreightModelPo> object = null;
         PieceFreightModelPo po = object.getData();
         if (freightDao.isConflictByRegionIdForPiece(vo.getRegionId()) > 0 && !vo.getRegionId().equals(po.getRegionId())) {
             return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.REGION_SAME);
@@ -431,9 +560,9 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> deletePieceFreightModel(Long shopId, Long id) {
-        APIReturnObject<PieceFreightModelPo> object = freightDao.getPieceFreightModel(null, id);
+        APIReturnObject<PieceFreightModelPo> object = null;
         PieceFreightModelPo po = object.getData();
-        APIReturnObject<FreightModelPo> judge = freightDao.getFreightModelByShopIdAndId(shopId, po.getFreightModelId());
+        APIReturnObject<FreightModelPo> judge = null;
         if (judge.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, judge.getCode(), judge.getErrMsg());
         }
@@ -444,19 +573,6 @@ public class FreightService {
         return new APIReturnObject<>();
     }
 
-
-    /**
-     * **内部方法**：将 freightModelPo 从数据库中删除
-     */
-    public boolean deleteFreightModelPo(FreightModelPo po) {
-        try {
-            int response = freightDao.deleteFreightModel(po);
-            return response > 0;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
 
     /**
      * **内部方法**：将 freightModelPo 从数据库中删除
@@ -477,20 +593,6 @@ public class FreightService {
     public boolean deletePieceFreightModelPo(Long id) {
         try {
             int response = freightDao.deletePieceFreightModel(id);
-            return response > 0;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * **内部方法**：将 freightModelPo 从数据库中更新
-     */
-    private boolean updateFreightModelPo(FreightModelPo po) {
-        try {
-            po.setGmtModified(LocalDateTime.now());
-            int response = freightDao.updateFreightModel(po);
             return response > 0;
         } catch (Exception e) {
             logger.error(e.getMessage());

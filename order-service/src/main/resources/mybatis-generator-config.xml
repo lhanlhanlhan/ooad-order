@@ -128,7 +128,7 @@
         <!-- 表 2 -->
         <table tableName="piece_freight_model" domainObjectName="PieceFreightModelPo"
                enableCountByExample="true" enableUpdateByExample="false"
-               enableDeleteByExample="false" enableSelectByExample="true"
+               enableDeleteByExample="true" enableSelectByExample="true"
                selectByExampleQueryId="false">
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
@@ -137,7 +137,7 @@
         <!-- 表 3 -->
         <table tableName="weight_freight_model" domainObjectName="WeightFreightModelPo"
                enableCountByExample="true" enableUpdateByExample="false"
-               enableDeleteByExample="false" enableSelectByExample="true"
+               enableDeleteByExample="true" enableSelectByExample="true"
                selectByExampleQueryId="false">
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
