@@ -216,18 +216,21 @@ public class PaymentService {
 
 
     /**
-     * 05. 管理员查询订单的支付信息
+     * 服务 5: 管理员查询订单的支付信息 TODO - 这个等分单以后测试
      *
-     * @param shopId  店铺ID
-     * @param orderId 订单ID
-     * @return APIReturnObject<?>
+     * @author 苗新宇
+     * Created at 05/12/2020 17:29
+     * Created by 苗新宇 at 05/12/2020 17:29
+     * @param shopId
+     * @param orderId
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     public APIReturnObject<?> getOrderPaymentInfo(Long shopId, Long orderId) {
         //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<OrderSimplePo> orders = paymentDao.getOrderByShopIdAndOrderId(shopId, orderId);
+        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
         if (orders.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, orders.getCode(), orders.getErrMsg());
+            return orders;
         }
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
         APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);
@@ -237,9 +240,7 @@ public class PaymentService {
         paymentOrderVoList = paymentPoList.getData().stream()
                 .map(PaymentOrderVo::new)
                 .collect(Collectors.toList());
-        Map<String, Object> map = new HashMap<>();
-        map.put("list", paymentOrderVoList);
-        return new APIReturnObject<>(map);
+        return new APIReturnObject<>(paymentOrderVoList);
     }
 
 
@@ -351,10 +352,10 @@ public class PaymentService {
         //根据支付单查询到订单ID
         Long orderId = paymentPo.getOrderId();
         //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<OrderSimplePo> orders = paymentDao.getOrderByShopIdAndOrderId(shopId, orderId);
+        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
         if (orders.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+            return orders;
         }
         //返回支付单
         return new APIReturnObject<>(paymentPo);
@@ -381,11 +382,11 @@ public class PaymentService {
         Long orderId = returnObj.getData().getOrderId();
         //获取售后单ID
         Long aftersaleId = returnObj.getData().getAftersaleId();
-        //检查Payment是否是此商铺的payment：根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<OrderSimplePo> orders = paymentDao.getOrderByShopIdAndOrderId(shopId, orderId);
+        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
+        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
         if (orders.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, orders.getCode(), orders.getErrMsg());
+            return orders;
         }
         //新建refund PO对象
         RefundPo refundPo = new RefundPo();
@@ -428,11 +429,11 @@ public class PaymentService {
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByOrderId(Long shopId, Long orderId) {
-        //检查订单是否属于此商铺：根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<OrderSimplePo> orders = paymentDao.getOrderByShopIdAndOrderId(shopId, orderId);
+        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
+        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
         if (orders.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, orders.getCode(), orders.getErrMsg());
+            return orders;
         }
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
         APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);

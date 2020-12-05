@@ -164,34 +164,6 @@ public class PaymentDao {
     }
 
     /**
-     * 根据店铺ID以及订单号查询订单
-     *
-     * @param shopId  店铺ID
-     * @param orderId 订单号
-     * @return APIReturnObject<PaymentPo> PO List
-     */
-    public APIReturnObject<OrderSimplePo> getOrderByShopIdAndOrderId(Long shopId, Long orderId) {
-        //创建Example对象，以实现根据店铺ID以及订单号查询订单
-        OrderSimplePoExample example = new OrderSimplePoExample();
-        OrderSimplePoExample.Criteria criteria = example.createCriteria();
-        if (shopId != null && orderId == null) {
-            criteria.andShopIdEqualTo(shopId);
-            criteria.andIdEqualTo(orderId);
-        }
-        //执行查询
-        List<OrderSimplePo> orderSimplePos;
-        try {
-            orderSimplePos = orderSimplePoMapper.selectByExample(example);
-        } catch (Exception e) {
-            //数据库错误
-            logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
-        }
-
-        return new APIReturnObject(orderSimplePos);
-    }
-
-    /**
      * 根据支付单ID查询支付单
      *
      * @param paymentId 支付单ID
