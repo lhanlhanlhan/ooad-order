@@ -65,8 +65,9 @@ public class OrderDao {
                                                                     String beginTime, String endTime,
                                                                     int page, int pageSize,
                                                                     Long customerId,
-                                                                    Long shopId) {
-        APIReturnObject<List<OrderSimplePo>> orderSimplePos = getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId);
+                                                                    Long shopId,
+                                                                    boolean includeDeleted) {
+        APIReturnObject<List<OrderSimplePo>> orderSimplePos = getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId, includeDeleted);
         if (orderSimplePos.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(orderSimplePos.getCode(), orderSimplePos.getErrMsg());
         }
@@ -86,7 +87,8 @@ public class OrderDao {
      */
     public APIReturnObject<List<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
                                                                 String beginTime, String endTime,
-                                                                Long customerId, Long shopId) {
+                                                                Long customerId, Long shopId,
+                                                                boolean includeDeleted) {
         // 创建 PoExample 对象，以实现多参数查询
         OrderSimplePoExample example = new OrderSimplePoExample();
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
@@ -126,6 +128,9 @@ public class OrderDao {
         }
         if (customerId != null) {
             criteria.andCustomerIdEqualTo(customerId);
+        }
+        if (!includeDeleted) {
+            criteria.andBeDeletedNotEqualTo((byte) 1);
         }
         // 执行查询
         List<OrderSimplePo> orderSimplePoList;

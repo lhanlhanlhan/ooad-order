@@ -865,6 +865,66 @@ public class OrderSimplePoExample {
             return (Criteria) this;
         }
 
+        public Criteria andBeDeletedIsNull() {
+            addCriterion("be_deleted is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedIsNotNull() {
+            addCriterion("be_deleted is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedEqualTo(Byte value) {
+            addCriterion("be_deleted =", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedNotEqualTo(Byte value) {
+            addCriterion("be_deleted <>", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedGreaterThan(Byte value) {
+            addCriterion("be_deleted >", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedGreaterThanOrEqualTo(Byte value) {
+            addCriterion("be_deleted >=", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedLessThan(Byte value) {
+            addCriterion("be_deleted <", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedLessThanOrEqualTo(Byte value) {
+            addCriterion("be_deleted <=", value, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedIn(List<Byte> values) {
+            addCriterion("be_deleted in", values, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedNotIn(List<Byte> values) {
+            addCriterion("be_deleted not in", values, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedBetween(Byte value1, Byte value2) {
+            addCriterion("be_deleted between", value1, value2, "beDeleted");
+            return (Criteria) this;
+        }
+
+        public Criteria andBeDeletedNotBetween(Byte value1, Byte value2) {
+            addCriterion("be_deleted not between", value1, value2, "beDeleted");
+            return (Criteria) this;
+        }
+
         public Criteria andGmtCreateIsNull() {
             addCriterion("gmt_create is null");
             return (Criteria) this;

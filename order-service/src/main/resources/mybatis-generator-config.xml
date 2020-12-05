@@ -167,6 +167,7 @@
                 <except column="origin_price"/>
                 <except column="discount_price"/>
                 <except column="freight_price"/>
+                <except column="be_deleted"/>
             </ignoreColumnsByRegex>
         </table>
 

@@ -85,7 +85,7 @@ public class OrderService {
         if (page != null && pageSize != null) {
             PageHelper.startPage(page, pageSize);
             // 调用 Dao 层
-            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null);
+            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null, false);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
@@ -104,7 +104,7 @@ public class OrderService {
         // 不必分页
         else {
             // 调用 Dao 层
-            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, null);
+            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, null, false);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
@@ -172,7 +172,7 @@ public class OrderService {
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderEditVo orderEditVo) {
         // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, true);
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
             return returnObject;
@@ -341,7 +341,7 @@ public class OrderService {
         if (page != null && pageSize != null) {
             PageHelper.startPage(page, pageSize);
             // 调用 Dao 层
-            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId);
+            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId, true);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
@@ -360,7 +360,7 @@ public class OrderService {
         // 不必分页
         else {
             // 调用 Dao 层
-            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId);
+            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId, true);
             if (returnObject.getCode() != ResponseCode.OK) {
                 return returnObject;
             }
