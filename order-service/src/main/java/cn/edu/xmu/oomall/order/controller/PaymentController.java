@@ -150,7 +150,7 @@ public class PaymentController {
             logger.debug("get orders/{id}/payments;id=" + id + ";customerId " + customerId);
         }
         //调用服务层
-        return ResponseUtils.make(paymentService.getPaymentOrderByOrderId(id));
+        return ResponseUtils.make(paymentService.getPaymentOrderByOrderId(customerId, id));
     }
 
     /**

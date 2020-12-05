@@ -53,6 +53,7 @@ public class PaymentService {
     /**
      * 服务 p3：买家为订单创建支付单
      *
+     * TODO - 分单！
      * @return APIReturnObject
      * @author 苗新宇
      * Created at 30/11/2020 8:45
@@ -180,28 +181,37 @@ public class PaymentService {
     }
 
     /**
-     * 04: 买家【根据订单号】查询自己的支付信息
+     * 服务 p4: 买家【根据订单号】查询自己的支付信息
      *
+     * @author 苗新宇
+     * Created at 05/12/2020 17:28
+     * Created by Han Li at 05/12/2020 17:28
+     * @param customerId
      * @param orderId
-     * @return
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
-    public APIReturnObject<?> getPaymentOrderByOrderId(Long orderId) {
+    public APIReturnObject<?> getPaymentOrderByOrderId(Long customerId, Long orderId) {
+        // 校验订单 id 是否存在 / 属于用户？
+        // TODO - 我觉得，如果只要校验订单的话，不必要 get，过后写一个 count 函数到dao里面去。
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于用户【404 返回】
+            return returnObject;
+        }
+
+        // 获取支付单列表
         APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByOrderId(orderId);
         if (returnObj.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+            return returnObj;
         }
-        List<PaymentOrderVo> paymentOrderVos;
+
         //【PO对象】转换成【VO对象】返回给controller层
         List<PaymentPo> paymentPoList = returnObj.getData();
-        paymentOrderVos = paymentPoList.stream()
-                .map(PaymentOrder::new)
-                .map(PaymentOrder::createSimpleVo)
+        List<PaymentOrderVo> paymentOrderVos = paymentPoList.stream()
+                .map(PaymentOrderVo::new)
                 .collect(Collectors.toList());
-        Map<String, Object> map = new HashMap<>();
-        //用Map封装
-        map.put("list", paymentOrderVos);
-        return new APIReturnObject<>(map);
+        return new APIReturnObject<>(paymentOrderVos);
     }
 
 
@@ -225,8 +235,7 @@ public class PaymentService {
         List<PaymentOrderVo> paymentOrderVoList;
         //将PaymentPo【Po对象】集合转换成PaymentOrderVo【Vo对象】集合
         paymentOrderVoList = paymentPoList.getData().stream()
-                .map(PaymentOrder::new)
-                .map(PaymentOrder::createSimpleVo)
+                .map(PaymentOrderVo::new)
                 .collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
         map.put("list", paymentOrderVoList);
@@ -312,8 +321,7 @@ public class PaymentService {
         //【PO对象】转换成【VO对象】返回给controller层
         List<PaymentPo> paymentPoList = returnObj.getData();
         paymentOrderVos = paymentPoList.stream()
-                .map(PaymentOrder::new)
-                .map(PaymentOrder::createSimpleVo)
+                .map(PaymentOrderVo::new)
                 .collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
         //用Map封装

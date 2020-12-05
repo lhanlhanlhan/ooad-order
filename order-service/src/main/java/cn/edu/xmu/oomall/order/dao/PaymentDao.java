@@ -46,7 +46,7 @@ public class PaymentDao {
      * @return APIReturnObject<PaymentPo> PO List
      */
     public APIReturnObject<List<PaymentPo>> getPaymentOrderByOrderId(Long orderId) {
-        //创建PoExample对象，以实现根据订单号orderId查询支付单
+        // 创建PoExample对象，以实现根据订单号orderId查询支付单
         PaymentPoExample example = new PaymentPoExample();
         PaymentPoExample.Criteria criteria = example.createCriteria();
         if (orderId != null) {
