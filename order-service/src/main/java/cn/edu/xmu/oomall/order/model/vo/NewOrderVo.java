@@ -20,7 +20,7 @@ import java.util.Map;
 public class NewOrderVo {
     @NotNull(message = "订单项目列表为空")
     @Size(min = 1, message = "订单项目列表至少要有 1 个订单项")
-    private List<Map<String, Long>> orderItems;
+    private List<OrderItemVo> orderItems;
 
     @NotBlank(message = "姓名为空")
     @Size(max = 255, message = "姓名太长")

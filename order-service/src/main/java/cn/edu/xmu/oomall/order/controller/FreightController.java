@@ -42,7 +42,6 @@ public class FreightController {
      *
      * @param rid        地区id
      * @param items      订单商品订货详情
-     * @param customerId 用户ID
      * @return java.lang.Object
      * @author Chen Kechun
      * Created at 1/12/2020 19:45
@@ -60,12 +59,16 @@ public class FreightController {
     @InspectCustomer
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
-                                         @RequestBody List<FreightItemVo> items,
-                                         @LoginUser Long customerId) {
-
+                                         @Validated @RequestBody List<FreightItemVo> items) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
+        }
+        // 先判断输入是否有误
+        if (items == null || items.size() == 0) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+        }
         // 调用服务层
-        //return ResponseUtils.make();
-        return null;
+        return ResponseUtils.make(freightService.calcFreight(rid, items));
     }
 
     /**

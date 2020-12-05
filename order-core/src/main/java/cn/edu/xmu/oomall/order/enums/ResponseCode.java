@@ -32,6 +32,7 @@ public enum ResponseCode {
     FREIGHT_MODEL_NAME_SAME(802, "运费模板名重复"),
     REGION_SAME(803, "运费模板中该地区已经定义"),
     REFUND_MORE(804, "退款金额超过支付金额"),
+    FREIGHT_REGION_FORBIDDEN(805, "订购列表中包含禁止寄往该地区之物品"),
     ;
 
     private final int code;

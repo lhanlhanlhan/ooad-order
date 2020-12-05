@@ -42,9 +42,11 @@ public class ShopService {
         // 在这里把其他模块的 Model 转为统一的 Map
         Map<String, Object> shopInfo = new HashMap<>();
         shopInfo.put("id", skuId);
-        shopInfo.put("name", "Apple MacBook Pro 2020 13' Grey");
+        shopInfo.put("name", "Apple MacBook Pro 2020 13' Grey"); // 可能要到两个表查
         shopInfo.put("price", 1324500L);
-        shopInfo.put("shopId", 99123674500L);
+        shopInfo.put("shopId", 99123674500L); // 可能要到两个表查
+        shopInfo.put("weight", 1280L);
+        shopInfo.put("freightId", 7L); // 可能要到两个表查
         return shopInfo;
     }
 

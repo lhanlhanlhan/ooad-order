@@ -57,6 +57,9 @@ public class OrderService {
     @Autowired
     private CouponService couponService;
 
+    @Autowired
+    private FreightService freightService;
+
     /**
      * 服务 o1：获取用户名下所有订单概要
      *
@@ -589,14 +592,17 @@ public class OrderService {
         // TODO - 秒杀的认定
 
         // TODO - 优惠活动金额的计算
-        List<Map<String, Long>> orderItems = newOrderVo.getOrderItems();
+        List<OrderItemVo> orderItemVos = newOrderVo.getOrderItems();
+        List<Map<String, Object>> orderItems = orderItemVos.stream()
+                .map(OrderItemVo::toMap)
+                .collect(Collectors.toList());
         int calcRet = couponService.computeDiscount(orderItems);
         if (calcRet != 0) {
             // TODO - 计算出错，返回对应错误
             return new APIReturnObject<>(ResponseCode.BAD_REQUEST);
         }
         // 下单，扣库存
-        for (Map<String, Long> itemInfo : orderItems) {
+        for (Map<String, Object> itemInfo : orderItems) {
             if (!decreaseStock(itemInfo)) {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
@@ -610,6 +616,8 @@ public class OrderService {
 
 
         // TODO - 计算运费
+        Long regionId = newOrderVo.getRegionId();
+        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
         long totalFreight = 0L;
 
         /* 以下是数据库部分 */
@@ -619,9 +627,9 @@ public class OrderService {
         // 计算各商品的价格及其对应 Po
         List<OrderItemPo> orderItemPos = new ArrayList<>(orderItems.size());
         long totalPrice = 0L;
-        for (Map<String, Long> item : orderItems) {
-            Long skuId = item.get("skuId");
-            Integer quantity = item.get("quantity").intValue();
+        for (Map<String, Object> item : orderItems) {
+            Long skuId = (Long) item.get("skuId");
+            Integer quantity = (Integer) item.get("quantity");
             // 创建新 po，设置除了 orderId、beSharedId 以外的资料
             OrderItemPo orderItemPo = new OrderItemPo();
             orderItemPo.setGoodsSkuId(skuId);
@@ -633,7 +641,7 @@ public class OrderService {
             // 计算各种价格
             Long price = (Long) skuInfo.get("price");
             totalPrice += price * quantity;
-            Long discount = item.get("discount");
+            Long discount = (Long) item.get("discount");
             totalDiscount += discount;
             // 填写各种价格
             orderItemPo.setPrice(price);
@@ -689,7 +697,7 @@ public class OrderService {
      */
     @Transactional
     public APIReturnObject<?> createOneItemOrder(Long customerId, NewOrderVo newOrderVo, OrderType type) {
-        Map<String, Long> itemInfo = newOrderVo.getOrderItems().get(0);
+        Map<String, Object> itemInfo = newOrderVo.getOrderItems().get(0).toMap();
         // 扣库存
         if (!decreaseStock(itemInfo)) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -705,8 +713,8 @@ public class OrderService {
         /* 以下是数据库部分 */
 
         // 创建对应 Po
-        Long skuId = itemInfo.get("skuId");
-        Integer quantity = itemInfo.get("quantity").intValue();
+        Long skuId = (Long) itemInfo.get("skuId");
+        Integer quantity = (Integer) itemInfo.get("quantity");
         // 联系商品模块获取商品资料
         Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
         Long price = (Long) skuInfo.get("price");
@@ -812,12 +820,13 @@ public class OrderService {
 
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存
+     * // TODO - redis
      * @param itemInfo
      * @return
      */
-    private boolean decreaseStock(Map<String, Long> itemInfo) {
-        Long skuId = itemInfo.get("skuId");
-        Long quantity = itemInfo.get("quantity");
+    private boolean decreaseStock(Map<String, Object> itemInfo) {
+        Long skuId = (Long) itemInfo.get("skuId");
+        Long quantity = (Long) itemInfo.get("quantity");
         int decStatus = shopService.decreaseStock(skuId, quantity);
         if (decStatus == 1) {
             // 库存不足

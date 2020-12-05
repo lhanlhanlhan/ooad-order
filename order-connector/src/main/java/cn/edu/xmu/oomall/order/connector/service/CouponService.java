@@ -22,8 +22,8 @@ public class CouponService {
      * @param orderItems 订单项目
      * @return 0：计算完成，正常计算
      */
-    public int computeDiscount(List<Map<String, Long>> orderItems) {
-        for (Map<String, Long> orderItem : orderItems) {
+    public int computeDiscount(List<Map<String, Object>> orderItems) {
+        for (Map<String, Object> orderItem : orderItems) {
             orderItem.put("discount", 1L);
         }
         return 0;

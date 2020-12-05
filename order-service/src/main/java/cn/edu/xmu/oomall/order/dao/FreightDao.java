@@ -91,6 +91,19 @@ public class FreightDao {
     }
 
     /**
+     * 获取运费模板 (单个)
+     */
+    public FreightModelPo getFreightModel(Long id) {
+        try {
+            // 存在就存在，不存在就数据库错误 (商品、订单服务器出现不一致)
+            return freightModelPoMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
+            // 数据库 错误
+            return null;
+        }
+    }
+
+    /**
      * 获取店铺的运费模板 (单个)
      */
     public APIReturnObject<FreightModelPo> getShopFreightModel(Long id, Long shopId) {
@@ -117,7 +130,6 @@ public class FreightDao {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
-
 
     /**
      * 根据模板ID/明细ID返回一个重量模板明细
@@ -285,7 +297,6 @@ public class FreightDao {
         return pieceFreightModelPoMapper.updateByPrimaryKeySelective(po);
     }
 
-
     /**
      * 插入件数运费模板
      *
@@ -293,5 +304,61 @@ public class FreightDao {
      */
     public int addPieceFreightModel(PieceFreightModelPo po) {
         return pieceFreightModelPoMapper.insert(po);
+    }
+
+    /**
+     * 内部调用：获取一个重量运费模板的某个地区的明细，没有明细就返回没有
+     * @param modelId
+     * @param regionId
+     * @return
+     */
+    public WeightFreightModelPo getRegionWeightFreightModel(Long modelId, Long regionId) {
+        WeightFreightModelPoExample example = new WeightFreightModelPoExample();
+        WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
+
+        criteria.andFreightModelIdEqualTo(modelId);
+        criteria.andRegionIdEqualTo(regionId);
+
+        try {
+            List<WeightFreightModelPo> poList = weightFreightModelPoMapper.selectByExample(example);
+            // 如果返回空列表，就返回 null
+            if (poList.size() != 1) {
+                return null;
+            }
+            // 获取 List 的第一个值
+            return poList.get(0);
+        } catch (Exception e) {
+            // 数据库 错误
+            logger.error(e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 内部调用：获取一个件数运费模板的某个地区的明细，没有明细就返回没有
+     * @param modelId
+     * @param regionId
+     * @return
+     */
+    public PieceFreightModelPo getRegionPieceFreightModel(Long modelId, Long regionId) {
+        PieceFreightModelPoExample example = new PieceFreightModelPoExample();
+        PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
+
+        criteria.andFreightModelIdEqualTo(modelId);
+        criteria.andRegionIdEqualTo(regionId);
+
+        try {
+            List<PieceFreightModelPo> poList = pieceFreightModelPoMapper.selectByExample(example);
+            // 如果返回空列表，就返回 null
+            if (poList.size() != 1) {
+                return null;
+            }
+            // 获取 List 的第一个值
+            return poList.get(0);
+        } catch (Exception e) {
+            // 数据库 错误
+            logger.error(e.getMessage());
+            return null;
+        }
     }
 }

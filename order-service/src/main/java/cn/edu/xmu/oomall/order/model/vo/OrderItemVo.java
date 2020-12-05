@@ -3,6 +3,9 @@ package cn.edu.xmu.oomall.order.model.vo;
 import cn.edu.xmu.oomall.order.model.bo.OrderItem;
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * OrderItem 的 Vo 对象
  *
@@ -34,5 +37,18 @@ public class OrderItemVo {
         this.discount = item.getDiscount();
         this.couponActId = item.getCouponActId();
         this.beSharedId = item.getBeSharedId();
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("skuId", this.skuId);
+        map.put("orderId", this.orderId);
+        map.put("name", this.name);
+        map.put("quantity", this.quantity);
+        map.put("price", this.price);
+        map.put("discount", this.discount);
+        map.put("couponActId", this.couponActId);
+        map.put("beSharedId", this.beSharedId);
+        return map;
     }
 }

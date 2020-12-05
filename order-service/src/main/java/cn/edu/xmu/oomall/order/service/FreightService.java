@@ -4,6 +4,7 @@ import cn.edu.xmu.oomall.order.connector.service.CustomerService;
 import cn.edu.xmu.oomall.order.connector.service.ShopService;
 import cn.edu.xmu.oomall.order.dao.FreightDao;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
+import cn.edu.xmu.oomall.order.model.bo.FreightModel;
 import cn.edu.xmu.oomall.order.model.po.FreightModelPo;
 import cn.edu.xmu.oomall.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.oomall.order.model.po.WeightFreightModelPo;
@@ -22,10 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +46,47 @@ public class FreightService {
 
     @Autowired
     private ShopService shopService;
+
+    public APIReturnObject<?> calcFreight(Long regionId, List<OrderItemVo> orderItemList) {
+        // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
+        List<Map<String, Object>> skuInfoList = new ArrayList<>(orderItemList.size());
+        List<FreightModel> freightModelList = new ArrayList<>(orderItemList.size());
+        for (OrderItemVo freightItem : orderItemList) {
+            // 准备商品信息
+            Long skuId = freightItem.getSkuId();
+            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            if (skuInfo == null) {
+                // 商品、订单模块数据库不一致
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
+            // 准备运费模板信息
+            Long modelId = (Long) skuInfo.get("freightId"); // 会不会未定义？未定义的话，这个字段应该为 0
+            FreightModelPo modelPo = freightDao.getFreightModel(modelId);
+            if (modelPo == null) {
+                // 商品、订单模块数据库不一致
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
+            FreightModel model = new FreightModel(modelPo);
+
+            // 准备列表
+            skuInfoList.add(skuInfo);
+            freightModelList.add(model);
+        }
+        // 2. 用每个模板计算所有物品的最大运费
+        long freight = 0;
+        for (FreightModel model : freightModelList) {
+            long subFreight = model.calcFreight(regionId, orderItemList, skuInfoList);
+            if (subFreight == -1) {
+                // 包含禁寄物品
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN);
+            }
+            if (subFreight > freight) {
+                // 更新最大运费
+                freight = subFreight;
+            }
+        }
+        return new APIReturnObject<>(freight);
+    }
 
     /**
      * 服务 f2：管理员定义商铺运费模板
