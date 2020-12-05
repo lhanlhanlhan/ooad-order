@@ -191,7 +191,7 @@
         <!-- 表 7 -->
         <table tableName="refund" domainObjectName="RefundPo"
                enableCountByExample="false" enableUpdateByExample="false"
-               enableDeleteByExample="false" enableSelectByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="true"
                selectByExampleQueryId="false">
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
