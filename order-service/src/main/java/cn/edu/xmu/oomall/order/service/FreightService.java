@@ -57,6 +57,7 @@ public class FreightService {
             Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
             if (skuInfo == null) {
                 // 商品、订单模块数据库不一致
+                logger.error("检测到商品、订单模块数据库不一致! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             // 准备运费模板信息
@@ -64,6 +65,7 @@ public class FreightService {
             FreightModelPo modelPo = freightDao.getFreightModel(modelId);
             if (modelPo == null) {
                 // 商品、订单模块数据库不一致
+                logger.error("检测到商品、订单模块数据库不一致! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             FreightModel model = new FreightModel(modelPo);
@@ -308,6 +310,7 @@ public class FreightService {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_MODEL_NAME_SAME);
             } else {
+                logger.error(e.getMessage());
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
         } catch (Exception e) {
@@ -319,6 +322,7 @@ public class FreightService {
         if (response > 0) {
             return new APIReturnObject<>();
         } else {
+            logger.error("更新失败！freightModelId=" + id);
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
@@ -361,6 +365,7 @@ public class FreightService {
         if (response >= 0) {
             return new APIReturnObject<>();
         } else {
+            logger.error("删除运费模板失败！modelId=" + id);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -405,6 +410,7 @@ public class FreightService {
         if (response > 0) {
             return new APIReturnObject<>();
         } else {
+            logger.error("定义默认运费模板失败！id=" + id);
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }

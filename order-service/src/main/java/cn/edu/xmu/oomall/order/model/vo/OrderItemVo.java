@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.order.model.vo;
 
 import cn.edu.xmu.oomall.order.model.bo.OrderItem;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  * Modified by Han Li at 26/11/2020 3:59 下午
  */
 @Data
+@NoArgsConstructor
 public class OrderItemVo {
     private Long skuId;
     private Long orderId;

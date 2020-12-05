@@ -58,7 +58,7 @@ public class PaymentDao {
             paymentSimplePoList = paymentPoMapper.selectByExample(example);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
 
@@ -104,7 +104,7 @@ public class PaymentDao {
             paymentSimplePoList = paymentPoMapper.selectByExample(poExample);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject(paymentSimplePoList);
@@ -129,7 +129,7 @@ public class PaymentDao {
             paymentSimplePoList = paymentPoMapper.selectByExample(example);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(paymentSimplePoList);
@@ -156,7 +156,7 @@ public class PaymentDao {
             paymentSimplePoList = paymentPoMapper.selectByExample(example);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
 
@@ -184,7 +184,7 @@ public class PaymentDao {
             orderSimplePos = orderSimplePoMapper.selectByExample(example);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
 
@@ -210,7 +210,7 @@ public class PaymentDao {
             paymentPoList = paymentPoMapper.selectByExample(example);
         } catch (Exception e) {
             //数据库错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
         //如果List列表中个数不唯一，数据库内数据错误，报错返回

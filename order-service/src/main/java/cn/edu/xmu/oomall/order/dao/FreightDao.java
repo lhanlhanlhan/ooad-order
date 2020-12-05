@@ -84,7 +84,7 @@ public class FreightDao {
             freightModelPoList = freightModelPoMapper.selectByExample(freightModelPoExample);
         } catch (Exception e) {
             // 数据库 错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(freightModelPoList);
@@ -148,7 +148,7 @@ public class FreightDao {
             return new APIReturnObject<>(poList);
         } catch (Exception e) {
             // 数据库 错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
@@ -170,49 +170,9 @@ public class FreightDao {
             return new APIReturnObject<>(poList);
         } catch (Exception e) {
             // 数据库 错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-    }
-
-    /**
-     * 检测是否与fright_model表中同shop的运费模板名重复
-     */
-    public long isConflictByName(Long shopId, String name) {
-        FreightModelPoExample freightModelPoExample = new FreightModelPoExample();
-        // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
-        FreightModelPoExample.Criteria criteria = freightModelPoExample.createCriteria();
-        if (shopId != null) {
-            criteria.andShopIdEqualTo(shopId);
-        }
-        if (name != null) {
-            criteria.andNameEqualTo(name);
-        }
-        return freightModelPoMapper.countByExample(freightModelPoExample);
-    }
-
-    /**
-     * 检测是否与weight_fright_model表中地区ID重复
-     */
-    public long isConflictByRegionIdForWeight(Long regionId) {
-        WeightFreightModelPoExample weightFreightModelPoExample = new WeightFreightModelPoExample();
-        WeightFreightModelPoExample.Criteria criteria = weightFreightModelPoExample.createCriteria();
-        if (regionId != null) {
-            criteria.andRegionIdEqualTo(regionId);
-        }
-        return weightFreightModelPoMapper.countByExample(weightFreightModelPoExample);
-    }
-
-    /**
-     * 检测是否与piece_fright_model表中地区ID重复
-     */
-    public long isConflictByRegionIdForPiece(Long regionId) {
-        PieceFreightModelPoExample pieceFreightModelPoExample = new PieceFreightModelPoExample();
-        PieceFreightModelPoExample.Criteria criteria = pieceFreightModelPoExample.createCriteria();
-        if (regionId != null) {
-            criteria.andRegionIdEqualTo(regionId);
-        }
-        return pieceFreightModelPoMapper.countByExample(pieceFreightModelPoExample);
     }
 
     /**

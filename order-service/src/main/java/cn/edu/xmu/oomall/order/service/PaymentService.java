@@ -312,11 +312,7 @@ public class PaymentService {
         }
         //新建refund PO对象
         RefundPo refundPo = new RefundPo();
-        //生成sn
-        String sn = Accessories.genSerialNumber();
         refundPo.setPaymentId(paymentId);
-        refundPo.setPaySn(sn);
-        refundPo.setBillId(null);
         //新建退款单的状态一律设置为NOT_REFUND：未退款
         refundPo.setState(RefundStatus.NOT_REFUND.getCode());
         refundPo.setAmout(refundAmountVo.getAmount());

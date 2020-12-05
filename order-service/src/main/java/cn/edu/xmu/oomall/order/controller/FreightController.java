@@ -59,7 +59,7 @@ public class FreightController {
     @InspectCustomer
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
-                                         @Validated @RequestBody List<FreightItemVo> items) {
+                                         @Validated @RequestBody List<OrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
         }

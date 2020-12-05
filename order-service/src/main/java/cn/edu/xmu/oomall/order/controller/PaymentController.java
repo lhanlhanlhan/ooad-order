@@ -6,9 +6,7 @@ import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
-import cn.edu.xmu.oomall.order.model.vo.PayPatternsVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
-import cn.edu.xmu.oomall.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.oomall.order.model.vo.RefundAmountVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
 import cn.edu.xmu.oomall.order.service.PaymentService;
@@ -65,12 +63,9 @@ public class PaymentController {
             logger.debug("get payments/states,Login customerId" + customerId);
         }
         //创造对应枚举数组
-        List<PaymentStatusVo> paymentStatusVos = new ArrayList<>();
-        for (PaymentStatus ps : PaymentStatus.values()) {
-            paymentStatusVos.add(new PaymentStatusVo(ps));
-        }
+
         //返回
-        return ResponseUtils.ok(paymentStatusVos);
+        return null;
     }
 
     /**
@@ -90,8 +85,7 @@ public class PaymentController {
         if (logger.isDebugEnabled()) {
             logger.debug("get payments/patterns,Login customerId" + customerId);
         }
-        PayPatternsVo payPatternsVo = new PayPatternsVo("002", "成功");
-        return ResponseUtils.ok(payPatternsVo);
+        return ResponseUtils.ok(null);
     }
 
     /**

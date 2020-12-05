@@ -133,7 +133,7 @@ public class OrderDao {
             orderSimplePoList = orderSimplePoMapper.selectByExample(example);
         } catch (Exception e) {
             // 数据库 错误
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(orderSimplePoList);
