@@ -57,7 +57,7 @@ public class FreightService {
             Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
             if (skuInfo == null) {
                 // 商品、订单模块数据库不一致
-                logger.error("检测到商品、订单模块数据库不一致! skuId=" + skuId);
+                logger.error("计算运费、准备商品资料时，检测到商品、订单模块数据库不一致! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             // 准备运费模板信息
@@ -65,7 +65,7 @@ public class FreightService {
             FreightModelPo modelPo = freightDao.getFreightModel(modelId);
             if (modelPo == null) {
                 // 商品、订单模块数据库不一致
-                logger.error("检测到商品、订单模块数据库不一致! skuId=" + skuId);
+                logger.error("计算运费、抽取运费模板时，检测到运费模板未定义! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             FreightModel model = new FreightModel(modelPo);

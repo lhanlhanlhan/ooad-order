@@ -33,7 +33,6 @@ public class PaymentOrderVo {
 
     /**
      * 从PaymentOrder Bo 中提取所需信息，创建VO【共12个属性】
-     * 【注】变量paymentPattern类型为String，无法从PaymentOrder Bo 中获取
      */
     public PaymentOrderVo(PaymentOrder paymentOrder) {
         this.id = paymentOrder.getId();
@@ -47,12 +46,11 @@ public class PaymentOrderVo {
         this.gmtCreate = paymentOrder.getGmtCreate();
         this.gmtModified = paymentOrder.getGmtModified();
         this.afterSaleId = paymentOrder.getAfterSaleId();
-        this.paymentPattern = null;
+        this.paymentPattern = paymentOrder.getPaymentPattern().getCode();
     }
 
     /**
      * 从PaymentOrder PO 中提取所需信息，创建VO【共12个属性】
-     * 【注】变量paymentPattern类型为String，无法从PaymentOrder Bo 中获取
      */
     public PaymentOrderVo(PaymentPo paymentPo) {
         this.id = paymentPo.getId();
@@ -66,7 +64,7 @@ public class PaymentOrderVo {
         this.gmtCreate = paymentPo.getGmtCreate();
         this.gmtModified = paymentPo.getGmtModified();
         this.afterSaleId = paymentPo.getAftersaleId();
-        this.paymentPattern = paymentPo.toString();
+        this.paymentPattern = paymentPo.getPaymentPattern();
     }
 
 }

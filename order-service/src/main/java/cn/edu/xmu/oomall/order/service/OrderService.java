@@ -238,6 +238,7 @@ public class OrderService {
         } else if (cancelable) {
             delPo = new OrderEditPo();
             delPo.setState(OrderStatus.CANCELLED.getCode());
+            delPo.setSubState(null);
         } else {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
@@ -277,6 +278,7 @@ public class OrderService {
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
         po.setState(OrderStatus.SIGNED.getCode());
+        po.setSubState(null);
 
         return orderDao.modifyOrder(po);
     }
@@ -310,8 +312,11 @@ public class OrderService {
         // 更改订单类型为普通订单
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setOrderType(OrderType.NORMAL.getCode()); // 普通订单：0
+        po.setOrderType(OrderType.NORMAL.getCode()); // 普通订单
         po.setState(OrderStatus.PAID.getCode()); // 状态改为已支付
+        po.setSubState(null);
+
+        // TODO - 还会不会触发更复杂的逻辑？
 
         return orderDao.modifyOrder(po);
     }
@@ -394,7 +399,7 @@ public class OrderService {
         List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
         for (Map<String, Object> item : orderItemList) {
             Long skuId = ((Integer) item.get("skuId")).longValue();
-            Long quantity = ((Integer) item.get("quantity")).longValue();
+            Integer quantity = (Integer) item.get("quantity");
             // 联系商品模块扣库存
             int decreaseStatus = shopService.decreaseStock(skuId, quantity);
             if (decreaseStatus == 1) {
@@ -549,6 +554,7 @@ public class OrderService {
         }
         delPo = new OrderEditPo();
         delPo.setState(OrderStatus.CANCELLED.getCode());
+        delPo.setSubState(null);
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);
@@ -582,6 +588,7 @@ public class OrderService {
         delPo = new OrderEditPo();
         delPo.setShipmentSn(deliverSn);
         delPo.setState(OrderStatus.SHIPPED.getCode());
+        delPo.setSubState(null);
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);
@@ -670,7 +677,7 @@ public class OrderService {
         orderPo.setFreightPrice(totalFreight);
         // 订单种类为普通订单，订单状态为待支付
         orderPo.setOrderType(OrderType.NORMAL.getCode());
-        orderPo.setState(OrderStatus.PENDING_PAY.getCode());
+        orderPo.setState(OrderStatus.PENDING_PAY.getCode()); // 普通订单没有 subState
         orderPo.setGmtCreate(nowTime);
         orderPo.setOrderSn(Accessories.genSerialNumber());
 
@@ -758,11 +765,12 @@ public class OrderService {
         orderPo.setOrderSn(Accessories.genSerialNumber());
         orderPo.setOrderType(type.getCode()); // 订单种类为团购/预售订单，订单状态为待支付/待支付定金
         if (type == OrderType.PRE_SALE) {
-            // 预售订单，待支付定金
-            orderPo.setState(OrderStatus.PENDING_DEPOSIT.getCode());
+            // 预售订单，待支付 + 待支付定金
+            orderPo.setState(OrderStatus.PENDING_PAY.getCode());
+            orderPo.setSubstate(OrderStatus.PENDING_DEPOSIT.getCode());
             orderPo.setPresaleId(newOrderVo.getPresaleId());
         } else {
-            // 团购订单，待付款
+            // 团购订单，待支付
             orderPo.setState(OrderStatus.PENDING_PAY.getCode());
             orderPo.setGrouponId(newOrderVo.getGrouponId());
         }
@@ -842,7 +850,7 @@ public class OrderService {
      */
     private boolean decreaseStock(Map<String, Object> itemInfo) {
         Long skuId = (Long) itemInfo.get("skuId");
-        Long quantity = (Long) itemInfo.get("quantity");
+        Integer quantity = (Integer) itemInfo.get("quantity");
         int decStatus = shopService.decreaseStock(skuId, quantity);
         if (decStatus == 1) {
             // 库存不足

@@ -46,7 +46,7 @@ public class ShopService {
         shopInfo.put("price", 1324500L);
         shopInfo.put("shopId", 99123674500L); // 可能要到两个表查
         shopInfo.put("weight", 1280L);
-        shopInfo.put("freightId", 7L); // 可能要到两个表查
+        shopInfo.put("freightId", 1L); // 可能要到两个表查
         return shopInfo;
     }
 
@@ -57,7 +57,7 @@ public class ShopService {
      * @param count 商品 购入数量
      * @return 0：成功；1：商品不够
      */
-    public int decreaseStock(Long skuId, Long count) {
+    public int decreaseStock(Long skuId, Integer count) {
         return 0;
     }
 }

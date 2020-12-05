@@ -62,7 +62,7 @@ public class PaymentDao {
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
 
-        return new APIReturnObject(paymentSimplePoList);
+        return new APIReturnObject<>(paymentSimplePoList);
     }
 
     /**

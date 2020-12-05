@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
+import cn.edu.xmu.oomall.order.enums.PayPattern;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentOrderVo;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class PaymentOrder {
     private Long orderId;
     private Long amount;
     private Long actualAmount;
-    private Byte paymentPattern;
+    private PayPattern paymentPattern;
     private LocalDateTime payTime;
     private LocalDateTime beginTime;
     private LocalDateTime endTime;
@@ -40,7 +41,7 @@ public class PaymentOrder {
         this.orderId = item.getOrderId();
         this.amount = item.getAmount();
         this.actualAmount = item.getActualAmount();
-        this.paymentPattern = item.getPaymentPattern();
+        this.paymentPattern = PayPattern.ofCode(item.getPaymentPattern());
         this.payTime = item.getPayTime();
         this.beginTime = item.getBeginTime();
         this.endTime = item.getEndTime();

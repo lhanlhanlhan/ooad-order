@@ -4,10 +4,11 @@ import cn.edu.xmu.oomall.order.annotations.AdminShop;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
+import cn.edu.xmu.oomall.order.enums.OrderStatus;
+import cn.edu.xmu.oomall.order.enums.PayPattern;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
-import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
-import cn.edu.xmu.oomall.order.model.vo.RefundAmountVo;
+import cn.edu.xmu.oomall.order.model.vo.*;
 import cn.edu.xmu.oomall.order.service.OrderService;
 import cn.edu.xmu.oomall.order.service.PaymentService;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -46,11 +47,12 @@ public class PaymentController {
     private OrderService orderService;
 
     /**
-     * 01: 获得支付单的所有状态[DONE]
+     * p1: 获得支付单的所有状态 [DONE]
      *
      * @return java.lang.Object
      * @author 苗新宇
-     * Creted ai 27/11/2020 08:32
+     * Created at 27/11/2020 08:32
+     * Modified by Han Li at 5/12/2020
      */
     @ApiOperation(value = "获得支付单的所有状态")
     @ApiImplicitParams({
@@ -60,16 +62,19 @@ public class PaymentController {
     @GetMapping("payments/states")
     public Object getPaymentStatus(@LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("get payments/states,Login customerId" + customerId);
+            logger.debug("get payments/states, Login customerId" + customerId);
         }
-        //创造对应枚举数组
-
-        //返回
-        return null;
+        // 创造对应枚举数组
+        List<PaymentStatusVo> paymentStatusVos = new ArrayList<>();
+        for (PaymentStatus ps : PaymentStatus.values()) {
+            paymentStatusVos.add(new PaymentStatusVo((ps)));
+        }
+        // 返回
+        return ResponseUtils.ok(paymentStatusVos);
     }
 
     /**
-     * 02: 获得支付渠道，目前只返回002模拟支付渠道[DONE]
+     * p2: 获得支付渠道，目前只返回002模拟支付渠道 [DONE]
      * Created at 29/11/2020 11:28
      * Created by 苗新宇at 29/11/2020 11:28
      *
@@ -85,15 +90,26 @@ public class PaymentController {
         if (logger.isDebugEnabled()) {
             logger.debug("get payments/patterns,Login customerId" + customerId);
         }
-        return ResponseUtils.ok(null);
+        // 创造对应枚举数组
+        List<PaymentPatternVo> patternVos = new ArrayList<>();
+        for (PayPattern pp : PayPattern.values()) {
+            patternVos.add(new PaymentPatternVo((pp)));
+        }
+        // 返回
+        return ResponseUtils.ok(patternVos);
     }
 
+
     /**
-     * 03: 买家为订单创建支付订单[DONE]
-     *
-     * @return java.lang.Object
+     * p3: 买家为订单创建支付订单
+     * TODO - 订单分单
      * @author 苗新宇
-     * Creted ai 27/11/2020 08:32
+     * Created at 05/12/2020 15:10
+     * Created by Han Li at 05/12/2020 15:10
+     * @param paymentInfoVo
+     * @param id
+     * @param customerId
+     * @return java.lang.Object
      */
     @ApiOperation(value = "买家为订单创建支付单")
     @ApiImplicitParams({
@@ -102,21 +118,24 @@ public class PaymentController {
     })
     @InspectCustomer  // 需要登入
     @PostMapping("orders/{id}/payments")
-    public Object createPaymentBill(@RequestBody PaymentInfoVo paymentInfoVO,
+    public Object createPaymentBill(@RequestBody PaymentInfoVo paymentInfoVo,
                                     @PathVariable Long id,
                                     @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("get orders/{id}/payments;orderid=" + id + ";customerId " + customerId);
+            logger.debug("get orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentInfoVo);
         }
-
-        return ResponseUtils.make(paymentService.createPaymentOrder(id, paymentInfoVO));
+        return ResponseUtils.make(paymentService.createPaymentOrder(id, customerId, paymentInfoVo));
     }
 
     /**
-     * 04: 买家【根据订单号】查询自己的支付信息[DONE]
+     * p4: 买家【根据订单号】查询自己的支付信息 [DONE]
      *
+     * @author Miao Xinyu
+     * Created at 05/12/2020 15:09
+     * Created by Han Li at 05/12/2020 15:09
      * @param id
-     * @return
+     * @param customerId
+     * @return java.lang.Object
      */
     @ApiOperation(value = "买家查询自己的支付信息")
     @ApiImplicitParams({

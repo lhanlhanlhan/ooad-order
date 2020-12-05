@@ -82,6 +82,13 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     /**
+     * TODO - 判断该订单可否被支付
+     */
+    public boolean canPay() {
+        return true;
+    }
+
+    /**
      * 判断该对象是否可被客户修改
      */
     public boolean isCustomerModifiable() {
@@ -137,6 +144,10 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (status == null) {
             return false;
         }
+
+        // 只有未支付的才能被客户取消
+        return status == OrderStatus.PENDING_PAY;
+        /*
         switch (status) {
             case PENDING_DEPOSIT:
             case PENDING_PAY:
@@ -147,6 +158,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
             default:
                 return false;
         }
+         */
     }
 
     /**
@@ -162,6 +174,9 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (status == null) {
             return false;
         }
+        // 只有未支付的才能被商户取消
+        return status == OrderStatus.PENDING_PAY;
+        /*
         switch (status) {
             case PENDING_DEPOSIT:
             case PENDING_PAY:
@@ -170,6 +185,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
             default:
                 return false;
         }
+        */
     }
 
     /**
@@ -202,6 +218,21 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (status == null) {
             return false;
         }
+        // 只有已支付的普通/预售订单，以及「已成团」的团购订单，才能被发货
+        if (status == OrderStatus.PAID) {
+            OrderType type = getOrderType();
+            switch (type) {
+                case NORMAL:
+                case PRE_SALE:
+                    return true;
+                default:
+                    // 团购订单，还需要已成团
+                    return getSubstate() == OrderStatus.GROUPED.getCode();
+            }
+        } else {
+            return false;
+        }
+        /*
         switch (status) {
             case REM_BALANCE_PAID:
             case PAID:
@@ -210,6 +241,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
             default:
                 return false;
         }
+        */
     }
 
     /**
@@ -220,9 +252,9 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (this.getState() == null) {
             return false;
         }
-        OrderStatus status = OrderStatus.getByCode(this.getState());
+        OrderStatus subState = OrderStatus.getByCode(this.getSubstate());
         // 订单状态非法，不给转换
-        if (status == null) {
+        if (subState == null) {
             return false;
         }
         OrderType type = this.getOrderType();
@@ -232,7 +264,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         }
 
         // 只有订单类型为团购、订单状态为「未到达门槛」的可以改成普通订单
-        return type == OrderType.GROUPON && status == OrderStatus.GROUP_FAILED;
+        return type == OrderType.GROUPON && subState == OrderStatus.GROUP_FAILED;
     }
 
 

@@ -1,27 +1,33 @@
 package cn.edu.xmu.oomall.order.service;
 
+import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.dao.PaymentDao;
-import cn.edu.xmu.oomall.order.enums.PaymentStatus;
-import cn.edu.xmu.oomall.order.enums.RefundStatus;
-import cn.edu.xmu.oomall.order.enums.ResponseCode;
+import cn.edu.xmu.oomall.order.enums.*;
+import cn.edu.xmu.oomall.order.model.bo.Order;
 import cn.edu.xmu.oomall.order.model.bo.PaymentOrder;
+import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import cn.edu.xmu.oomall.order.model.po.RefundPo;
-import cn.edu.xmu.oomall.order.model.vo.*;
+import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentOrderVo;
+import cn.edu.xmu.oomall.order.model.vo.RefundAmountVo;
+import cn.edu.xmu.oomall.order.model.vo.RefundVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.Accessories;
-import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collector;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,77 +42,140 @@ public class PaymentService {
 
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+
     @Autowired
     private PaymentDao paymentDao;
 
+    @Autowired
+    private OrderDao orderDao;
+
 
     /**
-     * 服务 o3：买家为订单创建支付单
+     * 服务 p3：买家为订单创建支付单
      *
      * @return APIReturnObject
      * @author 苗新宇
      * Created at 30/11/2020 8:45
-     * Modified by  苗新宇 at  30/11/2020 8:45
+     * Modified by Han Li at 5/12/2020 17:08
      */
-    public APIReturnObject<?> createPaymentOrder(
-            Long orderId,
-            PaymentInfoVo paymentInfoVO) {
-        // TODO - 校验订单 id 是否存在？
-        // TODO - aftersaleId何处取值？
-        // TODO - paymentPattern在VO【PaymentOrderVo】和PO【PaymentPo】中的类型不一致，前者为String ，后者为Byte
-        //创建支付单Po对象:
+    @Transactional
+    public APIReturnObject<?> createPaymentOrder(Long orderId, Long customerId, PaymentInfoVo paymentInfoVo) {
+        // 校验订单 id 是否存在 / 属于用户？
+        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 不存在、已删除、不属于用户【404 返回】
+            return returnObject;
+        }
+        Order simpleOrder = returnObject.getData();
+
+        // 看看现在的状态能不能支付
+        if (!simpleOrder.canPay()) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW, "基于订单状态，您不能支付这笔订单！");
+        }
+
+        // 获取已支付之金额 TODO 还有没有更优秀的方法啊我操
+        // 获取该订单上的所有支付单
+        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(orderId);
+        if (poListObj.getCode() != ResponseCode.OK) {
+            // 数据库错误
+            return poListObj;
+        }
+        List<PaymentPo> poList = poListObj.getData();
+        // 获取已支付之金额
+        long paidPrice = poList
+                .stream()
+                .mapToLong(PaymentPo::getAmount)
+                .sum();
+
+        // 看看有没有超额支付，要超额支付的话，不让支付
+        long shallPayPrice = simpleOrder.getOriginPrice() - simpleOrder.getDiscountPrice(); // 总共需付款
+        if (paidPrice + paymentInfoVo.getPrice() > shallPayPrice) {
+            // 企图超额支付
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE);
+        }
+
+        // 创建支付单Po对象:
         PaymentPo paymentPo = new PaymentPo();
-        //将支付单的Po对象的amount、actualAmount值设为paymentInfoVO的price
-        paymentPo.setActualAmount(paymentInfoVO.getPrice());
-        paymentPo.setAmount(paymentInfoVO.getPrice());
-        //赋值订单号
         paymentPo.setOrderId(orderId);
-        //将支付时间设置为当前系统时间
-        paymentPo.setPayTime(LocalDateTime.now());
-        //将开始时间和结束时间设置为系统当前时间
-        paymentPo.setBeginTime(LocalDateTime.now());
-        paymentPo.setEndTime(LocalDateTime.now());
-        paymentPo.setGmtCreate(LocalDateTime.now());
+
+        // 钱
+        paymentPo.setActualAmount(paymentInfoVo.getPrice()); // TODO - 你前端只传了1个参数，让我咋区分ActualPrice和Price？？
+        paymentPo.setAmount(paymentInfoVo.getPrice());
+
+        // 设各种时间
+        LocalDateTime nowTime = LocalDateTime.now();
+        paymentPo.setPayTime(nowTime);
+        paymentPo.setBeginTime(nowTime);
+        paymentPo.setEndTime(nowTime);
+        paymentPo.setGmtCreate(nowTime);
         paymentPo.setGmtModified(null);
-        //将aftersaleId设置为空
-        paymentPo.setAftersaleId(null);
-        //将支付状态一律赋值为1：待支付
-        paymentPo.setState(PaymentStatus.PENDING_PAY.getCode());
-        //将paymentPattern赋值为（byte)1
-        paymentPo.setPaymentPattern((byte) 1);
-        //将支付单Po对象插入数据库
+
+        // 模拟支付，状态设置为「已支付」，方式为 "002"
+        paymentPo.setState(PaymentStatus.PAID.getCode());
+        paymentPo.setPaymentPattern(PayPattern.MOCK.getCode());
+
+        // 其他资讯
+        paymentPo.setAftersaleId(null); // 将 aftersaleId 设置为空
+        paymentPo.setPaySn(Accessories.genSerialNumber()); // 支付流水号
+
+        // 将支付单Po对象插入数据库
         try {
             int response = paymentDao.addPaymentOrder(paymentPo);
             if (response <= 0) {
+                logger.error("新支付单插入错误, orderId=" + orderId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        Long id = paymentPo.getId();
 
-        //创建支付单Vo对象:
-        PaymentOrderVo paymentOrderVo = new PaymentOrderVo();
-        //将创建的Po对象的id赋值给VO对象的id值
-        paymentOrderVo.setId(paymentPo.getId());
-        //将参数paymentInfoVo的paymentPattern值赋值给paymentOrderVo（支付单VO）
-        paymentOrderVo.setAmount(paymentInfoVO.getPrice());
-        paymentOrderVo.setActualAmount(paymentInfoVO.getPrice());
-        //赋值订单号
-        paymentOrderVo.setOrderId(orderId);
-        //将支付时间设置为当前系统时间
-        paymentOrderVo.setPayTime(LocalDateTime.now());
-        //将开始时间和结束时间设置为系统当前时间
-        paymentOrderVo.setBeginTime(LocalDateTime.now());
-        paymentOrderVo.setEndTime(LocalDateTime.now());
-        paymentOrderVo.setGmtCreate(LocalDateTime.now());
-        paymentOrderVo.setGmtModified(null);
-        //将支付状态一律赋值为0：待支付
-        paymentOrderVo.setState(PaymentStatus.PENDING_PAY.getCode());
-        //将paymentPattern赋值为001
-        paymentOrderVo.setPaymentPattern("001");
-        //将Vo对象返回
+        // 判断是否足额支付
+        paidPrice += paymentPo.getAmount();
+        // 已足额支付，更改订单状态
+        if (paidPrice == shallPayPrice) {
+            OrderEditPo editPo = new OrderEditPo();
+            editPo.setId(orderId);
+            switch (simpleOrder.getOrderType()) {
+                case GROUPON:   // 团购订单，改为已参团
+                    editPo.setState(OrderStatus.PAID.getCode());
+                    editPo.setSubState(OrderStatus.GROUP_FORMED.getCode());
+                    break;
+                case PRE_SALE:  // 预售订单，改为已支付定金 | 已支付尾款
+                    // 如果是已支付定金
+                    Byte subState = simpleOrder.getSubstate();
+                    if (subState.equals(OrderStatus.DEPOSIT_PAID.getCode())) {
+                        // 改为已支付 + 已支付尾款
+                        editPo.setState(OrderStatus.PAID.getCode());
+                        editPo.setSubState(OrderStatus.REM_BALANCE_PAID.getCode());
+                    }
+                    // 未支付定金
+                    else {
+                        // 未支付 + 已支付定金 (不是待支付尾款，因为尾款支付时间还没到)
+                        editPo.setState(OrderStatus.PENDING_PAY.getCode());
+                        editPo.setSubState(OrderStatus.DEPOSIT_PAID.getCode());
+                    }
+                    break;
+                default:
+                    // 已支付
+                    editPo.setState(OrderStatus.PAID.getCode());
+                    break;
+            }
+            APIReturnObject<?> modifyRet = orderDao.modifyOrder(editPo);
+            if (modifyRet.getCode() != ResponseCode.OK) {
+                // 改变状态失败，回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return modifyRet;
+            }
+        } else if (paidPrice > shallPayPrice) {
+            // 不小心超额支付了 (怎么可能？)，回滚
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            logger.error("超额支付，订单 id=" + orderId);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+
+        // 创建及返回支付单Vo对象
+        PaymentOrderVo paymentOrderVo = new PaymentOrderVo(paymentPo);
         return new APIReturnObject<>(paymentOrderVo);
     }
 
@@ -190,7 +259,7 @@ public class PaymentService {
         //将支付状态一律赋值为1：待支付
         paymentPo.setState(PaymentStatus.PENDING_PAY.getCode());
         //将paymentPattern赋值为（byte)1
-        paymentPo.setPaymentPattern((byte) 1);
+        paymentPo.setPaymentPattern(PayPattern.MOCK.getCode());
         //将支付单Po对象插入数据库
         try {
             int response = paymentDao.addPaymentOrder(paymentPo);
