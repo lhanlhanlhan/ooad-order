@@ -140,7 +140,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
         Order order = returnObject.getData();
         OrderVo vo = order.createVo();
@@ -175,11 +175,17 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, true);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
-        // TODO - 检查是否修改过
-        // TODO - 检查本来地址、新地址的地区一致性
+        // 检查是否修改过 [29/11/2020 - 邱明：这个规定取消]
+        // 检查本来地址、新地址的地区一致性？是这么检查的马
+        Long newRegionId = orderEditVo.getRegionId();
+        Long oldRegionId = orderEditVo.getRegionId();
+        if (newRegionId != null && oldRegionId != null && !newRegionId.equals(oldRegionId)) {
+            // 地区码不一致
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_MODIFY_REGION_FORBIDDEN);
+        }
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
@@ -215,7 +221,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
         // 检查订单状态是否允许
@@ -257,7 +263,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
         // 检查订单状态是否允许
@@ -291,7 +297,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
         // 检查订单状态是否允许
@@ -411,7 +417,7 @@ public class OrderService {
         orderPo.setMessage(orderVo.getMessage());
         orderPo.setConsignee(orderVo.getConsignee());
         orderPo.setShopId(shopId);
-        orderPo.setOrderSn(Accessories.genSerialNumber()); // TODO - 暂时用 UUID 生成 sn
+        orderPo.setOrderSn(Accessories.genSerialNumber()); // 暂时用 UUID 生成 sn
         orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(0L);
@@ -475,7 +481,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于店铺【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
@@ -500,7 +506,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getOrder(id, null, shopId, true);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于店铺【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
         Order order = returnObject.getData();
         OrderVo vo = order.createVo();
@@ -530,7 +536,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于 shop【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
         // 创造更改体
@@ -562,7 +568,7 @@ public class OrderService {
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于 shop【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+            return returnObject;
         }
 
         // 创造更改体
@@ -601,6 +607,15 @@ public class OrderService {
             // TODO - 计算出错，返回对应错误
             return new APIReturnObject<>(ResponseCode.BAD_REQUEST);
         }
+
+        // 计算运费
+        Long regionId = newOrderVo.getRegionId();
+        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
+        if (freightCalcRes.getCode() != ResponseCode.OK) {
+            return freightCalcRes;
+        }
+        Long totalFreight = (Long) freightCalcRes.getData();
+
         // 下单，扣库存
         for (Map<String, Object> itemInfo : orderItems) {
             if (!decreaseStock(itemInfo)) {
@@ -613,12 +628,6 @@ public class OrderService {
         long totalDiscount = 0L;
 
         // TODO - 核销优惠券
-
-
-        // TODO - 计算运费
-        Long regionId = newOrderVo.getRegionId();
-        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
-        long totalFreight = 0L;
 
         /* 以下是数据库部分 */
 
@@ -697,15 +706,22 @@ public class OrderService {
      */
     @Transactional
     public APIReturnObject<?> createOneItemOrder(Long customerId, NewOrderVo newOrderVo, OrderType type) {
-        Map<String, Object> itemInfo = newOrderVo.getOrderItems().get(0).toMap();
+        List<OrderItemVo> orderItemVos = newOrderVo.getOrderItems();
+        Map<String, Object> itemInfo = orderItemVos.get(0).toMap();
+
+        // 计算运费
+        Long regionId = newOrderVo.getRegionId();
+        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
+        if (freightCalcRes.getCode() != ResponseCode.OK) {
+            return freightCalcRes;
+        }
+        Long totalFreight = (Long) freightCalcRes.getData();
+
         // 扣库存
         if (!decreaseStock(itemInfo)) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
         }
-
-        // TODO - 计算运费
-        long totalFreight = 0L;
 
         // TODO - 用团购/预售规则计算商品优惠
         long totalDiscount = 0L;

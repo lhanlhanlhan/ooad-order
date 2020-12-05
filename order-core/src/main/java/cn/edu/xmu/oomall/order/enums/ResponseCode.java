@@ -33,6 +33,7 @@ public enum ResponseCode {
     REGION_SAME(803, "运费模板中该地区已经定义"),
     REFUND_MORE(804, "退款金额超过支付金额"),
     FREIGHT_REGION_FORBIDDEN(805, "订购列表中包含禁止寄往该地区之物品"),
+    ORDER_MODIFY_REGION_FORBIDDEN(806, "您不能改变寄送目的地区"),
     ;
 
     private final int code;
