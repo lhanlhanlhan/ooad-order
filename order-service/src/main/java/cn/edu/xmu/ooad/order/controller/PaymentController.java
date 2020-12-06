@@ -1,6 +1,5 @@
 package cn.edu.xmu.ooad.order.controller;
 
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.annotations.AdminShop;
 import cn.edu.xmu.ooad.order.annotations.LoginUser;
 import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
@@ -12,6 +11,7 @@ import cn.edu.xmu.ooad.order.model.vo.PaymentPatternVo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.ooad.order.service.PaymentService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -191,7 +191,7 @@ public class PaymentController {
      * 06. 买家为售后单创建支付单[DONE]
      *
      * @param paymentNewVo 支付单信息Vo
-     * @param id            售后单ID
+     * @param id           售后单ID
      * @return java.lang.Object
      * @author 苗新宇
      * Creted ai 02/12/2020 17:39

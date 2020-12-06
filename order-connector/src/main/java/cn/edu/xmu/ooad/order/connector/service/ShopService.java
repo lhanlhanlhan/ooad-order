@@ -20,7 +20,7 @@ public class ShopService {
      * TODO - 从商品模块获取商铺资料
      *
      * @param shopId 商铺 Id
-     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
+     * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
     public Map<String, Object> getShopInfo(Long shopId) {
         if (shopId == null) {
@@ -55,7 +55,7 @@ public class ShopService {
      * TODO - 从商品模块获取商品资料
      *
      * @param skuId 商铺 Id
-     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
+     * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
     public Map<String, Object> getSkuInfo(Long skuId) {
         if (skuId == 1) {

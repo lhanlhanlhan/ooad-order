@@ -28,6 +28,7 @@ public class OrderSimpleVo {
 
     /**
      * 从 Order Bo 中提取所需信息，创建 概要 Vo
+     *
      * @param order
      */
     public OrderSimpleVo(Order order) {

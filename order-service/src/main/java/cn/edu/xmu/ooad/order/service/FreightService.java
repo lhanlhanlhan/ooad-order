@@ -2,15 +2,14 @@ package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.FreightDao;
-import cn.edu.xmu.ooad.order.model.vo.*;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.model.bo.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
-import cn.edu.xmu.oomall.order.model.vo.*;
+import cn.edu.xmu.ooad.order.model.vo.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public class FreightService {
     /**
      * 服務 f1: 計算運費
      *
-     * @param regionId 地區id
+     * @param regionId      地區id
      * @param orderItemList 商品 list
      */
     public APIReturnObject<?> calcFreight(Long regionId, List<OrderItemVo> orderItemList) {
@@ -132,7 +131,7 @@ public class FreightService {
      * @param name     模板名称
      * @param page     页码
      * @param pageSize 页大小
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Modified by Han Li at 25/11/2020 16:58
@@ -176,7 +175,7 @@ public class FreightService {
     /**
      * 服务 f4：管理员克隆店铺中的运费模板
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Modified by Han Li at 25/11/2020 16:58
@@ -268,7 +267,7 @@ public class FreightService {
     /**
      * 服务 f5：获得运费模板概要
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -286,7 +285,7 @@ public class FreightService {
     /**
      * 服务 f6：管理员修改店铺的运费模板
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Modified by Han Li at 25/11/2020 16:58
@@ -340,7 +339,7 @@ public class FreightService {
     /**
      * 服务 f7：管理员删除店铺的运费模板
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -382,7 +381,7 @@ public class FreightService {
     /**
      * 服务 f8：店家或管理员为商铺定义默认运费模板
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Modified by Han Li at 25/11/2020 16:58
@@ -423,7 +422,7 @@ public class FreightService {
     /**
      * 服务 f9：管理员定义重量模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -482,7 +481,7 @@ public class FreightService {
     /**
      * 服务 f10：管理员查询重量模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -512,7 +511,7 @@ public class FreightService {
     /**
      * 服务 f11：管理员定义件数模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -568,7 +567,7 @@ public class FreightService {
     /**
      * 服务 f12：管理员查询件数模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -597,7 +596,7 @@ public class FreightService {
     /**
      * 服务 f13：管理员修改重量模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -633,7 +632,7 @@ public class FreightService {
     /**
      * 服务 f14：店家或管理员删掉重量运费模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -659,7 +658,7 @@ public class FreightService {
     /**
      * 服务 f15：管理员修改件数模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -692,7 +691,7 @@ public class FreightService {
     /**
      * 服务 f16：店家或管理员删掉件数运费模板明细
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Chen Kechun
      * Created at 25/11/2020 16:58
      * Created by Chen Kechun at 25/11/2020 16:58
@@ -723,7 +722,7 @@ public class FreightService {
     /**
      * **内部方法** 校验重量模板明细是否属于店铺
      *
-     * @param shopId 店鋪id
+     * @param shopId   店鋪id
      * @param detailId 明細id
      */
     private boolean weightModelItemNotBelongs(Long shopId, Long detailId) {
@@ -751,7 +750,7 @@ public class FreightService {
     /**
      * **内部方法** 校验件數模板明细是否属于店铺
      *
-     * @param shopId 店鋪id
+     * @param shopId   店鋪id
      * @param detailId 明細id
      */
     private boolean pieceModelItemNotBelongs(Long shopId, Long detailId) {

@@ -10,6 +10,7 @@ package cn.edu.xmu.ooad.order.interfaces;
 public interface SimpleVoCreatable {
     /**
      * 创建概要 Vo 对象
+     *
      * @return 概要 Vo 对象
      */
     Object createSimpleVo();

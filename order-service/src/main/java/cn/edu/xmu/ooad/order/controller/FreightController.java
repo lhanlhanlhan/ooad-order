@@ -9,7 +9,6 @@ import cn.edu.xmu.ooad.order.service.FreightService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
-import cn.edu.xmu.oomall.order.model.vo.*;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +40,8 @@ public class FreightController {
     /**
      * f1: 买家用运费模板计算一批订单商品的运费
      *
-     * @param rid        地区id
-     * @param items      订单商品订货详情
+     * @param rid   地区id
+     * @param items 订单商品订货详情
      * @return java.lang.Object
      * @author Chen Kechun
      * Created at 1/12/2020 19:45
@@ -234,7 +233,7 @@ public class FreightController {
         }
         // 判断是不是所有属性都为空值
         if (freightModelEditVo.getName() == null &&
-            freightModelEditVo.getUnit() == null) {
+                freightModelEditVo.getUnit() == null) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {

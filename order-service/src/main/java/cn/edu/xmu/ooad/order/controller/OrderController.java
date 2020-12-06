@@ -7,13 +7,13 @@ import cn.edu.xmu.ooad.order.aspects.InspectCustomer;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.vo.AfterSaleOrderVo;
+import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.ooad.order.service.OrderService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
-import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +48,14 @@ public class OrderController {
     /**
      * o1: 获得订单的所有状态 [DONE]
      *
+     * @return java.lang.Object
      * @author Han Li
      * Created at 25/11/2020 08:34
      * Created by Han Li at 25/11/2020 08:34
-     * @return java.lang.Object
      */
     @ApiOperation(value = "获得订单的所有状态")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -79,21 +79,21 @@ public class OrderController {
     /**
      * o2: 买家查询名下订单 (概要) [DONE]
      *
+     * @param orderSn    订单号
+     * @param state      订单状态
+     * @param beginTime  开始时间
+     * @param endTime    结束时间
+     * @param page       页数
+     * @param pageSize   每页包括的记录数量
+     * @param customerId 用户 ID
+     * @return java.lang.Object
      * @author Han Li
      * Created at 25/11/2020 15:30
      * Created by Han Li at 25/11/2020 15:30
-     * @param orderSn 订单号
-     * @param state 订单状态
-     * @param beginTime 开始时间
-     * @param endTime 结束时间
-     * @param page 页数
-     * @param pageSize 每页包括的记录数量
-     * @param customerId 用户 ID
-     * @return java.lang.Object
      */
     @ApiOperation(value = "买家查询名下订单 (概要)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -123,6 +123,7 @@ public class OrderController {
 
     /**
      * o3: 买家申请建立订单 (普通，团购，预售)
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:28
@@ -130,7 +131,7 @@ public class OrderController {
      */
     @ApiOperation(value = "买家申请建立订单 (普通，团购，预售)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 900, message = "商品库存不足"),
@@ -157,6 +158,7 @@ public class OrderController {
 
     /**
      * o4: 买家查询订单完整信息 (普通，团购，预售) [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:44
@@ -164,8 +166,8 @@ public class OrderController {
      */
     @ApiOperation(value = "买家查询订单完整信息 (普通，团购，预售)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -184,6 +186,7 @@ public class OrderController {
 
     /**
      * o5: 买家修改本人名下订单 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:44
@@ -191,9 +194,9 @@ public class OrderController {
      */
     @ApiOperation(value = "买家修改本人名下订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="body", required = true, dataType="Object", paramType="body")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "body", required = true, dataType = "Object", paramType = "body")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
@@ -212,6 +215,7 @@ public class OrderController {
 
     /**
      * o6: 买家取消 / 逻辑删除本人名下订单 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -219,8 +223,8 @@ public class OrderController {
      */
     @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "订单状态禁止"),
@@ -239,6 +243,7 @@ public class OrderController {
 
     /**
      * o7: 买家确认收货 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -246,8 +251,8 @@ public class OrderController {
      */
     @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "订单状态禁止"),
@@ -266,6 +271,7 @@ public class OrderController {
 
     /**
      * o8: 买家将团购订单转为普通订单 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -273,8 +279,8 @@ public class OrderController {
      */
     @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "订单状态禁止"),
@@ -295,21 +301,21 @@ public class OrderController {
     /**
      * o9: 店家查询商户所有订单 (概要) [DONE]
      *
+     * @param orderSn    订单号
+     * @param state      订单状态
+     * @param beginTime  开始时间
+     * @param endTime    结束时间
+     * @param page       页数
+     * @param pageSize   每页包括的记录数量
+     * @param customerId 用户 ID
+     * @return java.lang.Object
      * @author Han Li
      * Created at 25/11/2020 15:30
      * Created by Han Li at 25/11/2020 15:30
-     * @param orderSn 订单号
-     * @param state 订单状态
-     * @param beginTime 开始时间
-     * @param endTime 结束时间
-     * @param page 页数
-     * @param pageSize 每页包括的记录数量
-     * @param customerId 用户 ID
-     * @return java.lang.Object
      */
     @ApiOperation(value = "店家查询商户所有订单 (概要)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -346,15 +352,15 @@ public class OrderController {
     /**
      * o10: 管理员建立售后订单 [DONE]
      *
+     * @param orderVo 订单详情
+     * @return java.lang.Object
      * @author Han Li
      * Created at 29/11/2020 13:24
      * Created by Han Li at 29/11/2020 13:24
-     * @param orderVo 订单详情
-     * @return java.lang.Object
      */
     @ApiOperation(value = "管理员建立售后订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "商品库存不足"),
@@ -380,16 +386,16 @@ public class OrderController {
     /**
      * o11: 店家修改订单 (留言) [DONE]
      *
+     * @return java.lang.Object
      * @author Han Li
      * Created at 29/11/2020 17:23
      * Created by Han Li at 29/11/2020 17:23
-     * @return java.lang.Object
      */
     @ApiOperation(value = "店家修改订单 (留言)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="body", required = true, dataType="Object", paramType="body")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "body", required = true, dataType = "Object", paramType = "body")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
@@ -413,6 +419,7 @@ public class OrderController {
 
     /**
      * o12: 店家查询店内订单完整信息 (普通，团购，预售) [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:44
@@ -420,8 +427,8 @@ public class OrderController {
      */
     @ApiOperation(value = "店家查询店内订单完整信息 (普通，团购，预售)")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -444,6 +451,7 @@ public class OrderController {
 
     /**
      * o13: 店铺取消订单 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -451,8 +459,8 @@ public class OrderController {
      */
     @ApiOperation(value = "店铺取消订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "订单状态禁止"),
@@ -476,6 +484,7 @@ public class OrderController {
 
     /**
      * o14: 店铺发货 [DONE]
+     *
      * @return Object
      * @author Han Li
      * Created at 2020/11/5 15:50
@@ -483,8 +492,8 @@ public class OrderController {
      */
     @ApiOperation(value = "店铺发货")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
+            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
     @ApiResponses({
             @ApiResponse(code = 800, message = "订单状态禁止"),

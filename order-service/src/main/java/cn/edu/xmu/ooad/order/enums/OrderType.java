@@ -19,16 +19,16 @@ public enum OrderType {
         this.name = desc;
     }
 
+    public static OrderType getTypeFromCode(byte code) {
+        OrderType[] values = OrderType.values();
+        return code > values.length ? null : values[code];
+    }
+
     public byte getCode() {
         return code;
     }
 
     public String getName() {
         return name;
-    }
-
-    public static OrderType getTypeFromCode(byte code) {
-        OrderType[] values = OrderType.values();
-        return code > values.length ? null : values[code];
     }
 }

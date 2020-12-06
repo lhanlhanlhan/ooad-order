@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 /**
  * 新建支付时的支付信息Vo (前端传入)
+ *
  * @author 苗新宇
  * Created at 30/11/2020 20:30
  * Modified by Han Li at 6/12/2020 11:41

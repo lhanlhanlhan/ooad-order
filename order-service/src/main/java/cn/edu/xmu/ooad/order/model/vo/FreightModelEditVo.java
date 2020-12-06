@@ -3,7 +3,6 @@ package cn.edu.xmu.ooad.order.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
 /**

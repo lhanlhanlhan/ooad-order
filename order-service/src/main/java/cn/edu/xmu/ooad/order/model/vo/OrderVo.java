@@ -42,6 +42,7 @@ public class OrderVo {
 
     /**
      * 用一个 Bo 对象初始化本对象
+     *
      * @param order Bo 对象
      */
     public OrderVo(Order order) {
@@ -67,11 +68,11 @@ public class OrderVo {
         this.grouponId = order.getGrouponId(); // TODO - 问邱明：没有 preSaleId?
         this.orderItems = // 如果是父訂單，這邊就會是 null
                 order.getOrderItemList() == null ?
-                null :
-                order.getOrderItemList()
-                        .stream()
-                        .map(OrderItemVo::new)
-                        .collect(Collectors.toList());
+                        null :
+                        order.getOrderItemList()
+                                .stream()
+                                .map(OrderItemVo::new)
+                                .collect(Collectors.toList());
 
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
         LocalDateTime gmtCreate = order.getGmtCreated();

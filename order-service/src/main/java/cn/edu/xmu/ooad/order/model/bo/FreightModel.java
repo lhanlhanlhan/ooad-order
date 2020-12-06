@@ -31,8 +31,9 @@ public class FreightModel {
 
     /**
      * 用此运费模板，计算一批物品的总运费
+     *
      * @param skuInfoList 后端获取到的购物清单对应的商品明细 (只要重量)
-     * @param itemVoList 前段传来的购物清单
+     * @param itemVoList  前段传来的购物清单
      * @return -1，存在某个商品不允许发货的地区；>=0：总运费
      */
     public long calcFreight(Long regionId, List<OrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList) {

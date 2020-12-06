@@ -22,6 +22,7 @@ public class APIReturnObject<T> {
 
     /**
      * 带数据的 200 返回对象
+     *
      * @param data 数据
      */
     public APIReturnObject(T data) {
@@ -30,6 +31,7 @@ public class APIReturnObject<T> {
 
     /**
      * 带自定义错误码的 200 返回对象
+     *
      * @param code 错误码
      */
     public APIReturnObject(ResponseCode code) {
@@ -38,7 +40,8 @@ public class APIReturnObject<T> {
 
     /**
      * 带自定义错误码、返回讯息、HTTP 状态码的 xxx 返回对象
-     * @param code 错误码
+     *
+     * @param code   错误码
      * @param status http 状态码
      */
     public APIReturnObject(HttpStatus status, ResponseCode code) {
@@ -48,7 +51,8 @@ public class APIReturnObject<T> {
 
     /**
      * 带自定义错误码、返回讯息的 200 返回对象
-     * @param code 错误码
+     *
+     * @param code   错误码
      * @param errMsg 返回讯息
      */
     public APIReturnObject(ResponseCode code, String errMsg) {
@@ -58,7 +62,8 @@ public class APIReturnObject<T> {
 
     /**
      * 带自定义错误码、返回讯息、HTTP 状态码的 xxx 返回对象
-     * @param code 错误码
+     *
+     * @param code   错误码
      * @param errMsg 返回讯息
      */
     public APIReturnObject(HttpStatus status, ResponseCode code, String errMsg) {
@@ -69,6 +74,7 @@ public class APIReturnObject<T> {
 
     /**
      * 获取返回讯息 (如有)
+     *
      * @return 获取返回讯息，如果自定义返回讯息为空，就获取 Code 绑定的默认返回讯息
      */
     public String getErrMsg() {

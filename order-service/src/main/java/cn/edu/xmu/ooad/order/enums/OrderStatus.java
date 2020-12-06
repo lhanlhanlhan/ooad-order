@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.enums;
 
 /**
  * 订单状态枚举
+ *
  * @author Han Li
  * Created at 25/11/2020 12:25 上午
  * Modified by Han Li at 25/11/2020 12:25 上午
@@ -36,14 +37,6 @@ public enum OrderStatus {
         this.name = desc;
     }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public static OrderStatus getByCode(int code) {
         byte b = (byte) code;
         OrderStatus[] statuses = OrderStatus.values();
@@ -51,5 +44,13 @@ public enum OrderStatus {
             return null;
         }
         return statuses[b];
+    }
+
+    public byte getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -3,7 +3,6 @@ package cn.edu.xmu.ooad.order.utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;

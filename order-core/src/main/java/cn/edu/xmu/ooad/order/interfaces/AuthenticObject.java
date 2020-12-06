@@ -11,12 +11,14 @@ public interface AuthenticObject {
 
     /**
      * 判断该对象是否被篡改
+     *
      * @return 是否被篡改，若被篡改，返回 false
      */
     boolean isAuthentic();
 
     /**
      * 获取对象的签名
+     *
      * @return 对象的签名
      */
     String calcSignature();

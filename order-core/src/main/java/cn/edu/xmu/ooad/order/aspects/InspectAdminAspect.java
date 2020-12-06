@@ -1,12 +1,12 @@
 package cn.edu.xmu.ooad.order.aspects;
 
 import cn.edu.xmu.ooad.order.annotations.AdminShop;
-import cn.edu.xmu.ooad.order.utils.Constants;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
-import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.annotations.LoginUser;
 import cn.edu.xmu.ooad.order.connector.service.PrivilegeService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.Constants;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
+import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -54,10 +54,10 @@ public class InspectAdminAspect {
     /**
      * 前置通知：在进入目标 Controller 前执行，不能改变方法执行过程
      *
+     * @param joinPoint 在 Controller 层的切点
      * @author Han Li
      * Created at 25/11/2020 09:04
      * Created by Han Li at 25/11/2020 09:04
-     * @param joinPoint 在 Controller 层的切点
      */
     @Before("inspectAdminAspect()")
     public void doBefore(JoinPoint joinPoint) {
@@ -67,16 +67,16 @@ public class InspectAdminAspect {
      * 环绕通知：在进入目标方法之前和之后都能执行
      * 可以拒绝 / 批准目标方法执行，可以改动方法参数，甚至可以改动目标方法返回值
      *
+     * @param joinPoint 在 Controller 层的切点
+     * @return java.lang.Object
      * @author Han Li
      * Created at 25/11/2020 09:06
      * Created by Han Li at 25/11/2020 09:06
-     * @param joinPoint 在 Controller 层的切点
-     * @return java.lang.Object
      */
     @Around("inspectAdminAspect()")
     public Object around(JoinPoint joinPoint) {
         if (logger.isDebugEnabled()) {
-            logger.debug("around: begin joinPoint = "+ joinPoint);
+            logger.debug("around: begin joinPoint = " + joinPoint);
         }
         // 获取目标方法
         MethodSignature ms = (MethodSignature) joinPoint.getSignature();
@@ -110,7 +110,7 @@ public class InspectAdminAspect {
         for (int i = 0; i < annotations.length; i++) {
             // 获取参数拥有的 annotation
             Annotation[] paramAnn = annotations[i];
-            if (paramAnn.length == 0){
+            if (paramAnn.length == 0) {
                 continue;
             }
             // 检查参数拥有的每一个 Annotation

@@ -1,21 +1,20 @@
 package cn.edu.xmu.ooad.order.service;
 
-import cn.edu.xmu.ooad.order.model.bo.Order;
-import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
 import cn.edu.xmu.ooad.order.connector.service.CouponService;
 import cn.edu.xmu.ooad.order.connector.service.CustomerService;
 import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.model.vo.*;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
+import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
-import cn.edu.xmu.oomall.order.model.vo.*;
+import cn.edu.xmu.ooad.order.model.vo.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -71,7 +70,7 @@ public class OrderService {
      * @param page       页码
      * @param pageSize   页大小
      * @param customerId 用户 id
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Han Li
      * Created at 25/11/2020 16:58
      * Created by Han Li at 25/11/2020 16:58
@@ -129,12 +128,12 @@ public class OrderService {
     /**
      * 服务 o2：获取用户名下订单完整信息
      *
+     * @param id         订单 id
+     * @param customerId 用户 id
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<java.util.Map < java.lang.String, java.lang.Object>>
      * @author Han Li
      * Created at 26/11/2020 11:15
      * Created by Han Li at 26/11/2020 11:15
-     * @param id 订单 id
-     * @param customerId 用户 id
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<java.util.Map<java.lang.String,java.lang.Object>>
      */
     public APIReturnObject<?> getOrder(Long id, Long customerId) {
         // 獲取所請求之訂單的 Bo、Vo
@@ -162,13 +161,13 @@ public class OrderService {
     /**
      * 服务 o3：买家修改订单信息
      *
+     * @param id          订单号
+     * @param customerId  消费者号
+     * @param orderEditVo 修改信息对象
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @param id 订单号
-     * @param customerId 消费者号
-     * @param orderEditVo 修改信息对象
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderEditVo orderEditVo) {
@@ -209,12 +208,12 @@ public class OrderService {
     /**
      * 服务 o4：买家删掉 / 取消订单订单
      *
+     * @param id         订单号
+     * @param customerId 消费者号
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @param id 订单号
-     * @param customerId 消费者号
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerDelOrCancelOrder(Long id, Long customerId) {
@@ -252,12 +251,12 @@ public class OrderService {
     /**
      * 服务 o5：买家确认收货
      *
+     * @param id         订单号
+     * @param customerId 消费者号
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @param id 订单号
-     * @param customerId 消费者号
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerConfirm(Long id, Long customerId) {
@@ -287,12 +286,12 @@ public class OrderService {
     /**
      * 服务 o6：买家将团购订单转为普通订单
      *
+     * @param id         订单号
+     * @param customerId 消费者号
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @param id 订单号
-     * @param customerId 消费者号
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerChangeGroupon(Long id, Long customerId) {
@@ -332,7 +331,7 @@ public class OrderService {
      * @param page       页码
      * @param pageSize   页大小
      * @param customerId 用户 id
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject
      * @author Han Li
      * Created at 25/11/2020 16:58
      * Created by Han Li at 25/11/2020 16:58
@@ -389,7 +388,8 @@ public class OrderService {
 
     /**
      * 服务 o8：创建售后订单 (价格为 $0.- 的订单)
-     * @param shopId 店铺 id
+     *
+     * @param shopId  店铺 id
      * @param orderVo 订单详细资料
      * @return APIReturnObject
      */
@@ -476,10 +476,10 @@ public class OrderService {
     /**
      * 服务 o9：店家修改订单信息 [DONE]
      *
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> shopModifyOrder(Long id, Long shopId, OrderEditVo orderEditVo) {
@@ -506,12 +506,12 @@ public class OrderService {
     /**
      * 服务 o10：获取店铺名下订单完整信息
      *
+     * @param id     订单 id
+     * @param shopId 店铺 id
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<java.util.Map < java.lang.String, java.lang.Object>>
      * @author Han Li
      * Created at 26/11/2020 11:15
      * Created by Han Li at 26/11/2020 11:15
-     * @param id 订单 id
-     * @param shopId 店铺 id
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<java.util.Map<java.lang.String,java.lang.Object>>
      */
     public APIReturnObject<?> getShopOrder(Long id, Long shopId) {
         // 获取订单 Bo、Vo
@@ -537,10 +537,10 @@ public class OrderService {
     /**
      * 服务 o11：店铺取消订单订单
      *
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> shopCancelOrder(Long id, Long shopId) {
@@ -570,10 +570,10 @@ public class OrderService {
     /**
      * 服务 o12：店铺发货
      *
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> shopDeliverOrder(Long id, Long shopId, String deliverSn) {
@@ -604,6 +604,7 @@ public class OrderService {
     /**
      * 创建普通订单
      * TODO - 秒杀订单的创建
+     *
      * @param orderNewVo 新订单申请
      * @return APIReturnObject<?>
      */
@@ -717,6 +718,7 @@ public class OrderService {
 
     /**
      * 创建单品订单 (团购/预售)
+     *
      * @param orderNewVo 新订单申请
      * @return APIReturnObject<?>
      */
@@ -809,7 +811,8 @@ public class OrderService {
 
     /**
      * **内部方法**：获取订单完整资讯并返回 (不找数据库)
-     * @param orderPo 订单数据库对象
+     *
+     * @param orderPo         订单数据库对象
      * @param orderItemPoList 订单项目数据库对象列表
      * @return
      */
@@ -834,6 +837,7 @@ public class OrderService {
 
     /**
      * **内部方法** 根据 Vo 新建 OrderPo
+     *
      * @param customerId
      * @param orderNewVo
      * @return
@@ -852,6 +856,7 @@ public class OrderService {
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存
      * // TODO - redis
+     *
      * @param itemInfo
      * @return
      */
@@ -869,6 +874,7 @@ public class OrderService {
 
     /**
      * **内部方法**：将 orderItemPo 插入数据库中
+     *
      * @param itemPo
      * @return
      */
@@ -884,6 +890,7 @@ public class OrderService {
 
     /**
      * **内部方法**：将 orderItemPo 插入数据库中
+     *
      * @param orderPo
      * @return
      */

@@ -116,16 +116,16 @@
         UPDATE `orders`
         <!-- 用 <set> 指定一系列 update set 的字段 -->
         <set>
-            <if test="consignee!=null and consignee!=''">consignee = #{consignee}, </if>
-            <if test="regionId!=null">region_id = #{regionId}, </if>
-            <if test="address!=null and address!=''">address = #{address}, </if>
-            <if test="mobile!=null and mobile!=''">mobile = #{mobile}, </if>
-            <if test="message!=null and message!=''">message = #{message}, </if>
-            <if test="beDeleted!=null and beDeleted==true">be_deleted = 1, </if>
-            <if test="beDeleted!=null and beDeleted==false">be_deleted = null, </if>
-            <if test="shipmentSn!=null and shipmentSn!=''">shipment_sn = #{shipmentSn}, </if>
-            <if test="state!=null">state = #{state}, </if>
-            <if test="orderType!=null">order_type = #{orderType}, </if>
+            <if test="consignee!=null and consignee!=''">consignee = #{consignee},</if>
+            <if test="regionId!=null">region_id = #{regionId},</if>
+            <if test="address!=null and address!=''">address = #{address},</if>
+            <if test="mobile!=null and mobile!=''">mobile = #{mobile},</if>
+            <if test="message!=null and message!=''">message = #{message},</if>
+            <if test="beDeleted!=null and beDeleted==true">be_deleted = 1,</if>
+            <if test="beDeleted!=null and beDeleted==false">be_deleted = null,</if>
+            <if test="shipmentSn!=null and shipmentSn!=''">shipment_sn = #{shipmentSn},</if>
+            <if test="state!=null">state = #{state},</if>
+            <if test="orderType!=null">order_type = #{orderType},</if>
             gmt_modified = CURRENT_TIME
         </set>
         WHERE id = #{id}

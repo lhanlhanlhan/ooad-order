@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,9 +73,9 @@ public class OrderControllerTest1 {
     /**
      * TODO - 测试 token 生成例程 (需要和其他模块沟通)
      *
+     * @return 生成的 token
      * @author 19720182203919 李涵
      * Created at 7/11/2020 21:54
-     * @return 生成的 token
      */
     private String genTestToken() {
         // 这是一个乱写的 token (长度都是 271)

@@ -1,7 +1,7 @@
 package cn.edu.xmu.ooad.order.mapper;
 
-import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPoExample;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
+import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPoExample;
 
 import java.util.List;
 

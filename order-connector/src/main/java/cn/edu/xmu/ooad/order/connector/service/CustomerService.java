@@ -18,7 +18,7 @@ public class CustomerService {
      * 验证 token 并获取顾客用户资料
      *
      * @param token token
-     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
+     * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
     public Map<String, Object> verifyTokenAndGetCustomerInfo(String token) {
         return buildCustomerInfo(1L, "mingqiuxm", "Ming QIU", (short) 1);
@@ -28,7 +28,7 @@ public class CustomerService {
      * 获取顾客用户资料
      *
      * @param userId 用户 Id
-     * @return cn.edu.xmu.oomall.order.connector.model.UserInfo
+     * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
     public Map<String, Object> getCustomerInfo(Long userId) {
         return buildCustomerInfo(1L, "mingqiuxm", "Ming QIU", (short) 1);
@@ -36,6 +36,7 @@ public class CustomerService {
 
     /**
      * 创建客户信息在订单模块的字典
+     *
      * @param id
      * @param username
      * @param realName

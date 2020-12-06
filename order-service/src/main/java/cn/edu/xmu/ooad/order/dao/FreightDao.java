@@ -1,13 +1,12 @@
 package cn.edu.xmu.ooad.order.dao;
 
-import cn.edu.xmu.ooad.order.model.po.*;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.controller.FreightController;
 import cn.edu.xmu.ooad.order.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.WeightFreightModelPoMapper;
-import cn.edu.xmu.oomall.order.model.po.*;
+import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,6 +176,7 @@ public class FreightDao {
 
     /**
      * 删除运费模板
+     *
      * @param id
      * @param type
      * @return
@@ -268,6 +268,7 @@ public class FreightDao {
 
     /**
      * 内部调用：获取一个重量运费模板的某个地区的明细，没有明细就返回没有
+     *
      * @param modelId
      * @param regionId
      * @return
@@ -296,6 +297,7 @@ public class FreightDao {
 
     /**
      * 内部调用：获取一个件数运费模板的某个地区的明细，没有明细就返回没有
+     *
      * @param modelId
      * @param regionId
      * @return
@@ -324,6 +326,7 @@ public class FreightDao {
 
     /**
      * 工具函數：列舉滿足商店 id、運費模板 id 的運費模板數量 (可以用來鑑定權限)
+     *
      * @param modelId
      * @param shopId
      * @return -1：查詢失敗；>=0：對應數量

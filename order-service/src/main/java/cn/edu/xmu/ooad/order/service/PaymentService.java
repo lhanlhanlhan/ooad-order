@@ -7,15 +7,14 @@ import cn.edu.xmu.ooad.order.enums.*;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
-import cn.edu.xmu.ooad.order.model.vo.RefundVo;
-import cn.edu.xmu.ooad.order.utils.Accessories;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
-import cn.edu.xmu.oomall.order.enums.*;
 import cn.edu.xmu.ooad.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentVo;
+import cn.edu.xmu.ooad.order.model.vo.RefundVo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.Accessories;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,11 +140,11 @@ public class PaymentService {
             OrderEditPo editPo = new OrderEditPo();
             editPo.setId(orderId);
             switch (simpleOrder.getOrderType()) {
-                case OrderType.GROUPON:   // 团购订单，改为已参团
+                case GROUPON:   // 团购订单，改为已参团
                     editPo.setState(OrderStatus.PAID.getCode());
                     editPo.setSubState(OrderStatus.GROUP_FORMED.getCode());
                     break;
-                case OrderType.PRE_SALE:  // 预售订单，改为已支付定金 | 已支付尾款
+                case PRE_SALE:  // 预售订单，改为已支付定金 | 已支付尾款
                     // 如果是已支付定金
                     Byte subState = simpleOrder.getSubstate();
                     if (subState.equals(OrderStatus.DEPOSIT_PAID.getCode())) {
@@ -227,7 +226,7 @@ public class PaymentService {
     /**
      * 服务 p4: 买家【根据订单号】查询自己的支付信息
      *
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author 苗新宇
      * Created at 05/12/2020 17:28
      * Created by Han Li at 05/12/2020 17:28
@@ -258,9 +257,10 @@ public class PaymentService {
 
     /**
      * 服务 5: 管理员查询订单的支付信息
-     *
+     * <p>
      * TODO - 支付信息是綁定在父訂單上的馬？
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
+     *
+     * @return cn.edu.xmu.ooad.order.utils.APIReturnObject<?>
      * @author 苗新宇
      * Created at 05/12/2020 17:29
      * Created by 苗新宇 at 05/12/2020 17:29
@@ -287,7 +287,6 @@ public class PaymentService {
 
     /**
      * 服务 6: 买家为售后单创建支付单
-     *
      */
     public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
         // TODO - 由商品模塊检查一下，这张售后单可不可以创建支付单

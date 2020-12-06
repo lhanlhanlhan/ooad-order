@@ -17,17 +17,17 @@ public class SpringUtils implements ApplicationContextAware {
 
     private static ApplicationContext context = null;
 
+    // 获取 ApplicationContext
+    public static ApplicationContext getApplicationContext() {
+        return context;
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         // 程序运行起来后，把 Context 保存下来
         if (context == null) {
             context = applicationContext;
         }
-    }
-
-    // 获取 ApplicationContext
-    public static ApplicationContext getApplicationContext() {
-        return context;
     }
 
     // 根据 Class 获取种类唯一的 Bean

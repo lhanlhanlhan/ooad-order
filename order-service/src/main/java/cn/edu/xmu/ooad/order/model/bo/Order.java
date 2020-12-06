@@ -32,6 +32,9 @@ public class Order implements VoCreatable, SimpleVoCreatable {
 
     // 概要业务对象 【代理】
     private OrderSimplePo orderSimplePo = null;
+    // 完整业务对象 【代理】
+    private OrderPo orderPo = null;
+
     /**
      * 创建概要业务对象
      *
@@ -41,15 +44,13 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         this.orderSimplePo = orderSimplePo;
     }
 
-    // 完整业务对象 【代理】
-    private OrderPo orderPo = null;
     /**
      * 创建完整业务对象
      *
+     * @param orderPo Po 对象
      * @author Han Li
      * Created at 26/11/2020 15:31
      * Created by Han Li at 26/11/2020 15:31
-     * @param orderPo Po 对象
      */
     public Order(OrderPo orderPo) {
         this.orderPo = orderPo;
@@ -86,6 +87,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
 
     /**
      * 支付成功后调用分单，分成若干个完整订单【每个订单内含 orderItemList，可以直接插入】
+     *
      * @return 如果分单成功，返回 List；如果无需分单，返回 null
      */
     public List<Order> splitToOrders() {

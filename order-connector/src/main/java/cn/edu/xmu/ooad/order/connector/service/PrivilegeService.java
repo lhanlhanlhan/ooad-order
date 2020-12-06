@@ -29,6 +29,7 @@ public class PrivilegeService {
 
     /**
      * 创建管理员资料在订单模块中的字典
+     *
      * @param id
      * @param username
      * @param shopId

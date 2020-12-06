@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * 新订单申请传值对象 (前端传入)
+ *
  * @author Han Li
  * Created at 2020/11/5 15:31
  * Modified at 2020/11/5 15:31

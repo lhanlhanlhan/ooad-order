@@ -1,6 +1,5 @@
 package cn.edu.xmu.ooad.order.connector.service;
 
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,6 +14,7 @@ public class AfterSaleService {
 
     /**
      * TODO - 检查一张售后单是否可以创建支付单
+     *
      * @param afterSaleId
      * @return
      */
@@ -24,6 +24,7 @@ public class AfterSaleService {
 
     /**
      * TODO - 检查售后单是否属于一间店铺
+     *
      * @param afterSaleId
      * @return
      */
@@ -33,6 +34,7 @@ public class AfterSaleService {
 
     /**
      * TODO - 检查售后单是否属于一个买家
+     *
      * @param afterSaleId
      * @return
      */

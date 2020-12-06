@@ -1,13 +1,12 @@
 package cn.edu.xmu.ooad.order.dao;
 
+import cn.edu.xmu.ooad.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderMapper;
+import cn.edu.xmu.ooad.order.mapper.OrderSimplePoMapper;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.model.po.*;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
-import cn.edu.xmu.ooad.order.mapper.OrderItemPoMapper;
-import cn.edu.xmu.ooad.order.mapper.OrderSimplePoMapper;
-import cn.edu.xmu.oomall.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,25 +30,21 @@ public class OrderDao {
 
     // 日志记录器
     private static final Logger logger = LoggerFactory.getLogger(OrderDao.class);
-
+    // 邱明规定的 Date Formatter
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-M-d");
     // Simple Order Po 的 Mapper
     @Autowired
     private OrderSimplePoMapper orderSimplePoMapper;
-
     // Order 的 Mapper
     @Autowired
     private OrderMapper orderMapper;
-
     // OrderItem 的 Mapper
     @Autowired
     private OrderItemPoMapper orderItemPoMapper;
 
-    // 邱明规定的 Date Formatter
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-M-d");
-
-
     /**
      * 工具函數：列舉滿足用戶 id、商店 id、訂單 id 的訂單數量 (可以用來鑑定權限)
+     *
      * @param orderId
      * @param customerId
      * @param shopId
@@ -71,12 +66,12 @@ public class OrderDao {
     /**
      * 获取分页的订单概要列表
      *
-     * @param orderSn 订单号
-     * @param state 订单状态
-     * @param beginTime 开始时间 yyyy-M-d
-     * @param endTime 结束时间 yyyy-M-d
-     * @param page 第几页
-     * @param pageSize 每页记录数
+     * @param orderSn    订单号
+     * @param state      订单状态
+     * @param beginTime  开始时间 yyyy-M-d
+     * @param endTime    结束时间 yyyy-M-d
+     * @param page       第几页
+     * @param pageSize   每页记录数
      * @param customerId 用户号
      * @return 分页的订单概要
      */
@@ -97,10 +92,10 @@ public class OrderDao {
     /**
      * 获取不分页的订单概要列表
      *
-     * @param orderSn 订单号
-     * @param state 订单状态
-     * @param beginTime 开始时间 yyyy-M-d
-     * @param endTime 结束时间 yyyy-M-d
+     * @param orderSn    订单号
+     * @param state      订单状态
+     * @param beginTime  开始时间 yyyy-M-d
+     * @param endTime    结束时间 yyyy-M-d
      * @param customerId 用户号
      * @return 不分页的订单概要
      */
@@ -165,7 +160,8 @@ public class OrderDao {
 
     /**
      * 获取订单完整信息
-     * @param orderId 订单 id
+     *
+     * @param orderId    订单 id
      * @param customerId 客户 id
      * @return 订单
      */
@@ -200,7 +196,8 @@ public class OrderDao {
 
     /**
      * 获取订单信息 (不含 Item、Customer、Shop)
-     * @param orderId 订单 id
+     *
+     * @param orderId    订单 id
      * @param customerId 客户 id
      * @return 订单
      */
@@ -230,6 +227,7 @@ public class OrderDao {
 
     /**
      * 无条件修改订单信息
+     *
      * @return 返回
      */
     public APIReturnObject<?> modifyOrder(OrderEditPo po) {
@@ -249,6 +247,7 @@ public class OrderDao {
 
     /**
      * 无条件修改 OrderItem 的订单 Id
+     *
      * @return 返回：0 成功；1 失败
      */
     public int modifyOrderItemOrderId(Long itemId, Long newOrderId) {

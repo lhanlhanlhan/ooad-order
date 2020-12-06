@@ -1,7 +1,7 @@
 package cn.edu.xmu.ooad.order.configurations;
 
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,16 +45,16 @@ public class GlobalExceptionHandler {
         logger.error("出现未定义的错误：" + e.getMessage());
         return ResponseUtils.make(
                 new APIReturnObject<>(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ResponseCode.INTERNAL_SERVER_ERR,
-                "服务器未能理解及处理刚发生的错误，已将错误提交管理员处理。为防止您的信息丢失，请勿重复尝试！"));
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ResponseCode.INTERNAL_SERVER_ERR,
+                        "服务器未能理解及处理刚发生的错误，已将错误提交管理员处理。为防止您的信息丢失，请勿重复尝试！"));
     }
 
     /**
      * 捕获及处理【由 Spring 校验器】触发之错误
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Object handleValidException(MethodArgumentNotValidException e){
+    public Object handleValidException(MethodArgumentNotValidException e) {
         FieldError fe = e.getBindingResult().getFieldError();
         if (fe == null) {
             logger.info("校验器发生未指明的错误：" + e.getMessage());
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
         // 将错误信息返回给前台
         return ResponseUtils.make(
                 new APIReturnObject<>(HttpStatus.BAD_REQUEST,
-                ResponseCode.BAD_REQUEST,
-                defaultMessage));
+                        ResponseCode.BAD_REQUEST,
+                        defaultMessage));
     }
 }

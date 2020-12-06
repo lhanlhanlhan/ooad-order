@@ -7,12 +7,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Order Service 应用程序入口
+ *
  * @author Han Li
  * Created at 2020/11/5 14:48
  * Modified by Han Li at 2020/11/24 9:35
  **/
 @SpringBootApplication
-@MapperScan("cn.edu.xmu.oomall.order.mapper")
+@MapperScan("cn.edu.xmu.ooad.order.mapper")
 @EnableDubbo
 public class OrderServiceApplication {
     public static void main(String[] args) {

@@ -28,6 +28,7 @@ public class OrderItemVo {
 
     /**
      * 用一个 Bo 对象初构造本对象
+     *
      * @param item Bo 对象
      */
     public OrderItemVo(OrderItem item) {
