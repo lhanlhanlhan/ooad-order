@@ -1,17 +1,22 @@
 package cn.edu.xmu.oomall.order.model.bo;
 
+import cn.edu.xmu.oomall.order.connector.service.ShopService;
+import cn.edu.xmu.oomall.order.dao.FreightDao;
 import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.interfaces.SimpleVoCreatable;
 import cn.edu.xmu.oomall.order.interfaces.VoCreatable;
+import cn.edu.xmu.oomall.order.model.po.OrderItemPo;
 import cn.edu.xmu.oomall.order.model.po.OrderPo;
 import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderVo;
+import cn.edu.xmu.oomall.order.utils.Accessories;
+import cn.edu.xmu.oomall.order.utils.SpringUtils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +33,6 @@ public class Order implements VoCreatable, SimpleVoCreatable {
 
     // 概要业务对象 【代理】
     private OrderSimplePo orderSimplePo = null;
-
     /**
      * 创建概要业务对象
      *
@@ -82,10 +86,121 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     /**
-     * TODO - 判断该订单可否被支付
+     * 支付成功后调用分单，分成若干个完整订单【每个订单内含 orderItemList，可以直接插入】
+     * @return 如果分单成功，返回 List；如果无需分单，返回 null
+     */
+    public List<Order> splitToOrders() {
+        if (this.getShopId() != null) {
+            return null;
+        }
+        // 获取 ShopService
+        ShopService shopService = SpringUtils.getBean(ShopService.class);
+        // 获取所有店铺的订购商品
+        Map<Long, List<OrderItem>> shopsItemLists = new HashMap<>();
+        Map<Long, Long> shopsOrigPriceList = new HashMap<>();
+        Map<Long, Long> shopsDiscountList = new HashMap<>();
+        Map<Long, Long> shopsFreightList = new HashMap<>();
+        // TODO - 运费平摊我还不是很会也，就按照每个店铺付款金额平摊吧。
+        // 获取单位运费
+        long unitFreight = this.getFreightPrice() / (this.getOriginPrice() - this.getDiscountPrice());
+        for (OrderItem item : this.orderItemList) {
+            // 获取商品的信息
+            Long skuId = item.getSkuId();
+            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            Long shopId = (Long) skuInfo.get("shopId");
+
+            // 检查这个店铺的订购列表有没有创建，没有的话，就新建并放入一个该店铺的新列表
+            List<OrderItem> thisShopItems = shopsItemLists.computeIfAbsent(shopId, k -> new LinkedList<>());
+            Long thisShopOrigPrice = shopsOrigPriceList.get(shopId);
+            Long thisShopDiscount = shopsDiscountList.get(shopId);
+            long thisShopFreight;
+            if (thisShopOrigPrice == null) {
+                thisShopOrigPrice = 0L;
+                thisShopDiscount = 0L;
+            }
+            // 商品放入店铺购买列表中，计算价格
+            thisShopItems.add(item);
+            thisShopOrigPrice += item.getPrice() * item.getQuantity();
+            thisShopDiscount += item.getDiscount();
+            thisShopFreight = unitFreight * (thisShopOrigPrice - thisShopDiscount);
+            // 并记录实付金额
+            shopsOrigPriceList.put(shopId, thisShopOrigPrice);
+            shopsDiscountList.put(shopId, thisShopDiscount);
+            shopsFreightList.put(shopId, thisShopFreight);
+        }
+        // 现在，已经获得在各店铺购买的物品，及各店铺获得的 money，可以分单
+        LocalDateTime nowTime = LocalDateTime.now();
+        ArrayList<Order> orderList = new ArrayList<>(shopsItemLists.size());
+        shopsItemLists.forEach((shopId, shopOrderItems) -> {
+            // 把 shopOrderItems 中的各对象转为有 OrderItemPo 的 OrderItem
+            List<OrderItem> orderItems = shopOrderItems
+                    .stream()
+                    .map(item -> {
+                        OrderItemPo orderItemPo = new OrderItemPo();
+                        // 设置 po 的各项目
+                        orderItemPo.setId(item.getId()); // 是將orderItem軟連結過去
+                        orderItemPo.setGoodsSkuId(item.getSkuId());
+                        orderItemPo.setQuantity(item.getQuantity());
+                        orderItemPo.setPrice(item.getPrice());
+                        orderItemPo.setDiscount(item.getDiscount());
+                        orderItemPo.setCouponActivityId(item.getCouponActId());
+                        orderItemPo.setBeShareId(item.getBeSharedId());
+                        orderItemPo.setName(item.getName()); // 下单时的名字
+                        orderItemPo.setGmtCreate(nowTime);
+                        return orderItemPo;
+                    })
+                    .map(OrderItem::new)
+                    .collect(Collectors.toList());
+
+            // 生成一笔 OrderPo
+            OrderPo orderPo = new OrderPo();
+            // 可以从父订单拿到的资料
+            orderPo.setCustomerId(getCustomerId());
+            orderPo.setRegionId(getRegionId());
+            orderPo.setAddress(getAddress());
+            orderPo.setMobile(getMobile());
+            orderPo.setMessage(getMessage());
+            orderPo.setConsignee(getConsignee());
+            // 本商店订单对应的资料
+            orderPo.setPid(this.getId()); // 父訂單號
+            orderPo.setShopId(shopId); // 本商店 Id
+            orderPo.setOriginPrice(shopsOrigPriceList.get(shopId));
+            orderPo.setDiscountPrice(shopsDiscountList.get(shopId));
+            orderPo.setFreightPrice(shopsFreightList.get(shopId)); // TODO - 运费怎么平摊？
+            // 订单种类为普通订单，订单状态为已支付 (已支付才能分单)
+            orderPo.setOrderType(OrderType.NORMAL.getCode());
+            orderPo.setState(OrderStatus.PAID.getCode()); // 普通订单没有 subState
+            orderPo.setGmtCreate(nowTime);
+            orderPo.setOrderSn(Accessories.genSerialNumber());
+
+            // 生成一笔 Order
+            Order order = new Order(orderPo);
+            // 無語，差點忘記把 item 放進去了媽的
+            order.setOrderItemList(orderItems);
+            orderList.add(order);
+        });
+
+        return orderList;
+    }
+
+
+    /*
+    订单状态的一些判定
+     */
+
+    /**
+     * 判断该订单可否被支付
      */
     public boolean canPay() {
-        return true;
+        if (this.getOrderType() == OrderType.PRE_SALE) {
+            // 预售订单，只能主状态为待支付 && 从状态为待支付首/尾款的才可以支付
+            return this.getState() == OrderStatus.PENDING_PAY.getCode() &&
+                    (this.getSubstate() == OrderStatus.PENDING_DEPOSIT.getCode() ||
+                            this.getSubstate() == OrderStatus.PENDING_REM_BALANCE.getCode());
+        } else {
+            // 普通/团购订单，主状态为待支付即可支付
+            return this.getState() == OrderStatus.PENDING_PAY.getCode();
+        }
     }
 
     /**
@@ -386,4 +501,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         return orderItemList;
     }
 
+    public OrderPo getOrderPo() {
+        return orderPo;
+    }
 }

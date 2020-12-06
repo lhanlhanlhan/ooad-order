@@ -66,7 +66,7 @@ public class FreightService {
             if (modelPo == null) {
                 // 商品、订单模块数据库不一致
                 logger.error("计算运费、抽取运费模板时，检测到运费模板未定义! skuId=" + skuId);
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST, "賣家沒有定義商品的運費模板！");
             }
             FreightModel model = new FreightModel(modelPo);
 

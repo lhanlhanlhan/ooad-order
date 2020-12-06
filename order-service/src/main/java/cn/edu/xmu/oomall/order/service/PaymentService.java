@@ -5,6 +5,7 @@ import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.dao.PaymentDao;
 import cn.edu.xmu.oomall.order.enums.*;
 import cn.edu.xmu.oomall.order.model.bo.Order;
+import cn.edu.xmu.oomall.order.model.bo.OrderItem;
 import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import cn.edu.xmu.oomall.order.model.po.RefundPo;
@@ -37,6 +38,9 @@ public class PaymentService {
 
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private AfterSaleService afterSaleService;
@@ -87,7 +91,9 @@ public class PaymentService {
                 .sum();
 
         // 看看有没有超额支付，要超额支付的话，不让支付
-        long shallPayPrice = simpleOrder.getOriginPrice() - simpleOrder.getDiscountPrice(); // 总共需付款
+        long shallPayPrice = simpleOrder.getOriginPrice() +
+                simpleOrder.getFreightPrice() -
+                simpleOrder.getDiscountPrice(); // 总共需付款 = 訂單總價+運費-優惠
         if (paidPrice + paymentNewVo.getPrice() > shallPayPrice) {
             // 企图超额支付
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE);
@@ -131,8 +137,9 @@ public class PaymentService {
 
         // 判断是否足额支付
         paidPrice += paymentPo.getAmount();
-        // 已足额支付，更改订单状态
+        // 已足额支付，更改订单状态，分单
         if (paidPrice == shallPayPrice) {
+            // 更改订单状态
             OrderEditPo editPo = new OrderEditPo();
             editPo.setId(orderId);
             switch (simpleOrder.getOrderType()) {
@@ -160,6 +167,47 @@ public class PaymentService {
                     editPo.setState(OrderStatus.PAID.getCode());
                     break;
             }
+
+            // 2. 分单 TODO - 优化分单过程
+            // 查询夫订单
+            APIReturnObject<Order> fullOrder = orderDao.getOrder(orderId, customerId, null, false);
+            if (fullOrder.getCode() != ResponseCode.OK) {
+                // 分单时查询订单失败，回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                logger.error("分单时查询订单失败! orderId=" + orderId);
+                return fullOrder;
+            }
+            // 拆分订单
+            Order order = fullOrder.getData();
+            List<Order> rippedOrder = order.splitToOrders();
+            if (rippedOrder == null) {
+                // 无需分单，直接写入 shopId
+                editPo.setShopId(order.getShopId());
+            } else {
+                // 需要分单，要将新订单写入数据库
+                for (Order subOrder : rippedOrder) {
+                    // 插入子订单
+                    int insSubOrderRet = orderDao.addOrder(subOrder.getOrderPo());
+                    if (insSubOrderRet != 1) {
+                        // 插入错误
+                        logger.error("插入子订单时错误！");
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "插入子订单时出错。");
+                    }
+                    // 修改订单订单项目的订单号为子订单的
+                    for (OrderItem subOrderItem : subOrder.getOrderItemList()) {
+                        int updateOrderItemRet = orderDao.modifyOrderItemOrderId(subOrderItem.getId(), subOrder.getId());
+                        if (updateOrderItemRet != 0) {
+                            // 无法修改子订单的订单号
+                            logger.error("修改子订单的订单号时错误！");
+                            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "修改子订单的订单号时错误。");
+                        }
+                    }
+                }
+            }
+
+            // 写入订单变更
             APIReturnObject<?> modifyRet = orderDao.modifyOrder(editPo);
             if (modifyRet.getCode() != ResponseCode.OK) {
                 // 改变状态失败，回滚

@@ -660,7 +660,7 @@ public class OrderService {
             Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
             orderItemPo.setGoodsSkuId(skuId);
             orderItemPo.setQuantity(quantity);
-            // 计算各种价格
+            // 计算、累加各种价格
             Long price = (Long) skuInfo.get("price");
             totalPrice += price * quantity;
             Long discount = (Long) item.get("discount");
@@ -670,6 +670,8 @@ public class OrderService {
             orderItemPo.setDiscount(discount);
             orderItemPo.setName((String) skuInfo.get("name"));
             orderItemPo.setGmtCreate(nowTime);
+            // 填寫各種活動
+            orderItemPo.setCouponActivityId((Long) item.get("couponActId"));
             // 放入容器
             orderItemPos.add(orderItemPo);
         }
@@ -754,9 +756,7 @@ public class OrderService {
         OrderItemPo orderItemPo = new OrderItemPo();
         orderItemPo.setGoodsSkuId(skuId);
         orderItemPo.setQuantity(quantity);
-        orderItemPo.setGoodsSkuId(skuId);
-        orderItemPo.setQuantity(quantity);
-        orderItemPo.setPrice(price * quantity);
+        orderItemPo.setPrice(price);
         orderItemPo.setDiscount(totalDiscount);
         orderItemPo.setName((String) skuInfo.get("name"));
         orderItemPo.setGmtCreate(nowTime);

@@ -14,9 +14,11 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -130,7 +132,7 @@ public class OrderDao {
             criteria.andCustomerIdEqualTo(customerId);
         }
         if (!includeDeleted) {
-            criteria.andBeDeletedNotEqualTo((byte) 1);
+            criteria.andBeDeletedIsNull();
         }
         // 执行查询
         List<OrderSimplePo> orderSimplePoList;
@@ -166,6 +168,10 @@ public class OrderDao {
                 logger.info("订单不存在或已被删除或不属于该用户：id = " + orderId);
             }
             return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 不属于用户");
+        }
+        // 檢查一下，是否根本沒有 OrderItem (查不出 OrderItem 時由於 JOIN 的關係 List 中會有一個 NULL 對象)
+        if (orderPo.getOrderItemList().get(0).getId() == null) {
+            orderPo.setOrderItemList(null);
         }
         // 创建订单业务对象
         Order order = new Order(orderPo);
@@ -222,6 +228,30 @@ public class OrderDao {
             return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST);
         }
         return new APIReturnObject<>();
+    }
+
+    /**
+     * 无条件修改 OrderItem 的订单 Id
+     * @return 返回：0 成功；1 失败
+     */
+    public int modifyOrderItemOrderId(Long itemId, Long newOrderId) {
+        OrderItemPo po = new OrderItemPo();
+        po.setId(itemId);
+        po.setOrderId(newOrderId);
+        po.setGmtModified(LocalDateTime.now());
+        // 尝试修改
+        int affected = 0;
+        try {
+            affected = orderItemPoMapper.updateByPrimaryKeySelective(po);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return 1;
+        }
+        // 检查修改结果
+        if (affected <= 0) {
+            return 1;
+        }
+        return 0;
     }
 
     /**

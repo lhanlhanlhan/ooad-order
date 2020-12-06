@@ -28,6 +28,7 @@ public class OrderItem implements VoCreatable {
         return new OrderItemVo(this);
     }
 
+    public Long getId() {return orderItemPo.getId();}
     public Long getSkuId() {
         return orderItemPo.getGoodsSkuId();
     }

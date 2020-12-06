@@ -65,7 +65,13 @@ public class OrderVo {
         this.consignee = order.getConsignee();
         this.couponId = order.getCouponId();
         this.grouponId = order.getGrouponId(); // TODO - 问邱明：没有 preSaleId?
-        this.orderItems = order.getOrderItemList().stream().map(OrderItemVo::new).collect(Collectors.toList());
+        this.orderItems = // 如果是父訂單，這邊就會是 null
+                order.getOrderItemList() == null ?
+                null :
+                order.getOrderItemList()
+                        .stream()
+                        .map(OrderItemVo::new)
+                        .collect(Collectors.toList());
 
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
         LocalDateTime gmtCreate = order.getGmtCreated();
