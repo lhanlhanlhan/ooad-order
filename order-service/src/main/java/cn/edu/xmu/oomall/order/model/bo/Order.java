@@ -89,9 +89,9 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     }
 
     /**
-     * 判断该对象是否可被客户修改
+     * 判断订单是否可被修改
      */
-    public boolean isCustomerModifiable() {
+    public boolean canModify() {
         // 订单状态为空，不给修改
         if (this.getState() == null) {
             return false;
@@ -101,14 +101,14 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         if (status == null) {
             return false;
         }
-        // 只有「发货中」才能让客户修改
-        return status == OrderStatus.SHIPPED;
+        // 只有「未发货」才能让客户修改
+        return status == OrderStatus.PAID;
     }
 
     /**
-     * 判断该对象是否可被删除
+     * 判断该订单是否可被删除
      */
-    public boolean isDeletable() {
+    public boolean canDelete() {
         // 订单状态为空，不给删除
         if (this.getState() == null) {
             return false;
@@ -134,7 +134,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被客户取消
      */
-    public boolean isCancelable() {
+    public boolean canCustomerCancel() {
         // 订单状态为空，不给取消
         if (this.getState() == null) {
             return false;
@@ -164,7 +164,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被商户取消
      */
-    public boolean isShopCancelable() {
+    public boolean canShopCancel() {
         // 订单状态为空，不给取消
         if (this.getState() == null) {
             return false;
@@ -191,7 +191,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被签收
      */
-    public boolean isCustomerCanSign() {
+    public boolean canSign() {
         // 订单状态为空，不给签收
         if (this.getState() == null) {
             return false;
@@ -208,7 +208,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被发货
      */
-    public boolean isShopCanDeliver() {
+    public boolean canDeliver() {
         // 订单状态为空，不给发货
         if (this.getState() == null) {
             return false;
@@ -247,7 +247,7 @@ public class Order implements VoCreatable, SimpleVoCreatable {
     /**
      * 判断该 订单 是否可被从团购转为普通订单
      */
-    public boolean isCustomerCanChangeFromGrouponToNormal() {
+    public boolean canCustomerChangeFromGrouponToNormal() {
         // 订单状态为空，不给转换
         if (this.getState() == null) {
             return false;

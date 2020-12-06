@@ -362,6 +362,7 @@ public class OrderController {
     })
     @InspectAdmin // 管理员登入
     @PostMapping("shops/{shopId}/orders")
+    @Deprecated
     public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
                                        @PathVariable Long shopId,
                                        @LoginUser Long adminId,

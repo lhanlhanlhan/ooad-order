@@ -189,7 +189,7 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isCustomerModifiable()) {
+        if (!order.canModify()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -226,8 +226,8 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        boolean deletable = order.isDeletable();
-        boolean cancelable = order.isCancelable();
+        boolean deletable = order.canDelete();
+        boolean cancelable = order.canCustomerCancel();
 
         // 创造更改体
         OrderEditPo delPo;
@@ -269,7 +269,7 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isCustomerCanSign()) {
+        if (!order.canSign()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -304,7 +304,7 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isCustomerCanChangeFromGrouponToNormal()) {
+        if (!order.canCustomerChangeFromGrouponToNormal()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -488,6 +488,12 @@ public class OrderService {
             // 不存在、已删除、不属于店铺【404 返回】
             return returnObject;
         }
+        // 检查订单状态是否允许修改
+        Order order = returnObject.getData();
+        if (!order.canModify()) {
+            // 方法不被允许【403 返回】
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+        }
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
@@ -548,7 +554,7 @@ public class OrderService {
         OrderEditPo delPo;
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isShopCancelable()) {
+        if (!order.canShopCancel()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -581,7 +587,7 @@ public class OrderService {
         OrderEditPo delPo;
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.isShopCanDeliver()) {
+        if (!order.canDeliver()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }

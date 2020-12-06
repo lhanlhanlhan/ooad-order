@@ -13,6 +13,7 @@ import java.util.Map;
  * Modified by Han Li at 29/11/2020 1:25 下午
  */
 @Data
+@Deprecated
 public class AfterSaleOrderVo {
 
     private List<Map<String, Object>> orderItems;
