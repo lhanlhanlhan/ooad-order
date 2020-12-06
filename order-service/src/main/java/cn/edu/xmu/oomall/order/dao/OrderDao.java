@@ -52,6 +52,26 @@ public class OrderDao {
 
 
     /**
+     * 工具函數：列舉滿足用戶 id、商店 id、訂單 id 的訂單數量 (可以用來鑑定權限)
+     * @param orderId
+     * @param customerId
+     * @param shopId
+     * @return -1：查詢失敗；>=0：對應數量
+     */
+    public long countOrders(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
+        // 查詢數據庫
+        long results;
+        try {
+            results = orderMapper.countOrder(orderId, customerId, shopId, includeDeleted);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            // count 失敗
+            return -1;
+        }
+        return results;
+    }
+
+    /**
      * 获取分页的订单概要列表
      *
      * @param orderSn 订单号

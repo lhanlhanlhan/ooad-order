@@ -40,9 +40,6 @@ public class PaymentService {
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
     @Autowired
-    private OrderService orderService;
-
-    @Autowired
     private AfterSaleService afterSaleService;
 
     @Autowired
@@ -55,7 +52,6 @@ public class PaymentService {
     /**
      * 服务 p3：买家为订单创建支付单
      *
-     * TODO - 分单！
      * @return APIReturnObject
      * @author 苗新宇
      * Created at 30/11/2020 8:45
@@ -229,20 +225,18 @@ public class PaymentService {
     /**
      * 服务 p4: 买家【根据订单号】查询自己的支付信息
      *
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      * @author 苗新宇
      * Created at 05/12/2020 17:28
      * Created by Han Li at 05/12/2020 17:28
-     * @param customerId
-     * @param orderId
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     public APIReturnObject<?> getPaymentOrderByOrderId(Long customerId, Long orderId) {
         // 校验订单 id 是否存在 / 属于用户？
-        // TODO - 我觉得，如果只要校验订单的话，不必要 get，过后写一个 count 函数到dao里面去。
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return returnObject;
+        long countRes = orderDao.countOrders(orderId, customerId, null, false);
+        if (countRes == 0) { // 查無此單
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        } else if (countRes == -1) { // 數據庫錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
         // 获取支付单列表
@@ -261,22 +255,23 @@ public class PaymentService {
     }
 
     /**
-     * 服务 5: 管理员查询订单的支付信息 TODO - 这个等分单以后测试
+     * 服务 5: 管理员查询订单的支付信息
      *
+     * TODO - 支付信息是綁定在父訂單上的馬？
+     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      * @author 苗新宇
      * Created at 05/12/2020 17:29
      * Created by 苗新宇 at 05/12/2020 17:29
-     * @param shopId
-     * @param orderId
-     * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<?>
      */
     public APIReturnObject<?> getOrderPaymentInfo(Long shopId, Long orderId) {
-        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
-        if (orders.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return orders;
+        // 校验订单 id 是否存在 / 属于店鋪？
+        long countRes = orderDao.countOrders(orderId, null, shopId, true);
+        if (countRes == 0) { // 查無此單
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        } else if (countRes == -1) { // 數據庫錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
+
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
         APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);
         //定义PaymentOrderVo集合
@@ -290,12 +285,10 @@ public class PaymentService {
 
     /**
      * 服务 6: 买家为售后单创建支付单
-     * @param aftersaleId
-     * @param paymentNewVO
-     * @return
+     *
      */
     public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
-        // TODO - 检查一下，这张售后单可不可以创建支付单
+        // TODO - 由商品模塊检查一下，这张售后单可不可以创建支付单
         if (!afterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
         }
@@ -343,11 +336,14 @@ public class PaymentService {
      * 服务 p7: 买家【根据售后单号】查询自己的支付信息
      *
      * @param aftersaleId 售后单ID
-     * @return
      */
-    public APIReturnObject<?> getPaymentOrderByAftersaleId(Long aftersaleId) {
-        // TODO - 获取售后单，检查是否属于买家
+    public APIReturnObject<?> getPaymentOrderByAftersaleId(Long aftersaleId, Long customerId) {
+        // TODO - 其他模塊获取售后单，检查是否属于买家
+        if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        }
 
+        // 給據查找
         APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByAftersaleId(aftersaleId);
         if (returnObj.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
@@ -366,10 +362,9 @@ public class PaymentService {
      *
      * @param shopId      店铺ID
      * @param aftersaleId 售后单ID
-     * @return
      */
     public APIReturnObject<?> getPaymentOrderInfo(Long shopId, Long aftersaleId) {
-        // TODO - 获取售后单，检查是否属于店铺
+        // TODO - 其他模塊获取售后单，检查是否属于店铺
         if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
@@ -393,10 +388,9 @@ public class PaymentService {
     /**
      * 服务 p9: 管理员创建退款信息，需检查Payment是否是此商铺的payment
      *
-     * @param shopId         店铺ID
-     * @param paymentId      支付单ID
-     * @param amount         退款金额
-     * @return
+     * @param shopId    店铺ID
+     * @param paymentId 支付单ID
+     * @param amount    退款金额
      */
     public APIReturnObject<?> createRefund(Long shopId, Long paymentId, Long amount) {
         //在payment表中根据paymentId查询orderId
@@ -461,13 +455,15 @@ public class PaymentService {
      *
      * @param shopId  店铺ID
      * @param orderId 订单ID
-     * @return APIReturnObject<List<RefundVo>>
+     * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByOrderId(Long shopId, Long orderId) {
-        // 根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
-        if (orders.getCode() != ResponseCode.OK) {
-            return orders;
+        // 校验订单 id 是否存在 / 属于店鋪？
+        long countRes = orderDao.countOrders(orderId, null, shopId, true);
+        if (countRes == 0) { // 查無此單
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        } else if (countRes == -1) { // 數據庫錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         // 根据订单号、商铺号查询退款单
         APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
@@ -490,7 +486,7 @@ public class PaymentService {
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByAftersaleId(Long shopId, Long aftersaleId) {
-        // TODO - 检查售后单是否属于店铺
+        // TODO - 其他模塊检查售后单是否属于店铺
         if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
@@ -514,10 +510,12 @@ public class PaymentService {
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getCustomerRefundByOrderId(Long customerId, Long orderId) {
-        // 根据买家ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, customerId, null, false);
-        if (orders.getCode() != ResponseCode.OK) {
-            return orders;
+        // 校验订单 id 是否存在 / 属于用户？
+        long countRes = orderDao.countOrders(orderId, customerId, null, false);
+        if (countRes == 0) { // 查無此單
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        } else if (countRes == -1) { // 數據庫錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         // 根据订单号查询退款单
         APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
@@ -539,7 +537,7 @@ public class PaymentService {
      * @return APIReturnObject<RefundVo>
      */
     public APIReturnObject<?> getCustomerRefundByAftersaleId(Long customerId, Long aftersaleId) {
-        // TODO - 检查售后单是否属于买家
+        // TODO - 其他模塊，检查售后单是否属于买家
         if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }

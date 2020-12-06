@@ -22,4 +22,5 @@ public interface OrderMapper {
 
     int addOrder(OrderPo orderPo);
 
+    long countOrder(Long id, Long customerId, Long shopId, boolean includeDeleted);
 }

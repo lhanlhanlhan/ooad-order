@@ -42,9 +42,6 @@ public class FreightService {
     private FreightDao freightDao;
 
     @Autowired
-    private CustomerService customerService;
-
-    @Autowired
     private ShopService shopService;
 
     /**
@@ -103,6 +100,7 @@ public class FreightService {
      * @param freightModelNewVo 运费模板资料
      * @return APIReturnObject
      */
+    @Transactional
     public APIReturnObject<?> createShopGoodsFreightModel(Long shopId,
                                                           FreightModelNewVo freightModelNewVo) {
         //创建运费模板
