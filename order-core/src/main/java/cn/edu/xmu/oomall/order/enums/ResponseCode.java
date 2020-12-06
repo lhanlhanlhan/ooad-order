@@ -16,6 +16,7 @@ public enum ResponseCode {
     NEED_LOGIN(401, "需要登入才可使用"),
     RESOURCE_NOT_EXIST(404, "资源不存在"),
     INVALID_USER(405,"用户不存在或不可使用"),
+    REQUEST_NOT_ALLOWED(406,"请求不被服务器支援"),
 
     /**
      * 服务器内部错误

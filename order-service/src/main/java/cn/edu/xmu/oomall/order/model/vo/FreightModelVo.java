@@ -10,7 +10,7 @@ import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
 
 /**
- * 运费模板查询后返回的结果
+ * 运费模板查询后返回的结果 (后端返回)
  *
  * @author Han Li
  * Created at 4/12/2020 6:15 下午

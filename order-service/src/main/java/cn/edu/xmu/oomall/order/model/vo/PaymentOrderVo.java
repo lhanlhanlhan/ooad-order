@@ -8,13 +8,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 支付单VO【共12个属性】
+ * 支付单VO【共12个属性】 (后端返回)
  *
  * @author 苗新宇
  * Created at 30/11/2020 20:48
  * Modified by  苗新宇 at  30/11/2020 20:48
  */
-//TODO - afterSaleId 如何获取？
 @Data
 @NoArgsConstructor
 public class PaymentOrderVo {

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * * 管理员定义件数模板明细的运费模板资料的 Vo
+ * 管理员定义件数模板明细的运费模板资料的 Vo (前段传入+后端返回)
  *
  * @author ：Chen Kechun
  * Created at 29/11/2020 17:01 下午

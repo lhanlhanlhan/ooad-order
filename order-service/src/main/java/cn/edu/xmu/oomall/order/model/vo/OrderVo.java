@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 订单完整信息 (后端返回)
+ *
  * @author Han Li
  * Created at 26/11/2020 11:16 上午
  * Modified by Han Li at 26/11/2020 11:16 上午

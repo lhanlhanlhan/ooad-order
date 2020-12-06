@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 运费模板概要的 Vo
+ * 运费模板概要的 Vo (后端返回)
  *
  * @author Chen kechun
  * Created at 25/11/2020 12:43 下午

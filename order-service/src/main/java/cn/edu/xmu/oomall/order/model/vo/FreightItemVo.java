@@ -4,10 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 /**
- * 计算运费传入的订货详情的 Vo
+ * 计算运费传入的订货详情的 Vo (前端传入)
  *
  * @author Chen kechun
  * Created at 25/11/2020 12:43 下午
@@ -17,7 +18,10 @@ import javax.validation.constraints.Positive;
 @AllArgsConstructor
 public class FreightItemVo {
     @Positive(message = "商品 SKU ID 必须为正值")
+    @NotNull(message = "你必须指定 SKU ID")
     private Long skuId;
+
     @Positive(message = "数量必须为正值")
+    @NotNull(message = "你必须指定购买数量")
     private Integer count;
 }

@@ -4,6 +4,8 @@ import cn.edu.xmu.oomall.order.enums.PayPattern;
 import lombok.Data;
 
 /**
+ * 支付方式 (后端返回)
+ *
  * @author Han Li
  * Created at 5/12/2020 3:07 下午
  * Modified by Han Li at 5/12/2020 3:07 下午

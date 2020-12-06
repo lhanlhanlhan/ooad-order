@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 退款单VO【共8个属性】
+ * 退款单VO【共8个属性】 (后端返回)
  * @author 苗新宇
  * Created at 03/12/2020 0:48
  * Modified by  苗新宇 at  03/12/2020 0:48

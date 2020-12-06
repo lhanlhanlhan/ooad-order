@@ -3,8 +3,10 @@ package cn.edu.xmu.oomall.order.model.vo;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+import javax.validation.constraints.Positive;
+
 /**
- * 更新订单信息 传值对象
+ * 更新订单信息 传值对象 (前端传入)
  *
  * @author Han Li
  * Created at 2020/11/5 15:48
@@ -15,6 +17,7 @@ import lombok.Data;
 public class OrderEditVo {
 
     private String consignee;
+    @Positive(message = "地区 id 必须为正数")
     private Long regionId;
     private String address;
     private String mobile;

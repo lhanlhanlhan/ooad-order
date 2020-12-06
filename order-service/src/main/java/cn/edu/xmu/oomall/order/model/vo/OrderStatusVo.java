@@ -4,7 +4,7 @@ import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import lombok.Data;
 
 /**
- * 订单状态 Vo
+ * 订单状态 Vo (后端返回)
  * @author Han Li
  * Created at 25/11/2020 8:12 上午
  * Modified by Han Li at 25/11/2020 8:12 上午

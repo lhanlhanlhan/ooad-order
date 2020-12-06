@@ -7,6 +7,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
+ * 订单概要 (后端返回)
+ *
  * @author Han Li
  * Created at 25/11/2020 12:47 下午
  * Modified by Han Li at 25/11/2020 12:47 下午

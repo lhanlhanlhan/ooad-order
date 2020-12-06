@@ -296,10 +296,15 @@ public class FreightService {
         if (!origShopId.equals(shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
+        String name = freightModelModifyVo.getName();
+        if (name != null && name.equals("")) {
+            name = null;
+        }
+
         // 创建更新体
         FreightModelPo po = new FreightModelPo();
         po.setId(id);
-        po.setName(freightModelModifyVo.getName());
+        po.setName(name);
         po.setUnit(freightModelModifyVo.getUnit());
 
         // 写入数据库

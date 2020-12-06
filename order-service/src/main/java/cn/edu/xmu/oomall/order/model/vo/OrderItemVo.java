@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * OrderItem 的 Vo 对象
+ * OrderItem 的 Vo 对象 (后端返回)
  *
  * @author Han Li
  * Created at 26/11/2020 3:59 下午

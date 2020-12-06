@@ -225,11 +225,16 @@ public class FreightController {
     @PutMapping("shops/{shopId}/freightmodels/{id}")
     public Object modifyShopFreightModel(@PathVariable Long shopId,
                                          @PathVariable Long id,
-                                         @RequestBody FreightModelModifyVo freightModelModifyVo,
+                                         @Validated @RequestBody FreightModelModifyVo freightModelModifyVo,
                                          @LoginUser Long adminId,
                                          @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelModifyVo);
+        }
+        // 判断是不是所有属性都为空值
+        if (freightModelModifyVo.getName() == null &&
+            freightModelModifyVo.getUnit() == null) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
