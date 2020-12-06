@@ -9,7 +9,7 @@ import cn.edu.xmu.oomall.order.enums.OrderType;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderEditVo;
-import cn.edu.xmu.oomall.order.model.vo.NewOrderVo;
+import cn.edu.xmu.oomall.order.model.vo.OrderNewVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
@@ -138,7 +138,7 @@ public class OrderController {
     })
     @InspectCustomer
     @PostMapping("orders")
-    public Object createOrder(@LoginUser Long customerId, @Validated @RequestBody NewOrderVo orderInfo) {
+    public Object createOrder(@LoginUser Long customerId, @Validated @RequestBody OrderNewVo orderInfo) {
         if (logger.isDebugEnabled()) {
             logger.debug("post orders; vo=" + orderInfo);
         }

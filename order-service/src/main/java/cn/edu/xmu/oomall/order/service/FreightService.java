@@ -94,19 +94,19 @@ public class FreightService {
      * 服务 f2：管理员定义商铺运费模板
      *
      * @param shopId             店铺 id
-     * @param freightModelInfoVo 运费模板资料
+     * @param freightModelNewVo 运费模板资料
      * @return APIReturnObject
      */
     public APIReturnObject<?> createShopGoodsFreightModel(Long shopId,
-                                                          FreightModelInfoVo freightModelInfoVo) {
+                                                          FreightModelNewVo freightModelNewVo) {
         //创建运费模板
         LocalDateTime nowTime = LocalDateTime.now();
 
         FreightModelPo freightModelPo = new FreightModelPo();
         freightModelPo.setShopId(shopId);
-        freightModelPo.setName(freightModelInfoVo.getName());
-        freightModelPo.setType(freightModelInfoVo.getType());
-        freightModelPo.setUnit(freightModelInfoVo.getUnit());
+        freightModelPo.setName(freightModelNewVo.getName());
+        freightModelPo.setType(freightModelNewVo.getType());
+        freightModelPo.setUnit(freightModelNewVo.getUnit());
         freightModelPo.setDefaultModel((byte) 0); // 非默认运费模板
         freightModelPo.setGmtCreate(nowTime);
         freightModelPo.setGmtModified(nowTime);
@@ -284,7 +284,7 @@ public class FreightService {
      * Modified by Han Li at 25/11/2020 16:58
      */
     @Transactional
-    public APIReturnObject<?> modifyShopFreightModel(Long shopId, Long id, FreightModelModifyVo freightModelModifyVo) {
+    public APIReturnObject<?> modifyShopFreightModel(Long shopId, Long id, FreightModelEditVo freightModelEditVo) {
         // 获取原来信息
         APIReturnObject<FreightModelPo> returnObject = freightDao.getShopFreightModel(id, shopId);
         if (returnObject.getCode() != ResponseCode.OK) {
@@ -296,7 +296,7 @@ public class FreightService {
         if (!origShopId.equals(shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        String name = freightModelModifyVo.getName();
+        String name = freightModelEditVo.getName();
         if (name != null && name.equals("")) {
             name = null;
         }
@@ -305,7 +305,7 @@ public class FreightService {
         FreightModelPo po = new FreightModelPo();
         po.setId(id);
         po.setName(name);
-        po.setUnit(freightModelModifyVo.getUnit());
+        po.setUnit(freightModelEditVo.getUnit());
 
         // 写入数据库
         int response;

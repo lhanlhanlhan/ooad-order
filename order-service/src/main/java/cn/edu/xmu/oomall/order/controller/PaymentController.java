@@ -7,7 +7,7 @@ import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
 import cn.edu.xmu.oomall.order.enums.PayPattern;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
-import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentPatternVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
@@ -109,7 +109,7 @@ public class PaymentController {
      * p3: 买家为订单创建支付订单
      * TODO - 订单分单
      *
-     * @param paymentInfoVo
+     * @param paymentNewVo
      * @param id
      * @param customerId
      * @return java.lang.Object
@@ -124,13 +124,13 @@ public class PaymentController {
     })
     @InspectCustomer  // 需要登入
     @PostMapping("orders/{id}/payments")
-    public Object createPaymentBill(@RequestBody PaymentInfoVo paymentInfoVo,
+    public Object createPaymentBill(@RequestBody PaymentNewVo paymentNewVo,
                                     @PathVariable Long id,
                                     @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("get orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentInfoVo);
+            logger.debug("get orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentNewVo);
         }
-        return ResponseUtils.make(paymentService.createPaymentOrder(id, customerId, paymentInfoVo));
+        return ResponseUtils.make(paymentService.createPaymentOrder(id, customerId, paymentNewVo));
     }
 
     /**
@@ -195,7 +195,7 @@ public class PaymentController {
     /**
      * 06. 买家为售后单创建支付单[DONE]
      *
-     * @param paymentInfoVo 支付单信息Vo
+     * @param paymentNewVo 支付单信息Vo
      * @param id            售后单ID
      * @return java.lang.Object
      * @author 苗新宇
@@ -208,14 +208,14 @@ public class PaymentController {
     })
     @InspectCustomer
     @PostMapping("aftersales/{id}/payments")
-    public Object createPaymentBillFromAftersale(@RequestBody PaymentInfoVo paymentInfoVo,
+    public Object createPaymentBillFromAftersale(@RequestBody PaymentNewVo paymentNewVo,
                                                  @PathVariable Long id,
                                                  @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get orders/{id}/payments;id=" + id + ";customerId " + customerId);
         }
 
-        return ResponseUtils.make(paymentService.createPaymentBillForAftersaleOrder(id, paymentInfoVo));
+        return ResponseUtils.make(paymentService.createPaymentBillForAftersaleOrder(id, paymentNewVo));
     }
 
     /**

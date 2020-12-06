@@ -8,8 +8,8 @@ import cn.edu.xmu.oomall.order.model.bo.Order;
 import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import cn.edu.xmu.oomall.order.model.po.RefundPo;
-import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
-import cn.edu.xmu.oomall.order.model.vo.PaymentOrderVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentNewVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentVo;
 import cn.edu.xmu.oomall.order.model.vo.RefundVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.Accessories;
@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,7 +58,7 @@ public class PaymentService {
      * Modified by Han Li at 5/12/2020 17:08
      */
     @Transactional
-    public APIReturnObject<?> createPaymentOrder(Long orderId, Long customerId, PaymentInfoVo paymentInfoVo) {
+    public APIReturnObject<?> createPaymentOrder(Long orderId, Long customerId, PaymentNewVo paymentNewVo) {
         // 校验订单 id 是否存在 / 属于用户？
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
@@ -89,7 +88,7 @@ public class PaymentService {
 
         // 看看有没有超额支付，要超额支付的话，不让支付
         long shallPayPrice = simpleOrder.getOriginPrice() - simpleOrder.getDiscountPrice(); // 总共需付款
-        if (paidPrice + paymentInfoVo.getPrice() > shallPayPrice) {
+        if (paidPrice + paymentNewVo.getPrice() > shallPayPrice) {
             // 企图超额支付
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE);
         }
@@ -99,8 +98,8 @@ public class PaymentService {
         paymentPo.setOrderId(orderId);
 
         // 钱
-        paymentPo.setActualAmount(paymentInfoVo.getPrice()); // TODO - 你前端只传了1个参数，让我咋区分ActualPrice和Price？？
-        paymentPo.setAmount(paymentInfoVo.getPrice());
+        paymentPo.setActualAmount(paymentNewVo.getPrice()); // TODO - 你前端只传了1个参数，让我咋区分ActualPrice和Price？？
+        paymentPo.setAmount(paymentNewVo.getPrice());
 
         // 设各种时间
         LocalDateTime nowTime = LocalDateTime.now();
@@ -175,8 +174,8 @@ public class PaymentService {
         }
 
         // 创建及返回支付单Vo对象
-        PaymentOrderVo paymentOrderVo = new PaymentOrderVo(paymentPo);
-        return new APIReturnObject<>(paymentOrderVo);
+        PaymentVo paymentVo = new PaymentVo(paymentPo);
+        return new APIReturnObject<>(paymentVo);
     }
 
     /**
@@ -207,10 +206,10 @@ public class PaymentService {
 
         //【PO对象】转换成【VO对象】返回给controller层
         List<PaymentPo> paymentPoList = returnObj.getData();
-        List<PaymentOrderVo> paymentOrderVos = paymentPoList.stream()
-                .map(PaymentOrderVo::new)
+        List<PaymentVo> paymentVos = paymentPoList.stream()
+                .map(PaymentVo::new)
                 .collect(Collectors.toList());
-        return new APIReturnObject<>(paymentOrderVos);
+        return new APIReturnObject<>(paymentVos);
     }
 
     /**
@@ -233,21 +232,21 @@ public class PaymentService {
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
         APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);
         //定义PaymentOrderVo集合
-        List<PaymentOrderVo> paymentOrderVoList;
+        List<PaymentVo> paymentVoList;
         //将PaymentPo【Po对象】集合转换成PaymentOrderVo【Vo对象】集合
-        paymentOrderVoList = paymentPoList.getData().stream()
-                .map(PaymentOrderVo::new)
+        paymentVoList = paymentPoList.getData().stream()
+                .map(PaymentVo::new)
                 .collect(Collectors.toList());
-        return new APIReturnObject<>(paymentOrderVoList);
+        return new APIReturnObject<>(paymentVoList);
     }
 
     /**
      * 服务 6: 买家为售后单创建支付单
      * @param aftersaleId
-     * @param paymentInfoVO
+     * @param paymentNewVO
      * @return
      */
-    public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentInfoVo paymentInfoVO) {
+    public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
         // TODO - 检查一下，这张售后单可不可以创建支付单
         if (!afterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
@@ -256,8 +255,8 @@ public class PaymentService {
         // 创建支付单Po对象
         PaymentPo paymentPo = new PaymentPo();
         // 将支付单的Po对象的amount、actualAmount值设为paymentInfoVO的price
-        paymentPo.setActualAmount(paymentInfoVO.getPrice());
-        paymentPo.setAmount(paymentInfoVO.getPrice());
+        paymentPo.setActualAmount(paymentNewVO.getPrice());
+        paymentPo.setAmount(paymentNewVO.getPrice());
         paymentPo.setOrderId(null);
 
         // 各种时间
@@ -287,9 +286,9 @@ public class PaymentService {
         }
 
         // 创建支付单Vo对象:
-        PaymentOrderVo paymentOrderVo = new PaymentOrderVo(paymentPo);
+        PaymentVo paymentVo = new PaymentVo(paymentPo);
         // 将Vo对象返回
-        return new APIReturnObject<>(paymentOrderVo);
+        return new APIReturnObject<>(paymentVo);
     }
 
     /**
@@ -308,10 +307,10 @@ public class PaymentService {
         }
         //【PO对象】转换成【VO对象】返回给controller层
         List<PaymentPo> paymentPoList = returnObj.getData();
-        List<PaymentOrderVo> paymentOrderVos = paymentPoList.stream()
-                .map(PaymentOrderVo::new)
+        List<PaymentVo> paymentVos = paymentPoList.stream()
+                .map(PaymentVo::new)
                 .collect(Collectors.toList());
-        return new APIReturnObject<>(paymentOrderVos);
+        return new APIReturnObject<>(paymentVos);
     }
 
     /**
@@ -334,13 +333,13 @@ public class PaymentService {
         }
         List<PaymentPo> paymentPoList = returnObj.getData();
 
-        List<PaymentOrderVo> paymentOrderVos;
+        List<PaymentVo> paymentVos;
         //【PO对象】转换成【VO对象】返回给controller层
-        paymentOrderVos = paymentPoList.stream()
-                .map(PaymentOrderVo::new)
+        paymentVos = paymentPoList.stream()
+                .map(PaymentVo::new)
                 .collect(Collectors.toList());
         //返回支付单
-        return new APIReturnObject<>(paymentOrderVos);
+        return new APIReturnObject<>(paymentVos);
     }
 
     /**

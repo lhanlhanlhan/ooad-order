@@ -603,15 +603,15 @@ public class OrderService {
     /**
      * 创建普通订单
      * TODO - 秒杀订单的创建
-     * @param newOrderVo 新订单申请
+     * @param orderNewVo 新订单申请
      * @return APIReturnObject<?>
      */
     @Transactional
-    public APIReturnObject<?> createNormalOrder(Long customerId, NewOrderVo newOrderVo) {
+    public APIReturnObject<?> createNormalOrder(Long customerId, OrderNewVo orderNewVo) {
         // TODO - 秒杀的认定
 
         // TODO - 优惠活动金额的计算
-        List<OrderItemVo> orderItemVos = newOrderVo.getOrderItems();
+        List<OrderItemVo> orderItemVos = orderNewVo.getOrderItems();
         List<Map<String, Object>> orderItems = orderItemVos.stream()
                 .map(OrderItemVo::toMap)
                 .collect(Collectors.toList());
@@ -622,7 +622,7 @@ public class OrderService {
         }
 
         // 计算运费
-        Long regionId = newOrderVo.getRegionId();
+        Long regionId = orderNewVo.getRegionId();
         APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
         if (freightCalcRes.getCode() != ResponseCode.OK) {
             return freightCalcRes;
@@ -675,7 +675,7 @@ public class OrderService {
         }
 
         // 创建订单对应 Vo
-        OrderPo orderPo = createNewOrderPo(customerId, newOrderVo);
+        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
         orderPo.setShopId(null); // TODO - 店铺 id 暂时为空，等支付后分单再说
         // 填入订单的各种价格
         orderPo.setOriginPrice(totalPrice);
@@ -714,16 +714,16 @@ public class OrderService {
 
     /**
      * 创建单品订单 (团购/预售)
-     * @param newOrderVo 新订单申请
+     * @param orderNewVo 新订单申请
      * @return APIReturnObject<?>
      */
     @Transactional
-    public APIReturnObject<?> createOneItemOrder(Long customerId, NewOrderVo newOrderVo, OrderType type) {
-        List<OrderItemVo> orderItemVos = newOrderVo.getOrderItems();
+    public APIReturnObject<?> createOneItemOrder(Long customerId, OrderNewVo orderNewVo, OrderType type) {
+        List<OrderItemVo> orderItemVos = orderNewVo.getOrderItems();
         Map<String, Object> itemInfo = orderItemVos.get(0).toMap();
 
         // 计算运费
-        Long regionId = newOrderVo.getRegionId();
+        Long regionId = orderNewVo.getRegionId();
         APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
         if (freightCalcRes.getCode() != ResponseCode.OK) {
             return freightCalcRes;
@@ -762,7 +762,7 @@ public class OrderService {
         orderItemPo.setGmtCreate(nowTime);
 
         // 创建订单对应 Po
-        OrderPo orderPo = createNewOrderPo(customerId, newOrderVo);
+        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
         orderPo.setShopId((Long) skuInfo.get("shopId")); // 团购/预售的商铺号已知，因此订单的店铺 id 设为商品的店铺 Id
         orderPo.setOriginPrice(price);
         orderPo.setDiscountPrice(0L);
@@ -774,11 +774,11 @@ public class OrderService {
             // 预售订单，待支付 + 待支付定金
             orderPo.setState(OrderStatus.PENDING_PAY.getCode());
             orderPo.setSubstate(OrderStatus.PENDING_DEPOSIT.getCode());
-            orderPo.setPresaleId(newOrderVo.getPresaleId());
+            orderPo.setPresaleId(orderNewVo.getPresaleId());
         } else {
             // 团购订单，待支付
             orderPo.setState(OrderStatus.PENDING_PAY.getCode());
-            orderPo.setGrouponId(newOrderVo.getGrouponId());
+            orderPo.setGrouponId(orderNewVo.getGrouponId());
         }
 
         // 写入订单系统
@@ -834,17 +834,17 @@ public class OrderService {
     /**
      * **内部方法** 根据 Vo 新建 OrderPo
      * @param customerId
-     * @param newOrderVo
+     * @param orderNewVo
      * @return
      */
-    private OrderPo createNewOrderPo(Long customerId, NewOrderVo newOrderVo) {
+    private OrderPo createNewOrderPo(Long customerId, OrderNewVo orderNewVo) {
         OrderPo orderPo = new OrderPo();
         orderPo.setCustomerId(customerId);
-        orderPo.setRegionId(newOrderVo.getRegionId());
-        orderPo.setAddress(newOrderVo.getAddress());
-        orderPo.setMobile(newOrderVo.getMobile());
-        orderPo.setMessage(newOrderVo.getMessage());
-        orderPo.setConsignee(newOrderVo.getConsignee());
+        orderPo.setRegionId(orderNewVo.getRegionId());
+        orderPo.setAddress(orderNewVo.getAddress());
+        orderPo.setMobile(orderNewVo.getMobile());
+        orderPo.setMessage(orderNewVo.getMessage());
+        orderPo.setConsignee(orderNewVo.getConsignee());
         return orderPo;
     }
 

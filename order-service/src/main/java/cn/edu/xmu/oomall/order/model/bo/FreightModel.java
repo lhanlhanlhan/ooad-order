@@ -4,7 +4,6 @@ import cn.edu.xmu.oomall.order.dao.FreightDao;
 import cn.edu.xmu.oomall.order.model.po.FreightModelPo;
 import cn.edu.xmu.oomall.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.oomall.order.model.po.WeightFreightModelPo;
-import cn.edu.xmu.oomall.order.model.vo.FreightItemVo;
 import cn.edu.xmu.oomall.order.model.vo.OrderItemVo;
 import cn.edu.xmu.oomall.order.utils.SpringUtils;
 

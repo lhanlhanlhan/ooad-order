@@ -18,7 +18,7 @@ import javax.validation.constraints.Positive;
  */
 @Data
 @AllArgsConstructor
-public class FreightModelInfoVo {
+public class FreightModelNewVo {
     @NotBlank(message = "名字不能为空")
     @NotNull(message = "你必须指定模板名")
     private String name;

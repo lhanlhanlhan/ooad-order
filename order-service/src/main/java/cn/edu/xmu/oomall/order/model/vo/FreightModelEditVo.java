@@ -12,7 +12,7 @@ import javax.validation.constraints.Positive;
  */
 @Data
 @AllArgsConstructor
-public class FreightModelModifyVo {
+public class FreightModelEditVo {
     private String name;
 
     @Positive(message = "计费单位必须大于 0")

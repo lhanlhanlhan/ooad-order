@@ -1,6 +1,5 @@
 package cn.edu.xmu.oomall.order.model.vo;
 
-import cn.edu.xmu.oomall.order.model.bo.PaymentOrder;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @NoArgsConstructor
-public class PaymentOrderVo {
+public class PaymentVo {
     private Long id;
     private Long orderId;
     private Long amount;
@@ -33,7 +32,7 @@ public class PaymentOrderVo {
     /**
      * 从PaymentOrder PO 中提取所需信息，创建VO【共12个属性】
      */
-    public PaymentOrderVo(PaymentPo paymentPo) {
+    public PaymentVo(PaymentPo paymentPo) {
         this.id = paymentPo.getId();
         this.orderId = paymentPo.getOrderId();
         this.amount = paymentPo.getAmount();

@@ -91,16 +91,16 @@ public class FreightController {
     @InspectAdmin //登录
     @PostMapping("shops/{id}/freightmodels")
     public Object createFreightModel(@PathVariable Long id,
-                                     @Validated @RequestBody FreightModelInfoVo freightModelInfoVo,
+                                     @Validated @RequestBody FreightModelNewVo freightModelNewVo,
                                      @LoginUser Long adminId,
                                      @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelInfoVo + " adminId=" + adminId);
+            logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelNewVo + " adminId=" + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(id)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
         }
-        return ResponseUtils.make(freightService.createShopGoodsFreightModel(id, freightModelInfoVo));
+        return ResponseUtils.make(freightService.createShopGoodsFreightModel(id, freightModelNewVo));
     }
 
     /**
@@ -225,21 +225,21 @@ public class FreightController {
     @PutMapping("shops/{shopId}/freightmodels/{id}")
     public Object modifyShopFreightModel(@PathVariable Long shopId,
                                          @PathVariable Long id,
-                                         @Validated @RequestBody FreightModelModifyVo freightModelModifyVo,
+                                         @Validated @RequestBody FreightModelEditVo freightModelEditVo,
                                          @LoginUser Long adminId,
                                          @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelModifyVo);
+            logger.debug("put shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelEditVo);
         }
         // 判断是不是所有属性都为空值
-        if (freightModelModifyVo.getName() == null &&
-            freightModelModifyVo.getUnit() == null) {
+        if (freightModelEditVo.getName() == null &&
+            freightModelEditVo.getUnit() == null) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
         }
-        return ResponseUtils.make(freightService.modifyShopFreightModel(shopId, id, freightModelModifyVo));
+        return ResponseUtils.make(freightService.modifyShopFreightModel(shopId, id, freightModelEditVo));
     }
 
     /**

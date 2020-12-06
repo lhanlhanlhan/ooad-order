@@ -18,7 +18,7 @@ import java.util.Map;
  **/
 @Data
 @ApiModel("新订单申请传值对象")
-public class NewOrderVo {
+public class OrderNewVo {
     @NotNull(message = "订单项目列表为空")
     @Size(min = 1, message = "订单项目列表至少要有 1 个订单项")
     private List<OrderItemVo> orderItems;

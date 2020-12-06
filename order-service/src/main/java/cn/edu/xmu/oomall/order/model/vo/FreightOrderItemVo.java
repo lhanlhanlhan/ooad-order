@@ -16,7 +16,7 @@ import javax.validation.constraints.Positive;
  */
 @Data
 @AllArgsConstructor
-public class FreightItemVo {
+public class FreightOrderItemVo {
     @Positive(message = "商品 SKU ID 必须为正值")
     @NotNull(message = "你必须指定 SKU ID")
     private Long skuId;
