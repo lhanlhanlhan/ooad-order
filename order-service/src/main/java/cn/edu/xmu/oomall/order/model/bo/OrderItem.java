@@ -5,9 +5,11 @@ import cn.edu.xmu.oomall.order.model.po.OrderItemPo;
 import cn.edu.xmu.oomall.order.model.vo.OrderItemVo;
 
 /**
+ * 订单项目业务对象
+ *
  * @author Han Li
  * Created at 26/11/2020 3:15 下午
- * Modified by Han Li at 26/11/2020 3:15 下午
+ * Modified by Han Li at 6/12/2020 3:15 下午
  */
 public class OrderItem implements VoCreatable {
 

@@ -12,15 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 运费模板
+ * 运费模板业务类
  *
  * @author Chen Kechun
  * Created at 2/12/2020 4:44 下午
- * Modified by Chen Kechun at 2/12/2020 4:44 下午
+ * Modified by Han Li at 5/12/2020 1:44 下午
  */
 public class FreightModel {
 
-    private FreightModelPo freightModelPo;
+    /**
+     * 数据库代理对象
+     */
+    private final FreightModelPo freightModelPo;
 
     public FreightModel(FreightModelPo freightModelPo) {
         this.freightModelPo = freightModelPo;

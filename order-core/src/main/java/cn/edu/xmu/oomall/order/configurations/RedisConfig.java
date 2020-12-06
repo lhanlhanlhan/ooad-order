@@ -1,4 +1,4 @@
-package cn.edu.xmu.oomall.order.configuration;
+package cn.edu.xmu.oomall.order.configurations;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

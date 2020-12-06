@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 订单
+ * 订单业务对象
  *
  * @author Han Li
  * Created at 25/11/2020 4:44 下午

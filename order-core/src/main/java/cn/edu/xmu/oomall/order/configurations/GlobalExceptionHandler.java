@@ -1,4 +1,4 @@
-package cn.edu.xmu.oomall.order.configuration;
+package cn.edu.xmu.oomall.order.configurations;
 
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
