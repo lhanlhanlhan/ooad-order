@@ -47,10 +47,6 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    //订单服务
-    @Autowired
-    private OrderService orderService;
-
     /**
      * p1: 获得支付单的所有状态 [DONE]
      *

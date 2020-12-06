@@ -181,7 +181,7 @@ public class FreightDao {
      * @param type
      * @return
      */
-    public int deleteFreightModel(Long id, Byte type) {
+    public int deleteFreightModel(Long id, byte type) {
         // 先删除主表的 model
         int ret = freightModelPoMapper.deleteByPrimaryKey(id);
         if (ret <= 0) {
@@ -320,5 +320,38 @@ public class FreightDao {
             logger.error(e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * 工具函數：列舉滿足商店 id、運費模板 id 的運費模板數量 (可以用來鑑定權限)
+     * @param modelId
+     * @param shopId
+     * @return -1：查詢失敗；>=0：對應數量
+     */
+    public long countFreightModel(Long modelId, Long shopId, Byte type) {
+        FreightModelPoExample example = new FreightModelPoExample();
+        FreightModelPoExample.Criteria criteria = example.createCriteria();
+        if (modelId == null && shopId == null) {
+            return -1;
+        }
+        if (modelId != null) {
+            criteria.andIdEqualTo(modelId);
+        }
+        if (shopId != null) {
+            criteria.andShopIdEqualTo(shopId);
+        }
+        if (type != null) {
+            criteria.andTypeEqualTo(type);
+        }
+        // 查詢數據庫
+        long results;
+        try {
+            results = freightModelPoMapper.countByExample(example);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            // count 失敗
+            return -1;
+        }
+        return results;
     }
 }

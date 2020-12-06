@@ -136,10 +136,10 @@ public class OrderService {
      * @return cn.edu.xmu.oomall.order.utils.APIReturnObject<java.util.Map<java.lang.String,java.lang.Object>>
      */
     public APIReturnObject<?> getOrder(Long id, Long customerId) {
-        // 获取订单 Bo、Vo
+        // 獲取所請求之訂單的 Bo、Vo
         APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
+            // 捕獲到錯誤
             return returnObject;
         }
         Order order = returnObject.getData();
@@ -174,12 +174,12 @@ public class OrderService {
         // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
+            // 捕獲到錯誤
             return returnObject;
         }
 
         // 检查是否修改过 [29/11/2020 - 邱明：这个规定取消]
-        // 检查本来地址、新地址的地区一致性？是这么检查的马
+        // TODO - 检查本来地址、新地址的地区一致性？是这么检查的马
         Long newRegionId = orderEditVo.getRegionId();
         Long oldRegionId = orderEditVo.getRegionId();
         if (newRegionId != null && oldRegionId != null && !newRegionId.equals(oldRegionId)) {
