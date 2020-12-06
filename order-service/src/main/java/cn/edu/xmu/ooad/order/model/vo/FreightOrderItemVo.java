@@ -23,4 +23,10 @@ public class FreightOrderItemVo {
     @Positive(message = "数量必须为正值")
     @NotNull(message = "你必须指定购买数量")
     private Integer count;
+
+    // 订单部分需要，在新建订单计算运费时
+    public FreightOrderItemVo(OrderItemVo orderItemVo) {
+        this.skuId = orderItemVo.getSkuId();
+        this.count = orderItemVo.getQuantity();
+    }
 }

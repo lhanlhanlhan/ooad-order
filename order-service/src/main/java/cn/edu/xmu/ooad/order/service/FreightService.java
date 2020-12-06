@@ -49,12 +49,12 @@ public class FreightService {
      * @param regionId      地區id
      * @param orderItemList 商品 list
      */
-    public APIReturnObject<?> calcFreight(Long regionId, List<OrderItemVo> orderItemList) {
+    public APIReturnObject<?> calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList) {
         // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
         List<Map<String, Object>> skuInfoList = new ArrayList<>(orderItemList.size());
         List<FreightModel> freightModelList = new ArrayList<>(orderItemList.size());
-        for (OrderItemVo freightItem : orderItemList) {
-            // 准备商品信息
+        for (FreightOrderItemVo freightItem : orderItemList) {
+            // 准备商品信息 (希望商品模块帮我们缓存了 ～)
             Long skuId = freightItem.getSkuId();
             Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
             if (skuInfo == null) {
@@ -64,13 +64,12 @@ public class FreightService {
             }
             // 准备运费模板信息
             Long modelId = (Long) skuInfo.get("freightId"); // 会不会未定义？未定义的话，这个字段应该为 0
-            FreightModelPo modelPo = freightDao.getFreightModel(modelId);
-            if (modelPo == null) {
+            FreightModel model = freightDao.getFreightModel(modelId);
+            if (model == null) {
                 // 商品、订单模块数据库不一致
                 logger.error("计算运费、抽取运费模板时，检测到运费模板未定义! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST, "賣家沒有定義商品的運費模板！");
             }
-            FreightModel model = new FreightModel(modelPo);
 
             // 准备列表
             skuInfoList.add(skuInfo);

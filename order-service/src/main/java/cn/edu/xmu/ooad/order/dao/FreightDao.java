@@ -1,16 +1,20 @@
 package cn.edu.xmu.ooad.order.dao;
 
+import cn.edu.xmu.ooad.order.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.controller.FreightController;
 import cn.edu.xmu.ooad.order.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.WeightFreightModelPoMapper;
+import cn.edu.xmu.ooad.order.model.bo.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -19,12 +23,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static cn.edu.xmu.ooad.order.utils.Accessories.addRandomTime;
+
 /**
  * 运费 Dao
  *
  * @author Chen Kechun
  * Created at 25/11/2020 4:41 下午
- * Modified by Chen Kechun at 25/11/2020 4:41 下午
+ * Modified by Han Li at 6/12/2020 8:27 下午
  */
 @Repository
 public class FreightDao {
@@ -41,6 +47,14 @@ public class FreightDao {
     // Weight Freight Model Po 的 Mapper
     @Autowired
     private WeightFreightModelPoMapper weightFreightModelPoMapper;
+
+    // Redis 工具
+    @Autowired
+    private RedisUtils redisUtils;
+
+    // 配置文件中的运费模板失效时间
+    @Value("${orders.freight-model.redis-expire}")
+    private long freightModelRedisTimeout;
 
     /**
      * 获取分页的运费模板概要列表
@@ -92,12 +106,35 @@ public class FreightDao {
     /**
      * 获取运费模板 (单个)
      */
-    public FreightModelPo getFreightModel(Long id) {
+    @RedisOptimized
+    public FreightModel getFreightModel(Long id) {
+        String key = "fm_" + id;
+        FreightModel freightModel;
         try {
-            // 存在就存在，不存在就数据库错误 (商品、订单服务器出现不一致)
-            return freightModelPoMapper.selectByPrimaryKey(id);
+            freightModel = (FreightModel) redisUtils.get(key);
         } catch (Exception e) {
-            // 数据库 错误
+            logger.error("Redis 错误：" + e.getMessage());
+            return null;
+        }
+        if (null != freightModel) {
+            logger.info("getFreightModel: hit redis cache, key = " + key);
+            return freightModel;
+        }
+        // 未命中，找数据库
+        FreightModelPo fmPo;
+        try {
+            fmPo = freightModelPoMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
+            logger.error("数据库错误：" + e.getMessage());
+            return null;
+        }
+        // 取出来的值存入 Redis，空值也存，防止击穿
+        if (fmPo != null) {
+            FreightModel fm = new FreightModel(fmPo);
+            redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
+            return fm;
+        } else {
+            redisUtils.set(key, null, addRandomTime(freightModelRedisTimeout));
             return null;
         }
     }

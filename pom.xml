@@ -19,6 +19,7 @@
         <module>order-gateway</module>
         <module>order-core</module>
         <module>order-connector</module>
+        <module>order-client</module>
     </modules>
 
     <properties>

@@ -625,7 +625,8 @@ public class OrderService {
 
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
-        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
+        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId,
+                orderItemVos.stream().map(FreightOrderItemVo::new).collect(Collectors.toList()));
         if (freightCalcRes.getCode() != ResponseCode.OK) {
             return freightCalcRes;
         }
@@ -729,7 +730,8 @@ public class OrderService {
 
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
-        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId, orderItemVos);
+        APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId,
+                orderItemVos.stream().map(FreightOrderItemVo::new).collect(Collectors.toList()));
         if (freightCalcRes.getCode() != ResponseCode.OK) {
             return freightCalcRes;
         }

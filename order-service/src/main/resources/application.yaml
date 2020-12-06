@@ -76,11 +76,10 @@ mybatis:
     # 将数据库中的下划线转成驼峰格式
     map-underscore-to-camel-case: true
 
-order-service:
-  #是否对数据库中的未初始化的数据初始化
-  initialization: false
-  #随机雪崩时间（秒）
-  randomtime: 300
+orders:
+  freight-model:
+    # 运费模板 Redis 缓存失效时间
+    redis-expire: 300
 
 # Page Helper 分页插件配置
 pagehelper:

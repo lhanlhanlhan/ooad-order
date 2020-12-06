@@ -4,9 +4,13 @@ import cn.edu.xmu.ooad.order.dao.FreightDao;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
+import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -18,15 +22,26 @@ import java.util.Map;
  * Created at 2/12/2020 4:44 下午
  * Modified by Han Li at 5/12/2020 1:44 下午
  */
-public class FreightModel {
+@Data
+@NoArgsConstructor
+public class FreightModel implements Serializable {
 
-    /**
-     * 数据库代理对象
-     */
-    private final FreightModelPo freightModelPo;
+    private Long id;
+    private Integer unit;
+    private String name;
+    private Byte type;
+    private Byte defaultModel;
+    private LocalDateTime gmtCreate;
+    private LocalDateTime gmtModified;
 
     public FreightModel(FreightModelPo freightModelPo) {
-        this.freightModelPo = freightModelPo;
+        this.id = freightModelPo.getId();
+        this.name = freightModelPo.getName();
+        this.type = freightModelPo.getType();
+        this.defaultModel = freightModelPo.getDefaultModel();
+        this.gmtCreate = freightModelPo.getGmtCreate();
+        this.gmtModified = freightModelPo.getGmtModified();
+        this.unit = freightModelPo.getUnit();
     }
 
     /**
@@ -36,7 +51,7 @@ public class FreightModel {
      * @param itemVoList  前段传来的购物清单
      * @return -1，存在某个商品不允许发货的地区；>=0：总运费
      */
-    public long calcFreight(Long regionId, List<OrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList) {
+    public long calcFreight(Long regionId, List<FreightOrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList) {
         // 获取 Dao
         FreightDao dao = SpringUtils.getBean(FreightDao.class);
         long freight = 0;
@@ -84,9 +99,9 @@ public class FreightModel {
             // 件数模板的计算
             // 1. 统计总件数
             long totalCount = 0;
-            for (OrderItemVo itemVo : itemVoList) {
+            for (FreightOrderItemVo itemVo : itemVoList) {
                 // 获取商品购买件数加入总件数
-                totalCount += itemVo.getQuantity();
+                totalCount += itemVo.getCount();
             }
             // 2. 获取对应地区之运费模板明细
             Long modelId = this.getId();
@@ -112,33 +127,6 @@ public class FreightModel {
             freight += deltaItemsParts * pieceModelPo.getAdditionalItemsPrice();
         }
         return freight;
-    }
-
-    /**
-     * Getters
-     */
-    public Long getId() {
-        return freightModelPo.getId();
-    }
-
-    public String getName() {
-        return freightModelPo.getName();
-    }
-
-    public Byte getType() {
-        return freightModelPo.getType();
-    }
-
-    public Byte getBe_default() {
-        return freightModelPo.getDefaultModel();
-    }
-
-    public LocalDateTime getGmtCreate() {
-        return freightModelPo.getGmtCreate();
-    }
-
-    public LocalDateTime getGmtModified() {
-        return freightModelPo.getGmtModified();
     }
 
 }

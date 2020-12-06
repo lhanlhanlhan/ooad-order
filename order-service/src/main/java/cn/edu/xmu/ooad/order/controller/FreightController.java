@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 运费控制器类
@@ -59,7 +60,7 @@ public class FreightController {
     @InspectCustomer
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
-                                         @Validated @RequestBody List<OrderItemVo> items) {
+                                         @Validated @RequestBody List<FreightOrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
         }
