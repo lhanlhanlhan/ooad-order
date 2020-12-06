@@ -32,24 +32,6 @@ public class PaymentOrderVo {
     private Long afterSaleId;
 
     /**
-     * 从PaymentOrder Bo 中提取所需信息，创建VO【共12个属性】
-     */
-    public PaymentOrderVo(PaymentOrder paymentOrder) {
-        this.id = paymentOrder.getId();
-        this.orderId = paymentOrder.getOrderId();
-        this.amount = paymentOrder.getAmount();
-        this.actualAmount = paymentOrder.getActualAmount();
-        this.payTime = paymentOrder.getPayTime();
-        this.beginTime = paymentOrder.getBeginTime();
-        this.endTime = paymentOrder.getEndTime();
-        this.state = paymentOrder.getState();
-        this.gmtCreate = paymentOrder.getGmtCreate();
-        this.gmtModified = paymentOrder.getGmtModified();
-        this.afterSaleId = paymentOrder.getAfterSaleId();
-        this.paymentPattern = paymentOrder.getPaymentPattern().getCode();
-    }
-
-    /**
      * 从PaymentOrder PO 中提取所需信息，创建VO【共12个属性】
      */
     public PaymentOrderVo(PaymentPo paymentPo) {

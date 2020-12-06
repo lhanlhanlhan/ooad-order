@@ -1,5 +1,7 @@
 package cn.edu.xmu.oomall.order.model.vo;
 
+import cn.edu.xmu.oomall.order.enums.RefundStatus;
+import cn.edu.xmu.oomall.order.model.po.RefundPo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -23,4 +25,14 @@ public class RefundVo {
     private Long orderId;
     private Long aftersaleId;
 
+    public RefundVo(RefundPo po) {
+        this.id = po.getId();
+        this.paymentId = po.getPaymentId();
+        this.amount = po.getAmout();
+        this.state = po.getState();
+        this.gmtCreate = po.getGmtCreate();
+        this.gmtModified = po.getGmtModified();
+        this.orderId = po.getOrderId();
+        this.aftersaleId = po.getAftersaleId();
+    }
 }

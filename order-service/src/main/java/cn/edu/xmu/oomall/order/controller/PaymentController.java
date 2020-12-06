@@ -4,16 +4,20 @@ import cn.edu.xmu.oomall.order.annotations.AdminShop;
 import cn.edu.xmu.oomall.order.annotations.LoginUser;
 import cn.edu.xmu.oomall.order.aspects.InspectAdmin;
 import cn.edu.xmu.oomall.order.aspects.InspectCustomer;
-import cn.edu.xmu.oomall.order.enums.OrderStatus;
 import cn.edu.xmu.oomall.order.enums.PayPattern;
 import cn.edu.xmu.oomall.order.enums.PaymentStatus;
 import cn.edu.xmu.oomall.order.enums.ResponseCode;
-import cn.edu.xmu.oomall.order.model.vo.*;
+import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentPatternVo;
+import cn.edu.xmu.oomall.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.oomall.order.service.OrderService;
 import cn.edu.xmu.oomall.order.service.PaymentService;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.ResponseUtils;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 支付控制器类
@@ -103,13 +108,14 @@ public class PaymentController {
     /**
      * p3: 买家为订单创建支付订单
      * TODO - 订单分单
-     * @author 苗新宇
-     * Created at 05/12/2020 15:10
-     * Created by Han Li at 05/12/2020 15:10
+     *
      * @param paymentInfoVo
      * @param id
      * @param customerId
      * @return java.lang.Object
+     * @author 苗新宇
+     * Created at 05/12/2020 15:10
+     * Created by Han Li at 05/12/2020 15:10
      */
     @ApiOperation(value = "买家为订单创建支付单")
     @ApiImplicitParams({
@@ -130,12 +136,12 @@ public class PaymentController {
     /**
      * p4: 买家【根据订单号】查询自己的支付信息 [DONE]
      *
-     * @author Miao Xinyu
-     * Created at 05/12/2020 15:09
-     * Created by Han Li at 05/12/2020 15:09
      * @param id
      * @param customerId
      * @return java.lang.Object
+     * @author Miao Xinyu
+     * Created at 05/12/2020 15:09
+     * Created by Han Li at 05/12/2020 15:09
      */
     @ApiOperation(value = "买家查询自己的支付信息")
     @ApiImplicitParams({
@@ -272,10 +278,11 @@ public class PaymentController {
 
     /**
      * 09. 管理员创建退款信息，需检查Payment是否是此商铺的payment [Done]
-     * @param shopId 店铺ID
-     * @param id 支付单ID
+     *
+     * @param shopId         店铺ID
+     * @param id             支付单ID
      * @param refundAmountVo 退款金额
-     * @param adminId 管理员ID
+     * @param adminId        管理员ID
      * @param adminShopId
      * @return
      */
@@ -289,27 +296,33 @@ public class PaymentController {
     @PostMapping("shops/{shopId}/payments/{id}/refund")
     public Object createRefund(@PathVariable Long shopId,
                                @PathVariable Long id,
-                               @RequestBody RefundAmountVo refundAmountVo,
+                               @RequestBody Map<String, Long> refundAmountVo,
                                @LoginUser Long adminId,
                                @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; paymentId = " + id +
-                    "; refundAmount =" + refundAmountVo.getAmount() +
+                    "; refundAmount =" + refundAmountVo +
                     "; adminId = " + adminId + "; adminShopId " + adminShopId);
         }
-        //检查是否具有查询对应店铺支付单的权限，若没有就返回404
+        // 检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
         }
-
-        //调用服务层
-        return ResponseUtils.make(paymentService.createRefund(shopId,id,refundAmountVo));
+        // 获取冀退款之金额
+        Long refundAmount = refundAmountVo.get("amount");
+        if (refundAmount == null) {
+            // 输入金额有误，没有输入
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+        }
+        // 调用服务层
+        return ResponseUtils.make(paymentService.createRefund(shopId, id, refundAmount));
     }
 
     /**
      * 10. 管理员【根据订单ID】查询订单的退款信息
-     * @param shopId 店铺ID
-     * @param id 订单ID
+     *
+     * @param shopId      店铺ID
+     * @param id          订单ID
      * @param adminId
      * @param adminShopId
      * @return java.lang.Object
@@ -323,19 +336,21 @@ public class PaymentController {
     @InspectAdmin
     @GetMapping("shops/{shopId}/orders/{id}/refund")
     public Object adminGetRefundInfoByOrderId(@PathVariable Long shopId,
-                               @PathVariable Long id,
-                               @LoginUser Long adminId,
-                               @AdminShop Long adminShopId) {
+                                              @PathVariable Long id,
+                                              @LoginUser Long adminId,
+                                              @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; orderId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
         }
-        return ResponseUtils.make(paymentService.getRefundByOrderId(shopId,id));
+        return ResponseUtils.make(paymentService.getRefundByOrderId(shopId, id));
     }
+
     /**
      * 11. 管理员【根据售后单ID】查询订单的退款信息[Done]
-     * @param shopId 店铺ID
-     * @param id 售后单ID
+     *
+     * @param shopId      店铺ID
+     * @param id          售后单ID
      * @param adminId
      * @param adminShopId
      * @return java.lang.Object
@@ -349,14 +364,14 @@ public class PaymentController {
     @InspectAdmin
     @GetMapping("shops/{shopId}/aftersales/{id}/refund")
     public Object adminGetRefundInfoByAftersaleId(@PathVariable Long shopId,
-                                     @PathVariable Long id,
-                                     @LoginUser Long adminId,
-                                     @AdminShop Long adminShopId) {
+                                                  @PathVariable Long id,
+                                                  @LoginUser Long adminId,
+                                                  @AdminShop Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; aftersaleId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
         }
-        return ResponseUtils.make(paymentService.getRefundByAftersaleId(shopId,id));
+        return ResponseUtils.make(paymentService.getRefundByAftersaleId(shopId, id));
     }
 
     /**
@@ -373,13 +388,14 @@ public class PaymentController {
     @InspectCustomer  // 需要登入
     @GetMapping("orders/{id}/refunds")
     public Object getSelfRefundInfoByOrderId(@PathVariable Long id,
-                                              @LoginUser Long customerId) {
+                                             @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get orders/{id}/payments;orderId=" + id + ";customerId = " + customerId);
         }
         //调用服务层
-        return ResponseUtils.make(paymentService.getSelfRefundByOrderId(id));
+        return ResponseUtils.make(paymentService.getCustomerRefundByOrderId(customerId, id));
     }
+
     /**
      * 13: 买家【根据售后单号】查询自己的退款信息
      *
@@ -394,12 +410,12 @@ public class PaymentController {
     @InspectCustomer  // 需要登入
     @GetMapping("aftersales/{id}/refunds")
     public Object getSelfRefundInfoByAftersaleId(@PathVariable Long id,
-                                             @LoginUser Long customerId) {
+                                                 @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get aftersales/{id}/payments;aftersaleId=" + id + ";customerId = " + customerId);
         }
         //调用服务层
-        return ResponseUtils.make(paymentService.getSelfRefundByAftersaleId(id));
+        return ResponseUtils.make(paymentService.getCustomerRefundByAftersaleId(customerId, id));
     }
 
 }

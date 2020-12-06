@@ -1,17 +1,15 @@
 package cn.edu.xmu.oomall.order.service;
 
+import cn.edu.xmu.oomall.order.connector.service.AfterSaleService;
 import cn.edu.xmu.oomall.order.dao.OrderDao;
 import cn.edu.xmu.oomall.order.dao.PaymentDao;
 import cn.edu.xmu.oomall.order.enums.*;
 import cn.edu.xmu.oomall.order.model.bo.Order;
-import cn.edu.xmu.oomall.order.model.bo.PaymentOrder;
 import cn.edu.xmu.oomall.order.model.po.OrderEditPo;
-import cn.edu.xmu.oomall.order.model.po.OrderSimplePo;
 import cn.edu.xmu.oomall.order.model.po.PaymentPo;
 import cn.edu.xmu.oomall.order.model.po.RefundPo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentInfoVo;
 import cn.edu.xmu.oomall.order.model.vo.PaymentOrderVo;
-import cn.edu.xmu.oomall.order.model.vo.RefundAmountVo;
 import cn.edu.xmu.oomall.order.model.vo.RefundVo;
 import cn.edu.xmu.oomall.order.utils.APIReturnObject;
 import cn.edu.xmu.oomall.order.utils.Accessories;
@@ -25,9 +23,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +38,9 @@ public class PaymentService {
 
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+
+    @Autowired
+    private AfterSaleService afterSaleService;
 
     @Autowired
     private PaymentDao paymentDao;
@@ -214,7 +213,6 @@ public class PaymentService {
         return new APIReturnObject<>(paymentOrderVos);
     }
 
-
     /**
      * 服务 5: 管理员查询订单的支付信息 TODO - 这个等分单以后测试
      *
@@ -243,34 +241,41 @@ public class PaymentService {
         return new APIReturnObject<>(paymentOrderVoList);
     }
 
+    /**
+     * 服务 6: 买家为售后单创建支付单
+     * @param aftersaleId
+     * @param paymentInfoVO
+     * @return
+     */
+    public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentInfoVo paymentInfoVO) {
+        // TODO - 检查一下，这张售后单可不可以创建支付单
+        if (!afterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
+        }
 
-    //买家为售后单创建支付单
-
-    //TODO - 从其他模块获取订单id？暂设为null
-    public APIReturnObject<?> createPaymentBillForAftersaleOrder(
-            Long aftersaleId,
-            PaymentInfoVo paymentInfoVO) {
-        //创建支付单Po对象
+        // 创建支付单Po对象
         PaymentPo paymentPo = new PaymentPo();
-        //将支付单的Po对象的amount、actualAmount值设为paymentInfoVO的price
+        // 将支付单的Po对象的amount、actualAmount值设为paymentInfoVO的price
         paymentPo.setActualAmount(paymentInfoVO.getPrice());
         paymentPo.setAmount(paymentInfoVO.getPrice());
-        //赋值订单号
         paymentPo.setOrderId(null);
-        //将支付时间设置为当前系统时间
-        paymentPo.setPayTime(LocalDateTime.now());
-        //将开始时间和结束时间设置为系统当前时间
-        paymentPo.setBeginTime(LocalDateTime.now());
-        paymentPo.setEndTime(LocalDateTime.now());
-        paymentPo.setGmtCreate(LocalDateTime.now());
+
+        // 各种时间
+        LocalDateTime nowTime = LocalDateTime.now();
+        paymentPo.setPayTime(nowTime);
+        paymentPo.setBeginTime(nowTime);
+        paymentPo.setEndTime(nowTime);
+        paymentPo.setGmtCreate(nowTime);
         paymentPo.setGmtModified(null);
-        //设置aftersaleId
+
+        // 设置 aftersaleId
         paymentPo.setAftersaleId(aftersaleId);
-        //将支付状态一律赋值为1：待支付
-        paymentPo.setState(PaymentStatus.PENDING_PAY.getCode());
-        //将paymentPattern赋值为（byte)1
+
+        // 模拟支付平台：已经支付
+        paymentPo.setState(PaymentStatus.PAID.getCode());
         paymentPo.setPaymentPattern(PayPattern.MOCK.getCode());
-        //将支付单Po对象插入数据库
+
+        // 将支付单Po对象插入数据库
         try {
             int response = paymentDao.addPaymentOrder(paymentPo);
             if (response <= 0) {
@@ -281,312 +286,227 @@ public class PaymentService {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
-
-        //创建支付单Vo对象:
-        PaymentOrderVo paymentOrderVo = new PaymentOrderVo();
-        //将创建的Po对象的id赋值给VO对象的id值
-        paymentOrderVo.setId(paymentPo.getId());
-        //将参数paymentInfoVo的price值赋值给paymentOrderVo（支付单VO）中的amount
-        paymentOrderVo.setAmount(paymentInfoVO.getPrice());
-        paymentOrderVo.setActualAmount(paymentInfoVO.getPrice());
-        //赋值订单号
-        paymentOrderVo.setOrderId(null);
-        //将支付时间设置为当前系统时间
-        paymentOrderVo.setPayTime(LocalDateTime.now());
-        //将开始时间和结束时间设置为系统当前时间
-        paymentOrderVo.setBeginTime(LocalDateTime.now());
-        paymentOrderVo.setEndTime(LocalDateTime.now());
-        paymentOrderVo.setGmtCreate(LocalDateTime.now());
-        paymentOrderVo.setGmtModified(null);
-        //将支付状态一律赋值为0：待支付
-        paymentOrderVo.setState(PaymentStatus.PENDING_PAY.getCode());
-        //将paymentPattern赋值为001
-        paymentOrderVo.setPaymentPattern("001");
-        //将Vo对象返回
+        // 创建支付单Vo对象:
+        PaymentOrderVo paymentOrderVo = new PaymentOrderVo(paymentPo);
+        // 将Vo对象返回
         return new APIReturnObject<>(paymentOrderVo);
     }
 
     /**
-     * 07: 买家【根据售后单号】查询自己的支付信息 【Done】
+     * 服务 p7: 买家【根据售后单号】查询自己的支付信息
      *
      * @param aftersaleId 售后单ID
      * @return
      */
     public APIReturnObject<?> getPaymentOrderByAftersaleId(Long aftersaleId) {
+        // TODO - 获取售后单，检查是否属于买家
+
         APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByAftersaleId(aftersaleId);
         if (returnObj.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+            return returnObj;
         }
-        List<PaymentOrderVo> paymentOrderVos;
         //【PO对象】转换成【VO对象】返回给controller层
         List<PaymentPo> paymentPoList = returnObj.getData();
-        paymentOrderVos = paymentPoList.stream()
+        List<PaymentOrderVo> paymentOrderVos = paymentPoList.stream()
                 .map(PaymentOrderVo::new)
                 .collect(Collectors.toList());
-        Map<String, Object> map = new HashMap<>();
-        //用Map封装
-        map.put("list", paymentOrderVos);
-        return new APIReturnObject<>(map);
+        return new APIReturnObject<>(paymentOrderVos);
     }
 
     /**
-     * 08: 管理员【根据售后单号】查询售后单的支付信息【done】
+     * 服务 p8: 管理员【根据售后单号】查询售后单的支付信息
      *
      * @param shopId      店铺ID
      * @param aftersaleId 售后单ID
      * @return
      */
     public APIReturnObject<?> getPaymentOrderInfo(Long shopId, Long aftersaleId) {
-        //根据售后单号查询支付单
+        // TODO - 获取售后单，检查是否属于店铺
+        if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        }
+        // 根据售后单号查询支付单
         APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByAftersaleId(aftersaleId);
         if (returnObj.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+            return returnObj;
         }
         List<PaymentPo> paymentPoList = returnObj.getData();
-        if (paymentPoList.size() != 1) {
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        PaymentPo paymentPo = paymentPoList.get(0);
-        //根据支付单查询到订单ID
-        Long orderId = paymentPo.getOrderId();
-        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
-        if (orders.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return orders;
-        }
+
+        List<PaymentOrderVo> paymentOrderVos;
+        //【PO对象】转换成【VO对象】返回给controller层
+        paymentOrderVos = paymentPoList.stream()
+                .map(PaymentOrderVo::new)
+                .collect(Collectors.toList());
         //返回支付单
-        return new APIReturnObject<>(paymentPo);
+        return new APIReturnObject<>(paymentOrderVos);
     }
 
-
     /**
-     * 09. 管理员创建退款信息，需检查Payment是否是此商铺的payment
+     * 服务 p9: 管理员创建退款信息，需检查Payment是否是此商铺的payment
      *
      * @param shopId         店铺ID
      * @param paymentId      支付单ID
-     * @param refundAmountVo 退款金额VO
+     * @param amount         退款金额
      * @return
      */
-    // TODO - PO对象的billId如何设置？
-    public APIReturnObject<?> createRefund(Long shopId, Long paymentId, RefundAmountVo refundAmountVo) {
+    public APIReturnObject<?> createRefund(Long shopId, Long paymentId, Long amount) {
         //在payment表中根据paymentId查询orderId
         APIReturnObject<PaymentPo> returnObj = paymentDao.getPaymentOrderByPaymentId(paymentId);
         if (returnObj.getCode() != ResponseCode.OK) {
             // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+            return returnObj;
         }
-        //获取订单ID
-        Long orderId = returnObj.getData().getOrderId();
-        //获取售后单ID
-        Long aftersaleId = returnObj.getData().getAftersaleId();
-        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
-        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
-        if (orders.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return orders;
+        PaymentPo paymentPo = returnObj.getData();
+        // 获取 payment 中记载的订单ID、售后单 id，抄录到 refund 当中
+        Long orderId = paymentPo.getOrderId();
+        // 获取售后单ID
+        Long aftersaleId = paymentPo.getAftersaleId();
+        if (orderId != null) {
+            // 根据店铺ID和订单ID查询订单, 未查到则说明该订单ID不属于该店铺，返回404
+            APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
+            if (orders.getCode() != ResponseCode.OK) {
+                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【订单】号不属于此商铺, paymentId=" + paymentId);
+                return orders;
+            }
+        } else if (aftersaleId != null) {
+            // 查询售后 id 对应之售后单的信息是否是此商铺的
+            if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + paymentId);
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            }
+        } else {
+            // 订单、售后单均为空，则该 payment 是 dangling payment，打印出错信息并返回 500
+            logger.error("查询到【无任何所属关系】的坏账 payment，该 payment 未有记录 订单号 及 售后单号，paymentId=" + paymentId);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        //新建refund PO对象
+        // 现在，已经可以证明该 payment 属于该店铺，可以创建售后单
+        // 新建 refund PO对象
         RefundPo refundPo = new RefundPo();
         refundPo.setPaymentId(paymentId);
-        //新建退款单的状态一律设置为NOT_REFUND：未退款
-        refundPo.setState(RefundStatus.NOT_REFUND.getCode());
-        refundPo.setAmout(refundAmountVo.getAmount());
+        refundPo.setOrderId(orderId);
+        refundPo.setAftersaleId(aftersaleId);
+        // 模拟支付环境的都是已经退款
+        refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
+        refundPo.setAmout(amount);
         refundPo.setGmtCreate(LocalDateTime.now());
         refundPo.setGmtModified(null);
-        //将退款单Po对象插入数据库
+        // 将退款单Po对象插入数据库
         try {
             int response = paymentDao.addRefund(refundPo);
             if (response <= 0) {
+                logger.error("插入该退款单时，出现未指明的错误 (response <= 0)");
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        //新建RefundVo对象
-        RefundVo refundVo = new RefundVo();
-        refundVo.setId(refundPo.getId());
-        refundVo.setPaymentId(paymentId);
-        refundVo.setAmount(refundAmountVo.getAmount());
-        //新建退款单的状态一律设置为NOT_REFUND：未退款
-        refundVo.setState(RefundStatus.NOT_REFUND.getCode());
-        refundVo.setGmtCreate(LocalDateTime.now());
-        refundVo.setGmtModified(null);
-        refundVo.setOrderId(orderId);
-        refundVo.setAftersaleId(aftersaleId);
-        //将Vo对象返回
+        // 新建RefundVo对象
+        RefundVo refundVo = new RefundVo(refundPo);
+        // 将Vo对象返回
         return new APIReturnObject<>(refundVo);
     }
 
     /**
-     * 10. 管理员【根据订单ID】查询订单的退款信息
+     * 服务 p10: 管理员【根据订单ID】查询订单的退款信息
      *
      * @param shopId  店铺ID
      * @param orderId 订单ID
-     * @return APIReturnObject<List < RefundVo>>
+     * @return APIReturnObject<List<RefundVo>>
      */
     public APIReturnObject<?> getRefundByOrderId(Long shopId, Long orderId) {
-        //根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
+        // 根据店铺ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
         APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
         if (orders.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
             return orders;
         }
-        //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
-        APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);
-        //取出PaymentPo List支付单集合
-        List<PaymentPo> pos = paymentPoList.getData();
-        //进行判断，个数小于1即为未找到
-        if (pos.size() < 1) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, orders.getCode(), orders.getErrMsg());
+        // 根据订单号、商铺号查询退款单
+        APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
+        if (refundPo.getCode() != ResponseCode.OK) {
+            return refundPo;
         }
-        //定义List<RefundPo> 退款单List
-        List<RefundPo> refundPo = new ArrayList<>();
-        //根据支付单号查询退款单并添加到退款单List
-        for (PaymentPo po : pos) {
-            refundPo.add(paymentDao.getRefundByPaymentId(po.getId()).getData());
+        // 返回退款单
+        RefundPo po = refundPo.getData();
+        if (po == null) {
+            return refundPo;
         }
-        //定义List<RefundVo>集合
-        List<RefundVo> refundVo = new ArrayList<>();
-        //将Po对象转换成Vo对象：
-        for (RefundPo po : refundPo) {
-            RefundVo refundVo1 = new RefundVo();
-            refundVo1.setId(po.getId());
-            refundVo1.setPaymentId(po.getPaymentId());
-            refundVo1.setGmtCreate(po.getGmtCreate());
-            refundVo1.setGmtModified(po.getGmtModified());
-            refundVo1.setState(po.getState());
-            refundVo1.setAmount(po.getAmout());
-            refundVo1.setOrderId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getOrderId());
-            refundVo1.setAftersaleId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getAftersaleId());
-            refundVo.add(refundVo1);
-        }
-        return new APIReturnObject<>(refundVo);
+        return new APIReturnObject<>(new RefundVo(po));
     }
 
     /**
-     * 11. 管理员【根据售后单ID】查询订单的退款信息
+     * 服务 p11: 管理员【根据售后单ID】查询订单的退款信息
      *
      * @param shopId      店铺ID
      * @param aftersaleId 售后单ID
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByAftersaleId(Long shopId, Long aftersaleId) {
-        //【在payment表中】根据售后单号查询支付单
-        APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByAftersaleId(aftersaleId);
-        if (returnObj.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+        // TODO - 检查售后单是否属于店铺
+        if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        List<PaymentPo> paymentPoList = returnObj.getData();
-        //一个支付单可对应多个退款单
-        //定义List<RefundPo> 退款单List
-        List<RefundPo> refundPo = new ArrayList<>();
-        //根据支付单号查询退款单并添加到退款单List
-        for (PaymentPo po : paymentPoList) {
-            refundPo.add(paymentDao.getRefundByPaymentId(po.getId()).getData());
+        // 根据售后单号查询退款单
+        APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);
+        if (refundPo.getCode() != ResponseCode.OK) {
+            return refundPo;
         }
-        //定义List<RefundVo>集合
-        List<RefundVo> refundVo = new ArrayList<>();
-        //将Po对象转换成Vo对象：
-        for (RefundPo po : refundPo) {
-            RefundVo refundVo1 = new RefundVo();
-            refundVo1.setId(po.getId());
-            refundVo1.setPaymentId(po.getPaymentId());
-            refundVo1.setGmtCreate(po.getGmtCreate());
-            refundVo1.setGmtModified(po.getGmtModified());
-            refundVo1.setState(po.getState());
-            refundVo1.setAmount(po.getAmout());
-            refundVo1.setOrderId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getOrderId());
-            refundVo1.setAftersaleId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getAftersaleId());
-            refundVo.add(refundVo1);
+        // 返回退款单
+        RefundPo po = refundPo.getData();
+        if (po == null) {
+            return refundPo;
         }
-        return new APIReturnObject<>(refundVo);
-
+        return new APIReturnObject<>(new RefundVo(po));
     }
 
     /**
-     * 12. 买家【根据订单ID】查询订单的退款信息
+     * 服务 p12: 买家【根据订单ID】查询订单的退款信息
      *
      * @param orderId 订单ID
      * @return APIReturnObject<List < RefundVo>>
      */
-    public APIReturnObject<?> getSelfRefundByOrderId(Long orderId) {
-        //根据订单Id查询支付单Id
-        APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByOrderId(orderId);
-        List<PaymentPo> paymentPoList = returnObj.getData();
-        if (returnObj.getCode() != ResponseCode.OK || paymentPoList.size() < 0) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+    public APIReturnObject<?> getCustomerRefundByOrderId(Long customerId, Long orderId) {
+        // 根据买家ID和订单ID查询订单,未查到则说明该订单ID不属于该店铺，返回404
+        APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, customerId, null, false);
+        if (orders.getCode() != ResponseCode.OK) {
+            return orders;
         }
-        //根据支付单Id查询退款单：
-        //定义List<RefundPo> 退款单List
-        List<RefundPo> refundPo = new ArrayList<>();
-        //根据支付单号查询退款单并添加到退款单List
-        for (PaymentPo po : paymentPoList) {
-            refundPo.add(paymentDao.getRefundByPaymentId(po.getId()).getData());
+        // 根据订单号查询退款单
+        APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
+        if (refundPo.getCode() != ResponseCode.OK) {
+            return refundPo;
         }
-        //定义List<RefundVo>集合
-        List<RefundVo> refundVo = new ArrayList<>();
-        //将Po对象转换成Vo对象：
-        for (RefundPo po : refundPo) {
-            RefundVo refundVo1 = new RefundVo();
-            refundVo1.setId(po.getId());
-            refundVo1.setPaymentId(po.getPaymentId());
-            refundVo1.setGmtCreate(po.getGmtCreate());
-            refundVo1.setGmtModified(po.getGmtModified());
-            refundVo1.setState(po.getState());
-            refundVo1.setAmount(po.getAmout());
-            refundVo1.setOrderId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getOrderId());
-            refundVo1.setAftersaleId(paymentDao.getPaymentOrderByPaymentId(po.getPaymentId()).getData().getAftersaleId());
-            refundVo.add(refundVo1);
+        // 返回退款单
+        RefundPo po = refundPo.getData();
+        if (po == null) {
+            return refundPo;
         }
-        return new APIReturnObject<>(refundVo);
+        return new APIReturnObject<>(new RefundVo(po));
     }
 
     /**
-     * 13. 买家【根据售后单ID】查询订单的退款信息
+     * 服务 p13: 买家【根据售后单ID】查询订单的退款信息
      *
      * @param aftersaleId 售后单ID
      * @return APIReturnObject<RefundVo>
      */
-    public APIReturnObject<?> getSelfRefundByAftersaleId(Long aftersaleId) {
-        //【在payment表中】根据售后单id查询支付单id
-        APIReturnObject<List<PaymentPo>> returnObj = paymentDao.getPaymentOrderByAftersaleId(aftersaleId);
-        if (returnObj.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObj.getCode(), returnObj.getErrMsg());
+    public APIReturnObject<?> getCustomerRefundByAftersaleId(Long customerId, Long aftersaleId) {
+        // TODO - 检查售后单是否属于买家
+        if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        List<PaymentPo> paymentPoList = returnObj.getData();
-        //一个退款单最多对应一个支付单
-        if (paymentPoList.size() != 1) {
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        // 根据售后单号查询退款单
+        APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);
+        if (refundPo.getCode() != ResponseCode.OK) {
+            return refundPo;
         }
-        //获取到支付单
-        PaymentPo paymentPo = paymentPoList.get(0);
-
-        //根据支付单ID查询退款单
-        APIReturnObject<RefundPo> returnObject = paymentDao.getRefundByPaymentId(paymentPo.getId());
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return new APIReturnObject(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
+        // 返回退款单
+        RefundPo po = refundPo.getData();
+        if (po == null) {
+            return refundPo;
         }
-        RefundPo refundPo = returnObject.getData();
-        //构建VO对象进行封装
-        RefundVo refundVo = new RefundVo();
-        refundVo.setId(refundPo.getId());
-        refundVo.setPaymentId(refundPo.getPaymentId());
-        refundVo.setGmtCreate(refundPo.getGmtCreate());
-        refundVo.setGmtModified(refundPo.getGmtModified());
-        refundVo.setState(refundPo.getState());
-        refundVo.setAmount(refundPo.getAmout());
-        refundVo.setOrderId(paymentPo.getOrderId());
-        refundVo.setAftersaleId(aftersaleId);
-        return new APIReturnObject<>(refundVo);
+        return new APIReturnObject<>(new RefundVo(po));
     }
 }
 

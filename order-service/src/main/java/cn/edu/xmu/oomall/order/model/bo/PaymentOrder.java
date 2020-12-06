@@ -29,13 +29,4 @@ public class PaymentOrder {
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
     private Long afterSaleId;
-
-    /**
-     * 创建支付单Vo对象
-     *
-     * @return 支付单Vo对象
-     */
-    public PaymentOrderVo createSimpleVo() {
-        return new PaymentOrderVo(this);
-    }
 }
