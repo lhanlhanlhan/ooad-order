@@ -59,7 +59,7 @@ public class PaymentService {
      * Modified by Han Li at 5/12/2020 17:08
      */
     @Transactional
-    public APIReturnObject<?> createPaymentOrder(Long orderId, Long customerId, PaymentNewVo paymentNewVo) {
+    public APIReturnObject<?> createPayment(Long orderId, Long customerId, PaymentNewVo paymentNewVo) {
         // 校验订单 id 是否存在 / 属于用户？
         APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
         if (returnObject.getCode() != ResponseCode.OK) {
@@ -231,7 +231,7 @@ public class PaymentService {
      * Created at 05/12/2020 17:28
      * Created by Han Li at 05/12/2020 17:28
      */
-    public APIReturnObject<?> getPaymentOrderByOrderId(Long customerId, Long orderId) {
+    public APIReturnObject<?> getPaymentByOrderId(Long customerId, Long orderId) {
         // 校验订单 id 是否存在 / 属于用户？
         long countRes = orderDao.countOrders(orderId, customerId, null, false);
         if (countRes == 0) { // 查無此單
@@ -288,7 +288,7 @@ public class PaymentService {
     /**
      * 服务 6: 买家为售后单创建支付单
      */
-    public APIReturnObject<?> createPaymentBillForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
+    public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
         // TODO - 由商品模塊检查一下，这张售后单可不可以创建支付单
         if (!afterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
@@ -338,7 +338,7 @@ public class PaymentService {
      *
      * @param aftersaleId 售后单ID
      */
-    public APIReturnObject<?> getPaymentOrderByAftersaleId(Long aftersaleId, Long customerId) {
+    public APIReturnObject<?> getPaymentByAftersaleId(Long aftersaleId, Long customerId) {
         // TODO - 其他模塊获取售后单，检查是否属于买家
         if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
@@ -364,7 +364,7 @@ public class PaymentService {
      * @param shopId      店铺ID
      * @param aftersaleId 售后单ID
      */
-    public APIReturnObject<?> getPaymentOrderInfo(Long shopId, Long aftersaleId) {
+    public APIReturnObject<?> getPaymentInfo(Long shopId, Long aftersaleId) {
         // TODO - 其他模塊获取售后单，检查是否属于店铺
         if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);

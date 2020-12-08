@@ -14,9 +14,17 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- 订单部分核心组件 -->
         <dependency>
             <groupId>cn.edu.xmu</groupId>
             <artifactId>order-core</artifactId>
+        </dependency>
+
+        <!-- 订单部分客户端插件 -->
+        <dependency>
+            <groupId>cn.edu.xmu</groupId>
+            <artifactId>order-client</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Spring Boot 包 -->

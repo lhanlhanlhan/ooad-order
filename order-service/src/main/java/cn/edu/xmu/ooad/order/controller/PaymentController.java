@@ -125,7 +125,7 @@ public class PaymentController {
         if (logger.isDebugEnabled()) {
             logger.debug("get orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentNewVo);
         }
-        return ResponseUtils.make(paymentService.createPaymentOrder(id, customerId, paymentNewVo));
+        return ResponseUtils.make(paymentService.createPayment(id, customerId, paymentNewVo));
     }
 
     /**
@@ -151,7 +151,7 @@ public class PaymentController {
             logger.debug("get orders/{id}/payments;id=" + id + ";customerId " + customerId);
         }
         //调用服务层
-        return ResponseUtils.make(paymentService.getPaymentOrderByOrderId(customerId, id));
+        return ResponseUtils.make(paymentService.getPaymentByOrderId(customerId, id));
     }
 
     /**
@@ -210,7 +210,7 @@ public class PaymentController {
             logger.debug("get orders/{id}/payments;id=" + id + ";customerId " + customerId);
         }
 
-        return ResponseUtils.make(paymentService.createPaymentBillForAftersaleOrder(id, paymentNewVo));
+        return ResponseUtils.make(paymentService.createPaymentForAftersaleOrder(id, paymentNewVo));
     }
 
     /**
@@ -234,7 +234,7 @@ public class PaymentController {
             logger.debug("get aftersales/{id}/payments;id=" + id + ";customerId " + customerId);
         }
         //调用服务层
-        return ResponseUtils.make(paymentService.getPaymentOrderByAftersaleId(id, customerId));
+        return ResponseUtils.make(paymentService.getPaymentByAftersaleId(id, customerId));
     }
 
     /**
@@ -268,7 +268,7 @@ public class PaymentController {
         }
 
         //调用服务层
-        return ResponseUtils.make(paymentService.getPaymentOrderInfo(shopId, id));
+        return ResponseUtils.make(paymentService.getPaymentInfo(shopId, id));
     }
 
     /**
