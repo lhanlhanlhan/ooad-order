@@ -59,9 +59,9 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer
+    @InspectCustomer // TODO - Reactive 的话，core 中的鉴权系列的返回 obj 也必须是 Reactive Mono 的！
     @PostMapping("region/{rid}/price")
-    public Mono<?> getFreightPriceByModel(@PathVariable Long rid,
+    public Mono<Object> getFreightPriceByModel(@PathVariable Long rid,
                                           @Validated @RequestBody List<FreightOrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);

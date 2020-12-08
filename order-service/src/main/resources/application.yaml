@@ -21,7 +21,7 @@ spring:
     initialization-mode: never
     schema:
       - classpath:schema.sql
-    #      - classpath:indexes.sql
+      - classpath:indexes.sql
     data:
       - classpath:data.sql
     druid:
