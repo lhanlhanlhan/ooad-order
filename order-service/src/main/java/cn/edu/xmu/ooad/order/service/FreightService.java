@@ -210,7 +210,7 @@ public class FreightService {
         // 再克隆分表
         Byte type = po.getType();
         if (type == 0) {
-            APIReturnObject<List<PieceFreightModelPo>> pieceTable = freightDao.getPieceFreightModel(id, null);
+            APIReturnObject<List<PieceFreightModelPo>> pieceTable = freightDao.getPieceFreightModels(id, null);
             if (pieceTable.getCode() != ResponseCode.OK) {
                 // 分表未查到，回滚
                 logger.error("克隆PieceFreightModelPo時數據庫錯誤");
@@ -235,7 +235,7 @@ public class FreightService {
                 }
             }
         } else {
-            APIReturnObject<List<WeightFreightModelPo>> weightTable = freightDao.getWeightFreightModel(id, null);
+            APIReturnObject<List<WeightFreightModelPo>> weightTable = freightDao.getWeightFreightModels(id, null);
             if (weightTable.getCode() != ResponseCode.OK) {
                 // 分表未查到，回滚
                 logger.error("克隆WeightFreightModel時數據庫錯誤");
@@ -494,7 +494,7 @@ public class FreightService {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
-        APIReturnObject<List<WeightFreightModelPo>> returnObject = freightDao.getWeightFreightModel(id, null);
+        APIReturnObject<List<WeightFreightModelPo>> returnObject = freightDao.getWeightFreightModels(id, null);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
@@ -580,7 +580,7 @@ public class FreightService {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
-        APIReturnObject<List<PieceFreightModelPo>> returnObject = freightDao.getPieceFreightModel(id, null);
+        APIReturnObject<List<PieceFreightModelPo>> returnObject = freightDao.getPieceFreightModels(id, null);
         if (returnObject.getCode() != ResponseCode.OK) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, returnObject.getCode(), returnObject.getErrMsg());
         }
@@ -726,7 +726,7 @@ public class FreightService {
      */
     private boolean weightModelItemNotBelongs(Long shopId, Long detailId) {
         // 找小表
-        APIReturnObject<List<WeightFreightModelPo>> judge = freightDao.getWeightFreightModel(null, detailId);
+        APIReturnObject<List<WeightFreightModelPo>> judge = freightDao.getWeightFreightModels(null, detailId);
         if (judge.getCode() != ResponseCode.OK) {
             return true;
         }
@@ -754,7 +754,7 @@ public class FreightService {
      */
     private boolean pieceModelItemNotBelongs(Long shopId, Long detailId) {
         // 找小表
-        APIReturnObject<List<PieceFreightModelPo>> judge = freightDao.getPieceFreightModel(null, detailId);
+        APIReturnObject<List<PieceFreightModelPo>> judge = freightDao.getPieceFreightModels(null, detailId);
         if (judge.getCode() != ResponseCode.OK) {
             return true;
         }
@@ -781,7 +781,6 @@ public class FreightService {
      */
     private int updateWeightFreightModelPo(WeightFreightModelPo po) {
         try {
-            po.setGmtModified(LocalDateTime.now());
             int response = freightDao.updateWeightFreightModel(po);
             return response > 0 ? 0 : 2;
         } catch (DataAccessException e) {

@@ -6,6 +6,9 @@ import cn.edu.xmu.ooad.order.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.WeightFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.model.bo.FreightModel;
+import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.model.bo.PieceFreightModelRule;
+import cn.edu.xmu.ooad.order.model.bo.WeightFreightModelRule;
 import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.RedisUtils;
@@ -109,18 +112,14 @@ public class FreightDao {
     @RedisOptimized
     public FreightModel getFreightModel(Long id) {
         String key = "fm_" + id;
-        FreightModel freightModel;
-        try {
-            freightModel = (FreightModel) redisUtils.get(key);
-        } catch (Exception e) {
-            logger.error("Redis 错误：" + e.getMessage());
-            return null;
-        }
+        FreightModel freightModel = redisUtils.get(key, FreightModel.class);
         if (null != freightModel) {
-            logger.info("getFreightModel: hit redis cache, key = " + key);
+            if (logger.isDebugEnabled()) {
+                logger.debug("getFreightModel: hit redis cache, key = " + key);
+            }
             return freightModel;
         }
-        // 未命中，找数据库
+        // 未命中，找数据库，得到大表
         FreightModelPo fmPo;
         try {
             fmPo = freightModelPoMapper.selectByPrimaryKey(id);
@@ -130,7 +129,7 @@ public class FreightDao {
         }
         // 取出来的值存入 Redis，空值也存，防止击穿
         if (fmPo != null) {
-            FreightModel fm = new FreightModel(fmPo);
+            FreightModel fm = FreightModel.create(fmPo);
             redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
             return fm;
         } else {
@@ -170,7 +169,7 @@ public class FreightDao {
     /**
      * 根据模板ID/明细ID返回一个重量模板明细
      */
-    public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModel(Long fId, Long id) {
+    public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModels(Long fId, Long id) {
         WeightFreightModelPoExample example = new WeightFreightModelPoExample();
         WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
         if (id != null) {
@@ -192,7 +191,7 @@ public class FreightDao {
     /**
      * 根据模板ID/明细ID返回重量模板明细
      */
-    public APIReturnObject<List<PieceFreightModelPo>> getPieceFreightModel(Long fId, Long id) {
+    public APIReturnObject<List<PieceFreightModelPo>> getPieceFreightModels(Long fId, Long id) {
         PieceFreightModelPoExample example = new PieceFreightModelPoExample();
         PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
         if (id != null) {
@@ -253,9 +252,17 @@ public class FreightDao {
      *
      * @param po 运费模板概要 Po
      */
+    @RedisOptimized
     public int updateFreightModel(FreightModelPo po) {
         po.setGmtModified(LocalDateTime.now());
-        return freightModelPoMapper.updateByPrimaryKeySelective(po);
+        int res = freightModelPoMapper.updateByPrimaryKeySelective(po);
+        if (res != 1) {
+            return res;
+        }
+        // 删除缓存 (如有)
+        String key = "fm_" + po.getId();
+        redisUtils.del(key);
+        return 1;
     }
 
     /**
@@ -281,8 +288,17 @@ public class FreightDao {
      *
      * @param po 重量模板明细 Po
      */
+    @RedisOptimized
     public int updateWeightFreightModel(WeightFreightModelPo po) {
-        return weightFreightModelPoMapper.updateByPrimaryKeySelective(po);
+        po.setGmtModified(LocalDateTime.now());
+        int res = weightFreightModelPoMapper.updateByPrimaryKeySelective(po);
+        if (res != 1) {
+            return res;
+        }
+        // 删除缓存 (如有)
+        String key = "wf_" + po.getId();
+        redisUtils.del(key);
+        return 1;
     }
 
     /**
@@ -290,8 +306,17 @@ public class FreightDao {
      *
      * @param po 运费模板概要 Po
      */
+    @RedisOptimized
     public int updatePieceFreightModel(PieceFreightModelPo po) {
-        return pieceFreightModelPoMapper.updateByPrimaryKeySelective(po);
+        po.setGmtModified(LocalDateTime.now());
+        int res = pieceFreightModelPoMapper.updateByPrimaryKeySelective(po);
+        if (res != 1) {
+            return res;
+        }
+        // 删除缓存 (如有)
+        String key = "pf_" + po.getId();
+        redisUtils.del(key);
+        return 1;
     }
 
     /**
@@ -310,7 +335,17 @@ public class FreightDao {
      * @param regionId
      * @return
      */
-    public WeightFreightModelPo getRegionWeightFreightModel(Long modelId, Long regionId) {
+    @RedisOptimized
+    public WeightFreightModelRule getWeightFreightModelRule(Long modelId, Long regionId) {
+        String key = "wf_" + modelId + "_" + regionId;
+        WeightFreightModelRule weightFreightModelRule = redisUtils.get(key, WeightFreightModelRule.class);
+        if (null != weightFreightModelRule) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("getWeightFreightModelRule: hit redis cache, key = " + key);
+            }
+            return weightFreightModelRule;
+        }
+        // 未命中，找数据库
         WeightFreightModelPoExample example = new WeightFreightModelPoExample();
         WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
 
@@ -324,7 +359,7 @@ public class FreightDao {
                 return null;
             }
             // 获取 List 的第一个值
-            return poList.get(0);
+            return new WeightFreightModelRule(poList.get(0));
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
@@ -339,7 +374,17 @@ public class FreightDao {
      * @param regionId
      * @return
      */
-    public PieceFreightModelPo getRegionPieceFreightModel(Long modelId, Long regionId) {
+    @RedisOptimized
+    public PieceFreightModelRule getPieceFreightModelRule(Long modelId, Long regionId) {
+        String key = "pf_" + modelId + "_" + regionId;
+        PieceFreightModelRule pieceFreightModelRule = redisUtils.get(key, PieceFreightModelRule.class);
+        if (null != pieceFreightModelRule) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("getPieceFreightModelRule: hit redis cache, key = " + key);
+            }
+            return pieceFreightModelRule;
+        }
+        // 未命中，找数据库
         PieceFreightModelPoExample example = new PieceFreightModelPoExample();
         PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
 
@@ -353,7 +398,7 @@ public class FreightDao {
                 return null;
             }
             // 获取 List 的第一个值
-            return poList.get(0);
+            return new PieceFreightModelRule(poList.get(0));
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());

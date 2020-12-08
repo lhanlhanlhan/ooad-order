@@ -1,5 +1,7 @@
 package cn.edu.xmu.ooad.order.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class RedisUtils {
+
+    // 日志记录器
+    private static final Logger logger = LoggerFactory.getLogger(RedisUtils.class);
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
@@ -44,8 +49,18 @@ public class RedisUtils {
      * @param key 键
      * @return 值
      */
-    public Serializable get(String key) {
-        return key == null ? null : redisTemplate.opsForValue().get(key);
+    public <T extends Serializable> T get(String key, Class<T> tClass) {
+        if (key == null) {
+            return null;
+        }
+        Serializable obj;
+        try {
+            obj = redisTemplate.opsForValue().get(key);
+        } catch (Exception e) {
+            logger.error("Redis 错误：" + e.getMessage());
+            return null;
+        }
+        return tClass.cast(obj);
     }
 
     /**
