@@ -3,10 +3,13 @@ package cn.edu.xmu.ooad.order.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -26,13 +29,14 @@ public class RedisUtils {
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+    @Autowired
+    private ReactiveRedisTemplate<String, Serializable> reactiveRedisTemplate;
 
     /**
      * 删除缓存
      *
      * @param key 可以传一个值 或多个 key
      */
-
     public void del(String... key) {
         if (key != null && key.length > 0) {
             if (key.length == 1) {
@@ -64,6 +68,26 @@ public class RedisUtils {
     }
 
     /**
+     * 响应式缓存获取
+     *
+     * @param key 键
+     * @return 值
+     */
+    public <T extends Serializable> Mono<T> reactiveGet(String key, Class<T> tClass) {
+        if (key == null) {
+            return null;
+        }
+        Mono<Serializable> obj;
+        try {
+            obj = reactiveRedisTemplate.opsForValue().get(key);
+        } catch (Exception e) {
+            logger.error("Redis 错误：" + e.getMessage());
+            return null;
+        }
+        return obj.map(x -> tClass.cast(obj));
+    }
+
+    /**
      * 普通缓存放入
      *
      * @param key   键
@@ -80,6 +104,25 @@ public class RedisUtils {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /**
+     * 响应式缓存放入
+     *
+     * @param key   键
+     * @param value 值
+     * @return true成功 false失败
+     */
+    public Mono<Boolean> reactiveSet(String key, Serializable value, long timeout) {
+        if (timeout <= 0) {
+            timeout = 60;
+        }
+        try {
+            return reactiveRedisTemplate.opsForValue().set(key, value, Duration.ofSeconds(timeout));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

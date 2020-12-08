@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,13 @@ import java.util.Map;
  * Created at 8/12/2020 8:43 上午
  * Modified by Han Li at 8/12/2020 8:43 上午
  */
+@NoArgsConstructor
 public class PieceFreightModelRule extends FreightModelRule {
 
-    private final long firstItems;
-    private final long firstItemsPrice;
-    private final long additionalItems;
-    private final long additionalItemsPrice;
+    private long firstItems;
+    private long firstItemsPrice;
+    private long additionalItems;
+    private long additionalItemsPrice;
 
     public PieceFreightModelRule(PieceFreightModelPo po) {
         super(po.getId(), po.getFreightModelId(), po.getRegionId());

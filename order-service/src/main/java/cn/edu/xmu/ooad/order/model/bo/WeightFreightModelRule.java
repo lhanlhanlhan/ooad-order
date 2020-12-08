@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.model.bo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -14,15 +15,16 @@ import java.util.Map;
  * Created at 8/12/2020 12:21 上午
  * Modified by Han Li at 8/12/2020 12:21 上午
  */
+@NoArgsConstructor
 public class WeightFreightModelRule extends FreightModelRule {
 
-    private final long firstWeight;
-    private final long firstWeightFreight;
-    private final long tenPrice;
-    private final long fiftyPrice;
-    private final long hundredPrice;
-    private final long threeHundredPrice;
-    private final long abovePrice;
+    private long firstWeight;
+    private long firstWeightFreight;
+    private long tenPrice;
+    private long fiftyPrice;
+    private long hundredPrice;
+    private long threeHundredPrice;
+    private long abovePrice;
 
     public WeightFreightModelRule(WeightFreightModelPo po) {
         super(po.getId(), po.getFreightModelId(), po.getRegionId());

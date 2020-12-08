@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,17 +61,17 @@ public class FreightController {
     })
     @InspectCustomer
     @PostMapping("region/{rid}/price")
-    public Object getFreightPriceByModel(@PathVariable Long rid,
-                                         @Validated @RequestBody List<FreightOrderItemVo> items) {
+    public Mono<?> getFreightPriceByModel(@PathVariable Long rid,
+                                          @Validated @RequestBody List<FreightOrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
         }
         // 先判断输入是否有误
         if (items == null || items.size() == 0) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+            return Mono.just(ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST)));
         }
         // 调用服务层
-        return ResponseUtils.make(freightService.calcFreight(rid, items));
+        return Mono.just(ResponseUtils.make(freightService.calcFreight(rid, items)));
     }
 
     /**

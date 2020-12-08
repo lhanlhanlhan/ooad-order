@@ -20,9 +20,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -76,19 +78,22 @@ public class FreightService {
             freightModelList.add(model);
         }
         // 2. 用每个模板计算所有物品的最大运费
-        long freight = 0;
-        for (FreightModel model : freightModelList) {
+        AtomicReference<Boolean> calcSucceeded = new AtomicReference<>(true);
+        Optional<Long> freight = freightModelList.parallelStream().map(model -> {
             long subFreight = model.calcFreight(regionId, orderItemList, skuInfoList);
             if (subFreight == -1) {
                 // 包含禁寄物品
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN);
+                calcSucceeded.set(false);
             }
-            if (subFreight > freight) {
-                // 更新最大运费
-                freight = subFreight;
-            }
+            return subFreight;
+        }).max(Long::compareTo);
+
+        if (calcSucceeded.get() && freight.isPresent()) {
+            return new APIReturnObject<>(freight);
+        } else {
+            // 包含禁寄物品
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN);
         }
-        return new APIReturnObject<>(freight);
     }
 
     /**
