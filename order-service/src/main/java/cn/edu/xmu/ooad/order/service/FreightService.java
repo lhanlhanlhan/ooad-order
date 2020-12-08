@@ -643,7 +643,7 @@ public class FreightService {
         }
 
         try {
-            int response = freightDao.deleteWeightFreightModel(detailId);
+            int response = freightDao.deleteWeightFreightModelRule(detailId);
             if (response <= 0) {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
@@ -702,7 +702,7 @@ public class FreightService {
         }
 
         try {
-            int response = freightDao.deletePieceFreightModel(detailId);
+            int response = freightDao.deletePieceFreightModelRule(detailId);
             if (response <= 0) {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }

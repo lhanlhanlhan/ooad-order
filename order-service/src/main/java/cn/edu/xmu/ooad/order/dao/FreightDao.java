@@ -5,10 +5,7 @@ import cn.edu.xmu.ooad.order.controller.FreightController;
 import cn.edu.xmu.ooad.order.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.mapper.WeightFreightModelPoMapper;
-import cn.edu.xmu.ooad.order.model.bo.FreightModel;
-import cn.edu.xmu.ooad.order.model.bo.Order;
-import cn.edu.xmu.ooad.order.model.bo.PieceFreightModelRule;
-import cn.edu.xmu.ooad.order.model.bo.WeightFreightModelRule;
+import cn.edu.xmu.ooad.order.model.bo.*;
 import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.RedisUtils;
@@ -167,7 +164,7 @@ public class FreightDao {
     }
 
     /**
-     * 根据模板ID/明细ID返回一个重量模板明细
+     * 根据模板ID/明细ID返回重量模板明细
      */
     public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModels(Long fId, Long id) {
         WeightFreightModelPoExample example = new WeightFreightModelPoExample();
@@ -217,6 +214,7 @@ public class FreightDao {
      * @param type
      * @return
      */
+    @RedisOptimized
     public int deleteFreightModel(Long id, byte type) {
         // 先删除主表的 model
         int ret = freightModelPoMapper.deleteByPrimaryKey(id);
@@ -224,6 +222,8 @@ public class FreightDao {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return ret;
         }
+        // 删除缓存 (如可能)
+        redisUtils.del("fm_" + id);
         // 再删除分表的 model
         if (type == 1) {
             PieceFreightModelPoExample example = new PieceFreightModelPoExample();
@@ -236,14 +236,31 @@ public class FreightDao {
             criteria.andFreightModelIdEqualTo(id);
             ret = weightFreightModelPoMapper.deleteByExample(example);
         }
+        // TODO - 模板明细的缓存耗子喂汁吧 去操您妈咯
         return ret;
     }
 
-    public int deleteWeightFreightModel(Long id) {
+    @RedisOptimized
+    public int deleteWeightFreightModelRule(Long id) {
+        // 根据 id 获取缓存号
+        String invKey = "iw_" + id;
+        String modelRuleKey = redisUtils.get(invKey, String.class);
+        if (modelRuleKey != null) {
+            // 删除缓存及反向缓存 (如可能)
+            redisUtils.del(modelRuleKey, modelRuleKey);
+        }
         return weightFreightModelPoMapper.deleteByPrimaryKey(id);
     }
 
-    public int deletePieceFreightModel(Long id) {
+    @RedisOptimized
+    public int deletePieceFreightModelRule(Long id) {
+        // 根据 id 获取缓存号
+        String invKey = "ip_" + id;
+        String modelRuleKey = redisUtils.get(invKey, String.class);
+        if (modelRuleKey != null) {
+            // 删除缓存及反向缓存 (如可能)
+            redisUtils.del(modelRuleKey, modelRuleKey);
+        }
         return pieceFreightModelPoMapper.deleteByPrimaryKey(id);
     }
 
@@ -352,17 +369,30 @@ public class FreightDao {
         criteria.andFreightModelIdEqualTo(modelId);
         criteria.andRegionIdEqualTo(regionId);
 
+        WeightFreightModelPo po = null;
         try {
             List<WeightFreightModelPo> poList = weightFreightModelPoMapper.selectByExample(example);
             // 如果返回空列表，就返回 null
-            if (poList.size() != 1) {
-                return null;
+            if (poList.size() == 1) {
+                // 获取 List 的第一个值
+                po = poList.get(0);
             }
-            // 获取 List 的第一个值
-            return new WeightFreightModelRule(poList.get(0));
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
+            return null;
+        }
+
+        // 取出来的值存入 Redis，空值也存，防止击穿
+        if (po != null) {
+            WeightFreightModelRule fm = new WeightFreightModelRule(po);
+            redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
+            // 建立反向 hash，方便从 weight model 的 id 获取其母版号及地区
+            String invertedKey = "iw_" + fm.getId(); // Index of Weight model
+            redisUtils.set(invertedKey, key, addRandomTime(freightModelRedisTimeout));
+            return fm;
+        } else {
+            redisUtils.set(key, null, addRandomTime(freightModelRedisTimeout));
             return null;
         }
     }
@@ -391,17 +421,30 @@ public class FreightDao {
         criteria.andFreightModelIdEqualTo(modelId);
         criteria.andRegionIdEqualTo(regionId);
 
+        PieceFreightModelPo po = null;
         try {
             List<PieceFreightModelPo> poList = pieceFreightModelPoMapper.selectByExample(example);
             // 如果返回空列表，就返回 null
-            if (poList.size() != 1) {
-                return null;
+            if (poList.size() == 1) {
+                // 获取 List 的第一个值
+                po = poList.get(0);
             }
-            // 获取 List 的第一个值
-            return new PieceFreightModelRule(poList.get(0));
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
+            return null;
+        }
+
+        // 取出来的值存入 Redis，空值也存，防止击穿
+        if (po != null) {
+            PieceFreightModelRule fm = new PieceFreightModelRule(po);
+            redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
+            // 建立反向 hash，方便从 weight model 的 id 获取其母版号及地区
+            String invertedKey = "ip_" + fm.getId(); // Index of Piece Model
+            redisUtils.set(invertedKey, key, addRandomTime(freightModelRedisTimeout));
+            return fm;
+        } else {
+            redisUtils.set(key, null, addRandomTime(freightModelRedisTimeout));
             return null;
         }
     }

@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;

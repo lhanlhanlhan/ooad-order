@@ -74,12 +74,7 @@ public class RedisUtils {
         if (timeout <= 0) {
             timeout = 60;
         }
-
-        long min = 1;
-        long max = timeout / 5;
         try {
-            //增加随机数，防止雪崩
-            timeout += (long) new Random().nextDouble() * (max - min);
             redisTemplate.opsForValue().set(key, value, timeout, TimeUnit.SECONDS);
             return true;
         } catch (Exception e) {
