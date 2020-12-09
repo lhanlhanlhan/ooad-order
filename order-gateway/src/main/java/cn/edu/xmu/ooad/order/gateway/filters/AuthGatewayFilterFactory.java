@@ -13,7 +13,7 @@ import java.util.List;
 @Component
 public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
-    private  static  final Logger logger = LoggerFactory.getLogger(AuthGatewayFilterFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthGatewayFilterFactory.class);
 
     public AuthGatewayFilterFactory() {
         super(AuthFilter.Config.class);
@@ -21,13 +21,12 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
 
     @Override
     public GatewayFilter apply(AuthFilter.Config config) {
-
         return new AuthFilter(config);
     }
 
     @Override
     public List<String> shortcutFieldOrder() {
-        return new ArrayList<String>(Collections.singleton("tokenName"));
+        return new ArrayList<>(Collections.singleton("tokenName"));
     }
 
 }

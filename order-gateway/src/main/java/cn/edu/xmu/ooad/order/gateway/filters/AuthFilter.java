@@ -15,65 +15,34 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
- * @author Ming Qiu
- * @date Created in 2020/11/13 22:31
+ * 网关权限 authorization 字段的 token 过滤器
+ *
+ * @author Han Li
+ * Created at 9/12/2020 11:03
  **/
 public class AuthFilter implements GatewayFilter, Ordered {
 
-    private  static  final Logger logger = LoggerFactory.getLogger(AuthFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthFilter.class);
 
-    private String tokenName;
+    private final String tokenName;
 
-    public AuthFilter(Config config){
+    public AuthFilter(Config config) {
         this.tokenName = config.getTokenName();
     }
 
     /**
-     * gateway001 权限过滤器
-     * 1. 检查JWT是否合法,以及是否过期，如果过期则需要在response的头里换发新JWT，如果不过期将旧的JWT在response的头中返回
-     * 2. 判断用户的shopid是否与路径上的shopid一致（0可以不做这一检查）
-     * 3. 在redis中判断用户是否有权限访问url,如果不在redis中需要通过dubbo接口load用户权限
-     * 4. 需要以dubbo接口访问privilegeservice
-     * @param exchange
-     * @param chain
-     * @return
-     * @author wwc
-     * @date 2020/12/02 17:13
+     * 在进入网关之前，鉴定 token 的权限过滤器
+     * - 检查 JWT 是否合法及是否过期，如果过期则需要在 response 的头里换发新 JWT，如果不过期将旧的 JWT 在 response 的头中返回
+     * - 判断用户的 shopid 是否与路径上的 shopid 一致 (如有) (路径为 0 可以不做这一检查)
+     * - TODO 在 redis 中判断用户是否有权限访问 url, 如果不在redis中需要通过dubbo接口load用户权限
+     * - 需要以 dubbo 接口访问 privilegeservice
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-        // 获取请求参数
-        String token = request.getHeaders().getFirst(tokenName);
-        RequestPath url = request.getPath();
-        HttpMethod method = request.getMethod();
-        // 判断token是否为空，无需token的url在配置文件中设置
-        logger.debug("filter: token = " + token);
-        if (StringUtil.isNullOrEmpty(token)){
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.writeWith(Mono.empty());
-        }
-        // 判断token是否合法
-        JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
-        if (userAndDepart == null) {
-            // 若token解析不合法
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.writeWith(Mono.empty());
-        } else {
-
-            //指定编码，否则在浏览器中会中文乱码
-            response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.writeWith(Mono.empty());
-        }
+        return response.writeWith(Mono.empty());
     }
 
     @Override
@@ -84,9 +53,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
     public static class Config {
         private String tokenName;
 
-        public Config(){
-
-        }
+        public Config() { }
 
         public String getTokenName() {
             return tokenName;
