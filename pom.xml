@@ -28,6 +28,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- 引入课程核心包 -->
+            <dependency>
+                <groupId>cn.edu.xmu.ooad</groupId>
+                <artifactId>core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>cn.edu.xmu</groupId>
                 <artifactId>order-core</artifactId>

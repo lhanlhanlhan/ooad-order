@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.controller;
 
+import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.order.annotations.AdminShop;
 import cn.edu.xmu.ooad.order.annotations.LoginUser;
 import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
@@ -60,7 +61,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectCustomer // 需要登入
+    @Audit // 需要登入
     @GetMapping("orders/states")
     public Object getAllStatus() {
         if (logger.isDebugEnabled()) {
