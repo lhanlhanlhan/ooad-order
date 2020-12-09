@@ -6,6 +6,7 @@ import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,6 +68,8 @@ public abstract class FreightModel implements Serializable {
      * @return -1，存在某个商品不允许发货的地区；>=0：总运费
      * @author Han Li
      */
-    public abstract long calcFreight(Long regionId, List<FreightOrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList);
+    public abstract long calcFreight(Long regionId,
+                                     List<FreightOrderItemVo> itemVoList,
+                                     List<SkuInfo> skuInfoList);
 
 }

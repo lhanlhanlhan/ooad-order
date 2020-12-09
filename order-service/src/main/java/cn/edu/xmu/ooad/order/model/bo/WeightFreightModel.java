@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.model.bo;
 import cn.edu.xmu.ooad.order.dao.FreightDao;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import lombok.NoArgsConstructor;
 
@@ -24,7 +25,9 @@ public class WeightFreightModel extends FreightModel {
     }
 
     @Override
-    public long calcFreight(Long regionId, List<FreightOrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList) {
+    public long calcFreight(Long regionId,
+                            List<FreightOrderItemVo> itemVoList,
+                            List<SkuInfo> skuInfoList) {
         // 获取 Dao
         FreightDao dao = SpringUtils.getBean(FreightDao.class);
         // 1. 获取对应地区之运费模板明细
@@ -35,7 +38,7 @@ public class WeightFreightModel extends FreightModel {
             return -1;
         }
         // 用这个地区的规则计算运费
-        return weightModel.calcRegionalFreight(itemVoList, skuInfoList);
+        return weightModel.calcRegionalFreight(itemVoList, skuInfoList, this.getUnit());
     }
 
 }

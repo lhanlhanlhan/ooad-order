@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.connector.service;
 
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -57,27 +58,13 @@ public class ShopService {
      * @param skuId 商铺 Id
      * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
-    public Map<String, Object> getSkuInfo(Long skuId) {
+    public SkuInfo getSkuInfo(Long skuId) {
         if (skuId == 1) {
             // 在这里把其他模块的 Model 转为统一的 Map
-            Map<String, Object> shopInfo = new HashMap<>();
-            shopInfo.put("id", skuId);
-            shopInfo.put("name", "Apple MacBook Pro 2020 13' Grey"); // 可能要到两个表查
-            shopInfo.put("price", 1324500L);
-            shopInfo.put("shopId", 1L); // 可能要到两个表查
-            shopInfo.put("weight", 1280L);
-            shopInfo.put("freightId", 1L); // 可能要到两个表查
-            return shopInfo;
+            return new SkuInfo(skuId, "Apple MacBook Pro 2020 13' Grey", 1324500L, 1L, 1280L, 1L);
         } else {
             // 在这里把其他模块的 Model 转为统一的 Map
-            Map<String, Object> shopInfo = new HashMap<>();
-            shopInfo.put("id", skuId);
-            shopInfo.put("name", "Air Jordan 1 Red-White"); // 可能要到两个表查
-            shopInfo.put("price", 262800L);
-            shopInfo.put("shopId", 2L); // 可能要到两个表查
-            shopInfo.put("weight", 2230L);
-            shopInfo.put("freightId", 2L); // 可能要到两个表查
-            return shopInfo;
+            return new SkuInfo(skuId, "Air Jordan 1 Red-White", 262800L, 2L, 2230L, 2L);
         }
     }
 

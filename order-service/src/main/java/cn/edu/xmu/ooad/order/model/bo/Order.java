@@ -10,6 +10,7 @@ import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.model.vo.OrderSimpleVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderVo;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import lombok.Data;
@@ -107,8 +108,8 @@ public class Order implements VoCreatable, SimpleVoCreatable {
         for (OrderItem item : this.orderItemList) {
             // 获取商品的信息
             Long skuId = item.getSkuId();
-            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
-            Long shopId = (Long) skuInfo.get("shopId");
+            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+            Long shopId = skuInfo.getShopId();
 
             // 检查这个店铺的订购列表有没有创建，没有的话，就新建并放入一个该店铺的新列表
             List<OrderItem> thisShopItems = shopsItemLists.computeIfAbsent(shopId, k -> new LinkedList<>());

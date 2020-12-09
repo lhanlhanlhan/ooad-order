@@ -7,6 +7,7 @@ import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
@@ -53,19 +54,19 @@ public class FreightService {
      */
     public APIReturnObject<?> calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList) {
         // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
-        List<Map<String, Object>> skuInfoList = new ArrayList<>(orderItemList.size());
+        List<SkuInfo> skuInfoList = new ArrayList<>(orderItemList.size());
         List<FreightModel> freightModelList = new ArrayList<>(orderItemList.size());
         for (FreightOrderItemVo freightItem : orderItemList) {
             // 准备商品信息 (希望商品模块帮我们缓存了 ～)
             Long skuId = freightItem.getSkuId();
-            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
             if (skuInfo == null) {
                 // 商品、订单模块数据库不一致
                 logger.error("计算运费、准备商品资料时，检测到商品、订单模块数据库不一致! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             // 准备运费模板信息
-            Long modelId = (Long) skuInfo.get("freightId"); // 会不会未定义？未定义的话，这个字段应该为 0
+            Long modelId = skuInfo.getId(); // 会不会未定义？未定义的话，这个字段应该为 0
             FreightModel model = freightDao.getFreightModel(modelId);
             if (model == null) {
                 // 商品、订单模块数据库不一致

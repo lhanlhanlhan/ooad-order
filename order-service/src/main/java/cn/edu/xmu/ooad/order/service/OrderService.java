@@ -12,6 +12,7 @@ import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
@@ -450,14 +451,14 @@ public class OrderService {
             orderItemPo.setGoodsSkuId(skuId);
             orderItemPo.setQuantity(quantity);
             // 联系商品模块获取商品资料
-            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
             orderItemPo.setOrderId(orderId);
             orderItemPo.setGoodsSkuId(skuId);
             orderItemPo.setQuantity(quantity);
             // 这是售后订单，价格一律为 0，没有优惠券、没有优惠活动、没有推广
             orderItemPo.setPrice(0L);
             orderItemPo.setDiscount(0L);
-            orderItemPo.setName((String) skuInfo.get("name"));
+            orderItemPo.setName(skuInfo.getName());
             orderItemPo.setGmtCreate(nowTime);
 
             // 记录进订单系统
@@ -660,18 +661,18 @@ public class OrderService {
             orderItemPo.setGoodsSkuId(skuId);
             orderItemPo.setQuantity(quantity);
             // 联系商品模块获取商品资料
-            Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
+            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
             orderItemPo.setGoodsSkuId(skuId);
             orderItemPo.setQuantity(quantity);
             // 计算、累加各种价格
-            Long price = (Long) skuInfo.get("price");
+            Long price = skuInfo.getPrice();
             totalPrice += price * quantity;
             Long discount = (Long) item.get("discount");
             totalDiscount += discount;
             // 填写各种价格
             orderItemPo.setPrice(price);
             orderItemPo.setDiscount(discount);
-            orderItemPo.setName((String) skuInfo.get("name"));
+            orderItemPo.setName(skuInfo.getName());
             orderItemPo.setGmtCreate(nowTime);
             // 填寫各種活動
             orderItemPo.setCouponActivityId((Long) item.get("couponActId"));
@@ -752,8 +753,8 @@ public class OrderService {
         Long skuId = (Long) itemInfo.get("skuId");
         Integer quantity = (Integer) itemInfo.get("quantity");
         // 联系商品模块获取商品资料
-        Map<String, Object> skuInfo = shopService.getSkuInfo(skuId);
-        Long price = (Long) skuInfo.get("price");
+        SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+        Long price = skuInfo.getPrice();
 
         LocalDateTime nowTime = LocalDateTime.now();
 
@@ -763,12 +764,12 @@ public class OrderService {
         orderItemPo.setQuantity(quantity);
         orderItemPo.setPrice(price);
         orderItemPo.setDiscount(totalDiscount);
-        orderItemPo.setName((String) skuInfo.get("name"));
+        orderItemPo.setName(skuInfo.getName());
         orderItemPo.setGmtCreate(nowTime);
 
         // 创建订单对应 Po
         OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
-        orderPo.setShopId((Long) skuInfo.get("shopId")); // 团购/预售的商铺号已知，因此订单的店铺 id 设为商品的店铺 Id
+        orderPo.setShopId(skuInfo.getShopId()); // 团购/预售的商铺号已知，因此订单的店铺 id 设为商品的店铺 Id
         orderPo.setOriginPrice(price);
         orderPo.setDiscountPrice(0L);
         orderPo.setFreightPrice(totalFreight);

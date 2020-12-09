@@ -1,6 +1,7 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -26,5 +27,7 @@ public abstract class FreightModelRule implements Serializable {
         this.regionId = regionId;
     }
 
-    public abstract long calcRegionalFreight(List<FreightOrderItemVo> itemVoList, List<Map<String, Object>> skuInfoList);
+    public abstract long calcRegionalFreight(List<FreightOrderItemVo> itemVoList,
+                                             List<SkuInfo> skuInfoList,
+                                             Integer unit);
 }

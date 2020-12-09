@@ -22,5 +22,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <!-- 订单部分需求插件 -->
+        <dependency>
+            <groupId>cn.edu.xmu</groupId>
+            <artifactId>order-require</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
