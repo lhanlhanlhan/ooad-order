@@ -12,6 +12,7 @@ import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
@@ -147,8 +148,13 @@ public class OrderService {
         OrderVo vo = order.createVo();
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        Map<String, Object> customer = customerService.getCustomerInfo(id);
-        vo.setCustomer(customer);
+        CustomerInfo customer = customerService.getCustomerInfo(id);
+        Map<String, Object> customerVo = new HashMap<>();
+        customerVo.put("id", customer.getId());
+        customerVo.put("userName", customer.getUsername());
+        customerVo.put("realName", customer.getRealName());
+        customerVo.put("state", customer.getState());
+        vo.setCustomer(customerVo);
         // 补充 Vo 的 Shop 信息：联系商品模块
         Long shopId = order.getShopId();
         Map<String, Object> shop = shopService.getShopInfo(shopId);
@@ -525,8 +531,13 @@ public class OrderService {
         OrderVo vo = order.createVo();
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        Map<String, Object> customer = customerService.getCustomerInfo(id);
-        vo.setCustomer(customer);
+        CustomerInfo customer = customerService.getCustomerInfo(id);
+        Map<String, Object> customerVo = new HashMap<>();
+        customerVo.put("id", customer.getId());
+        customerVo.put("userName", customer.getUsername());
+        customerVo.put("realName", customer.getRealName());
+        customerVo.put("state", customer.getState());
+        vo.setCustomer(customerVo);
         // 补充 Vo 的 Shop 信息：联系商品模块
         Map<String, Object> shop = shopService.getShopInfo(shopId);
         vo.setShop(shop);
@@ -825,9 +836,14 @@ public class OrderService {
         // 新建业务对象
         Order order = new Order(orderPo);
         OrderVo vo = order.createVo();
-        // 补充 Vo 的 Customer 信息：联系其他模块下载
-        Map<String, Object> customer = customerService.getCustomerInfo(order.getCustomerId());
-        vo.setCustomer(customer);
+        // 补充 Vo 的 Customer 信息：联系其他模块
+        CustomerInfo customer = customerService.getCustomerInfo(order.getCustomerId());
+        Map<String, Object> customerVo = new HashMap<>();
+        customerVo.put("id", customer.getId());
+        customerVo.put("userName", customer.getUsername());
+        customerVo.put("realName", customer.getRealName());
+        customerVo.put("state", customer.getState());
+        vo.setCustomer(customerVo);
         // 补充 Vo 的 Shop 信息 (如有)：联系其他模块下载
         Long shopId = order.getShopId();
         if (shopId != null) {

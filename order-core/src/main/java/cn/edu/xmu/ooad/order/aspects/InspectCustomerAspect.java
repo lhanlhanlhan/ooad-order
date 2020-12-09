@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.aspects;
 
 import cn.edu.xmu.ooad.order.annotations.LoginUser;
 import cn.edu.xmu.ooad.order.connector.service.CustomerService;
+import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Constants;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
@@ -94,13 +95,13 @@ public class InspectCustomerAspect {
         }
 
         // 从 其他模块 获取用户资料
-        Map<String, Object> userInfo = customerService.verifyTokenAndGetCustomerInfo(token);
+        CustomerInfo userInfo = customerService.verifyTokenAndGetCustomerInfo(token);
         if (null == userInfo) {
             // 未有附带 token，返回错误
             APIReturnObject<?> object = new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.INVALID_JWT);
             return ResponseUtils.make(object);
         }
-        Long userId = (Long) userInfo.get("id");
+        Long userId = userInfo.getId();
 
         // 将获取到的用户资料注入进 Args 去
         Object[] args = joinPoint.getArgs();

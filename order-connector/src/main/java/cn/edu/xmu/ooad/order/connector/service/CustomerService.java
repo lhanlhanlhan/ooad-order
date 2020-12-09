@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.connector.service;
 
+import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -20,8 +21,8 @@ public class CustomerService {
      * @param token token
      * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
-    public Map<String, Object> verifyTokenAndGetCustomerInfo(String token) {
-        return buildCustomerInfo(1L, "mingqiuxm", "Ming QIU", (short) 1);
+    public CustomerInfo verifyTokenAndGetCustomerInfo(String token) {
+        return new CustomerInfo(1L, "mingqiuxm", "Ming QIU", (byte) 1);
     }
 
     /**
@@ -30,25 +31,7 @@ public class CustomerService {
      * @param userId 用户 Id
      * @return cn.edu.xmu.ooad.order.connector.model.UserInfo
      */
-    public Map<String, Object> getCustomerInfo(Long userId) {
-        return buildCustomerInfo(1L, "mingqiuxm", "Ming QIU", (short) 1);
-    }
-
-    /**
-     * 创建客户信息在订单模块的字典
-     *
-     * @param id
-     * @param username
-     * @param realName
-     * @param state
-     * @return
-     */
-    private Map<String, Object> buildCustomerInfo(Long id, String username, String realName, Short state) {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", id);
-        userInfo.put("userName", username);
-        userInfo.put("realName", realName);
-        userInfo.put("state", state);
-        return userInfo;
+    public CustomerInfo getCustomerInfo(Long userId) {
+        return new CustomerInfo(1L, "mingqiuxm", "Ming QIU", (byte) 1);
     }
 }

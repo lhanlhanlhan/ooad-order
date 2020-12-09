@@ -6,11 +6,11 @@ public class CustomerInfo {
 
     String username;
 
-    Long realName;
+    String realName;
 
     Byte state;
 
-    public CustomerInfo(Long id, String username, Long realName, Byte state) {
+    public CustomerInfo(Long id, String username, String realName, Byte state) {
         this.id = id;
         this.username = username;
         this.realName = realName;
@@ -36,11 +36,11 @@ public class CustomerInfo {
         this.username = username;
     }
 
-    public Long getRealName() {
+    public String getRealName() {
         return realName;
     }
 
-    public void setRealName(Long realName) {
+    public void setRealName(String realName) {
         this.realName = realName;
     }
 
