@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: order-gateway
+  cloud:
+    gateway:
+      globalcors:
+        # 配置跨域访问容许类型
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes: # 根据最新 API 配置网关路由 TODO - 分布式服务器要改一下
+        - id: order
+          uri: http://localhost:8080/ # 转发至该服务器
+          predicates:
+            - Path=/orders, /orders/states, /orders/{id}, /orders/{id}/confirm, /orders/{id}/groupon-normal, /shops/{shopId}/orders, /shops/{shopId}/orders/{id}, /shops/{shopId}/orders/{id}/deliver
+          filters:
+            - PrefixPath=/order # 网关会在请求之前加上这些字
+            - Auth=authorization # 调用
+
+        - id: freight
+          uri: http://localhost:8080/ # 转发至该服务器
+          predicates:
+            - Path=/region/{rid}/price, /shops/{id}/freightmodels, /shops/{shopId}/freightmodels/**, /shops/{shopId}/freight_models/**, /shops/{shopId}/weightItems/**, /shops/{shopId}/pieceItems/**
+          filters:
+            - PrefixPath=/freight # 网关会在请求之前加上这些字
+            - Auth=authorization
+
+        - id: payment
+          uri: http://localhost:8080/ # 转发至该服务器
+          predicates:
+            - Path=/payments/**, /orders/{id}/payments, /orders/{id}/refunds, /aftersales/{id}/payments, /aftersales/{id}/refunds, /shops/{shopId}/orders/{id}/payments, /shops/{shopId}/aftersales/{id}/payments, /shops/{shopId}/payments/{id}/refunds, /shops/{shopId}/orders/{id}/refunds, /shops/{shopId}/aftersales/{id}/refunds
+          filters:
+            - PrefixPath=/payment # 网关会在请求之前加上这些字
+            - Auth=authorization
