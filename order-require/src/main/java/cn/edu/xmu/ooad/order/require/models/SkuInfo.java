@@ -1,6 +1,8 @@
 package cn.edu.xmu.ooad.order.require.models;
 
-public class SkuInfo {
+import java.io.Serializable;
+
+public class SkuInfo implements Serializable {
 
     private Long id;
 

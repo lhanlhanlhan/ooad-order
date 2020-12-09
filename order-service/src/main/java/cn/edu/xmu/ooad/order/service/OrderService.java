@@ -693,7 +693,7 @@ public class OrderService {
 
         // 创建订单对应 Vo
         OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
-        orderPo.setShopId(null); // TODO - 店铺 id 暂时为空，等支付后分单再说
+        orderPo.setShopId(null); // 店铺 id 暂时为空，等支付后分单再说
         // 填入订单的各种价格
         orderPo.setOriginPrice(totalPrice);
         orderPo.setDiscountPrice(totalDiscount);

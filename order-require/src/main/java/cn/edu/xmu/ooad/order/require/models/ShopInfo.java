@@ -1,8 +1,9 @@
 package cn.edu.xmu.ooad.order.require.models;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class ShopInfo {
+public class ShopInfo implements Serializable {
 
     private Long id;
 

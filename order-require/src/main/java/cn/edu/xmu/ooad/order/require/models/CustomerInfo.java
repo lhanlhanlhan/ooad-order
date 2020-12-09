@@ -1,6 +1,8 @@
 package cn.edu.xmu.ooad.order.require.models;
 
-public class CustomerInfo {
+import java.io.Serializable;
+
+public class CustomerInfo implements Serializable {
 
     Long id;
 
