@@ -77,6 +77,8 @@ mybatis:
     map-underscore-to-camel-case: true
 
 orders:
+  # 是否打印出生成供测试用的 token
+  print-token: true
   freight-model:
     # 运费模板 Redis 缓存失效时间
     redis-expire: 300
