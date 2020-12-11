@@ -1,6 +1,8 @@
 package cn.edu.xmu.ooad.order.require.models;
 
-public class FlashSaleItemInfo {
+import java.io.Serializable;
+
+public class FlashSaleItemInfo implements Serializable {
 
     private Long id;
 
