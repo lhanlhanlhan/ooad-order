@@ -33,6 +33,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>cn.edu.xmu</groupId>
+            <artifactId>order-connector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot 包 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

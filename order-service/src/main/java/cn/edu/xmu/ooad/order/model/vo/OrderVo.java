@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import lombok.Data;
@@ -54,8 +55,12 @@ public class OrderVo {
         this.id = order.getId();
         this.pid = order.getPid();
         this.orderType = order.getOrderType().getCode();
-        this.state = order.getState();
-        this.subState = order.getSubstate();
+
+        OrderStatus state = order.getState();
+        OrderStatus subState = order.getSubstate();
+        this.state = state == null ? null : state.getCode();
+        this.subState = subState == null ? null : subState.getCode();
+
         this.originPrice = order.getOriginPrice();
         this.discountPrice = order.getDiscountPrice();
         this.freightPrice = order.getFreightPrice();

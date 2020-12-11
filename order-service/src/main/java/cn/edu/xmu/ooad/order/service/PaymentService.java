@@ -146,8 +146,8 @@ public class PaymentService {
                     break;
                 case PRE_SALE:  // 预售订单，改为已支付定金 | 已支付尾款
                     // 如果是已支付定金
-                    Byte subState = simpleOrder.getSubstate();
-                    if (subState.equals(OrderStatus.DEPOSIT_PAID.getCode())) {
+                    OrderStatus subState = simpleOrder.getSubstate();
+                    if (subState == OrderStatus.DEPOSIT_PAID) {
                         // 改为已支付 + 已支付尾款
                         editPo.setState(OrderStatus.PAID.getCode());
                         editPo.setSubState(OrderStatus.REM_BALANCE_PAID.getCode());

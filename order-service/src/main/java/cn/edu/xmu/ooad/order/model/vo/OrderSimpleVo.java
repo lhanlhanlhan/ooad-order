@@ -1,6 +1,9 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.model.po.OrderPo;
+import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -40,8 +43,29 @@ public class OrderSimpleVo {
         this.freightPrice = order.getFreightPrice();
         this.discountPrice = order.getDiscountPrice();
         this.originPrice = order.getOriginPrice();
+        OrderStatus state = order.getState();
+        OrderStatus subState = order.getSubstate();
+        this.state = state == null ? null : state.getCode();
+        this.substate = subState == null ? null : subState.getCode();
+        this.gmtCreated = order.getGmtCreated();
+    }
+
+    /**
+     * 直接从数据库对象 Order Simple Po 中提取所需信息，创建 概要 Vo
+     *
+     * @param order
+     */
+    public OrderSimpleVo(OrderSimplePo order) {
+        this.id = order.getId();
+        this.customerId = order.getCustomerId();
+        this.shopId = order.getShopId();
+        this.pid = order.getPid();
+        this.orderType = order.getOrderType();
+        this.freightPrice = order.getFreightPrice();
+        this.discountPrice = order.getDiscountPrice();
+        this.originPrice = order.getOriginPrice();
         this.state = order.getState();
         this.substate = order.getSubstate();
-        this.gmtCreated = order.getGmtCreated();
+        this.gmtCreated = order.getGmtCreate();
     }
 }

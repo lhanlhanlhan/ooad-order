@@ -61,17 +61,17 @@ public class FreightController {
     })
     @InspectCustomer // TODO - Reactive 的话，core 中的鉴权系列的返回 obj 也必须是 Reactive Mono 的！
     @PostMapping("region/{rid}/price")
-    public Mono<Object> getFreightPriceByModel(@PathVariable Long rid,
+    public Object getFreightPriceByModel(@PathVariable Long rid,
                                           @Validated @RequestBody List<FreightOrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
         }
         // 先判断输入是否有误
         if (items == null || items.size() == 0) {
-            return Mono.just(ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST)));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
         }
         // 调用服务层
-        return Mono.just(ResponseUtils.make(freightService.calcFreight(rid, items)));
+        return ResponseUtils.make(freightService.calcFreight(rid, items));
     }
 
     /**

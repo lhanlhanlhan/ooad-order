@@ -6,6 +6,7 @@ import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
+import cn.edu.xmu.ooad.order.model.bo.GrouponOrder;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
@@ -94,8 +95,7 @@ public class OrderService {
             PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
             // 转为业务对象列表
             orders = orderSimplePos.getList().stream()
-                    .map(Order::new)
-                    .map(Order::createSimpleVo)
+                    .map(OrderSimpleVo::new)
                     .collect(Collectors.toList());
             // 用 Map 封装
             returnObj.put("page", orderSimplePos.getPageNum());
@@ -113,8 +113,7 @@ public class OrderService {
             List<OrderSimplePo> orderSimplePos = returnObject.getData();
             // 转为业务对象列表
             orders = orderSimplePos.stream()
-                    .map(Order::new)
-                    .map(Order::createSimpleVo)
+                    .map(OrderSimpleVo::new)
                     .collect(Collectors.toList());
             // 用 Map 封装
             returnObj.put("page", 1);
@@ -145,7 +144,7 @@ public class OrderService {
             return returnObject;
         }
         Order order = returnObject.getData();
-        OrderVo vo = order.createVo();
+        OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
         CustomerInfo customer = customerService.getCustomerInfo(id);
@@ -311,7 +310,11 @@ public class OrderService {
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
-        if (!order.canCustomerChangeFromGrouponToNormal()) {
+        if (!(order instanceof GrouponOrder)) {
+            // 订单种类不被允许【403 返回】
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_TYPE_NOT_CORRESPOND);
+        }
+        if (!((GrouponOrder) order).canChangeToNormal()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
         }
@@ -360,8 +363,7 @@ public class OrderService {
             PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
             // 转为业务对象列表
             orders = orderSimplePos.getList().stream()
-                    .map(Order::new)
-                    .map(Order::createSimpleVo)
+                    .map(OrderSimpleVo::new)
                     .collect(Collectors.toList());
             // 用 Map 封装
             returnObj.put("page", orderSimplePos.getPageNum());
@@ -379,8 +381,7 @@ public class OrderService {
             List<OrderSimplePo> orderSimplePos = returnObject.getData();
             // 转为业务对象列表
             orders = orderSimplePos.stream()
-                    .map(Order::new)
-                    .map(Order::createSimpleVo)
+                    .map(OrderSimpleVo::new)
                     .collect(Collectors.toList());
             // 用 Map 封装
             returnObj.put("page", 1);
@@ -528,7 +529,7 @@ public class OrderService {
             return returnObject;
         }
         Order order = returnObject.getData();
-        OrderVo vo = order.createVo();
+        OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
         CustomerInfo customer = customerService.getCustomerInfo(id);
@@ -834,8 +835,8 @@ public class OrderService {
         // 把 orderItemPoList 塞入 orderPo 中
         orderPo.setOrderItemList(orderItemPoList);
         // 新建业务对象
-        Order order = new Order(orderPo);
-        OrderVo vo = order.createVo();
+        Order order = Order.createOrder(orderPo);
+        OrderVo vo = new OrderVo(order);
         // 补充 Vo 的 Customer 信息：联系其他模块
         CustomerInfo customer = customerService.getCustomerInfo(order.getCustomerId());
         Map<String, Object> customerVo = new HashMap<>();

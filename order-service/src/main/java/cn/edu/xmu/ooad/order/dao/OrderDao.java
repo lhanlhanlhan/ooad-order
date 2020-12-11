@@ -187,7 +187,7 @@ public class OrderDao {
             orderPo.setOrderItemList(null);
         }
         // 创建订单业务对象
-        Order order = new Order(orderPo);
+        Order order = Order.createOrder(orderPo);
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
         return new APIReturnObject<>(order);
@@ -219,7 +219,7 @@ public class OrderDao {
             return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 無檢視權限");
         }
         // 创建订单业务对象
-        Order order = new Order(orderPo);
+        Order order = Order.createOrder(orderPo);
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
         return new APIReturnObject<>(order);

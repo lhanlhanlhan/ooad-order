@@ -18,6 +18,7 @@ public enum ResponseCode {
     RESOURCE_NOT_EXIST(404, "资源不存在"),
     INVALID_USER(405, "用户不存在或不可使用"),
     REQUEST_NOT_ALLOWED(406, "请求不被服务器支援"),
+    ORDER_TYPE_NOT_CORRESPOND(407, "订单种类不支援此操作"),
 
     /**
      * 服务器内部错误
