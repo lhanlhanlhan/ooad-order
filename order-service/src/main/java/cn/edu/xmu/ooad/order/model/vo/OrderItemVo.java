@@ -4,6 +4,7 @@ import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-public class OrderItemVo {
+public class OrderItemVo implements Serializable {
     private Long skuId;
     private Long orderId;
     private String name;

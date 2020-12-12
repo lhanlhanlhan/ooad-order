@@ -350,7 +350,7 @@ public class OrderController {
     }
 
     /**
-     * o10: 管理员建立售后订单 [DONE]
+     * o10: 管理员建立售后订单 [改为内部 API：12/12/2020]
      *
      * @param orderVo 订单详情
      * @return java.lang.Object
@@ -367,7 +367,7 @@ public class OrderController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @InspectAdmin // 管理员登入
-    @PostMapping("shops/{shopId}/orders")
+//    @PostMapping("shops/{shopId}/orders")
     @Deprecated
     public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
                                        @PathVariable Long shopId,

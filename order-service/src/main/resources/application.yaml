@@ -1,3 +1,7 @@
+lh-server:
+  2f-ip: 59.77.13.234
+  aliyun-ip: 112.126.86.188
+
 management:
   endpoints:
     web:
@@ -62,7 +66,7 @@ dubbo:
     name: oomall-order-3-4
     version: 0.0.1
   registry:
-    address: nacos://59.77.13.234:8848
+    address: nacos://${lh-server.2f-ip}:8848
   protocol:
     port: 20880
     name: dubbo
@@ -76,6 +80,20 @@ mybatis:
   configuration:
     # 将数据库中的下划线转成驼峰格式
     map-underscore-to-camel-case: true
+
+# RocketMQ 配置
+rocketmq:
+  # 指定 NameServer 地址
+  name-server: ${lh-server.2f-ip}:9876
+  producer:
+    # 生产者group名称
+    group: order-producer-group
+    # 一次最大容许发送多大 Byte 的消息
+    max-message-size: 4096
+    # 发送消息超时时间，默认3000
+    send-message-timeout: 3000
+    # 发送消息失败重试次数，默认2
+    retry-times-when-send-async-failed: 2
 
 orders:
   # 是否打印出生成供测试用的 token

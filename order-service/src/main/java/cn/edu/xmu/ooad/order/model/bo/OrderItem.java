@@ -52,4 +52,8 @@ public class OrderItem {
     public Long getBeSharedId() {
         return orderItemPo.getBeShareId();
     }
+
+    public void setCouponActId(Long couponActId) {
+        orderItemPo.setCouponActivityId(couponActId);
+    }
 }

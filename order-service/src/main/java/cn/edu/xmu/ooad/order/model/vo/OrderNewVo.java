@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ import java.util.List;
  **/
 @Data
 @ApiModel("新订单申请传值对象")
-public class OrderNewVo {
+public class OrderNewVo implements Serializable {
     @NotNull(message = "订单项目列表为空")
     @Size(min = 1, message = "订单项目列表至少要有 1 个订单项")
     private List<OrderItemVo> orderItems;

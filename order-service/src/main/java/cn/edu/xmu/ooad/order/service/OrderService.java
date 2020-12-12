@@ -401,7 +401,7 @@ public class OrderService {
      * @param orderVo 订单详细资料
      * @return APIReturnObject
      */
-    @Transactional // TODO - 扣库存如何回滚？？
+    @Transactional
     public APIReturnObject<?> createAfterSaleOrder(Long shopId,
                                                    AfterSaleOrderVo orderVo) {
         // 扣库存

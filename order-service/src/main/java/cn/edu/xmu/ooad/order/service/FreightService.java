@@ -50,7 +50,7 @@ public class FreightService {
      *
      * @param regionId      地區id
      * @param orderItemList 商品 list
-     */
+     */ // TODO - 返回值不要 Object，优化一下
     public APIReturnObject<?> calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList) {
         // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
         List<SkuInfo> skuInfoList = new ArrayList<>(orderItemList.size());
