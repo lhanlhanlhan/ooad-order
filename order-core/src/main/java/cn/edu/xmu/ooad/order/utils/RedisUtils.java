@@ -3,14 +3,20 @@ package cn.edu.xmu.ooad.order.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -138,5 +144,25 @@ public class RedisUtils {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * 执行 LUA 脚本
+     * @param script
+     * @param args
+     * @param keys
+     * @param <T>
+     * @return
+     */
+    public Object execute(String script, List<String> keys, Object ...args) {
+        DefaultRedisScript<Object> redisScript = new DefaultRedisScript<>(script);
+        Object res;
+        try {
+            res = redisTemplate.execute(redisScript, keys, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return res;
     }
 }

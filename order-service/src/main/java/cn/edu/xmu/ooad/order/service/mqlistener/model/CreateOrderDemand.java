@@ -1,4 +1,4 @@
-package cn.edu.xmu.ooad.order.service.listener.model;
+package cn.edu.xmu.ooad.order.service.mqlistener.model;
 
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import lombok.Data;

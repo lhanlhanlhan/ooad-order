@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,8 +26,8 @@ public class FreightOrderItemVo {
     private Integer count;
 
     // 订单部分需要，在新建订单计算运费时
-    public FreightOrderItemVo(OrderItemVo orderItemVo) {
-        this.skuId = orderItemVo.getSkuId();
-        this.count = orderItemVo.getQuantity();
+    public FreightOrderItemVo(OrderItem orderItem) {
+        this.skuId = orderItem.getSkuId();
+        this.count = orderItem.getQuantity();
     }
 }

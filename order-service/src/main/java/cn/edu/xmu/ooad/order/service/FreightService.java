@@ -7,12 +7,14 @@ import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +44,8 @@ public class FreightService {
     @Autowired
     private FreightDao freightDao;
 
-    @Autowired
-    private ShopService shopService;
+    @DubboReference(check = false)
+    private IShopService iShopService;
 
     /**
      * 服務 f1: 計算運費
@@ -58,14 +60,20 @@ public class FreightService {
         for (FreightOrderItemVo freightItem : orderItemList) {
             // 准备商品信息 (希望商品模块帮我们缓存了 ～)
             Long skuId = freightItem.getSkuId();
-            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+            SkuInfo skuInfo;
+            try {
+                skuInfo = iShopService.getSkuInfo(skuId);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.BAD_REQUEST);
+            }
             if (skuInfo == null) {
                 // 商品、订单模块数据库不一致
                 logger.error("计算运费、准备商品资料时，检测到商品、订单模块数据库不一致! skuId=" + skuId);
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             // 准备运费模板信息
-            Long modelId = skuInfo.getId(); // 会不会未定义？未定义的话，这个字段应该为 0
+            Long modelId = skuInfo.getFreightId(); // 会不会未定义？未定义的话，这个字段应该为 0
             FreightModel model = freightDao.getFreightModel(modelId);
             if (model == null) {
                 // 商品、订单模块数据库不一致

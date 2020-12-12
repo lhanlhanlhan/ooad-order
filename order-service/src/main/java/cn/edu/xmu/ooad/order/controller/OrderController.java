@@ -12,6 +12,7 @@ import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.ooad.order.service.OrderService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
@@ -151,7 +152,12 @@ public class OrderController {
         } else if (orderInfo.getPresaleId() != null) {
             return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.PRE_SALE));
         } else {
-            return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
+            int ret = orderService.createNormalOrder(customerId, orderInfo, Accessories.genSerialNumber());
+            if (ret == 0) {
+                return ResponseUtils.ok();
+            } else {
+                return ResponseUtils.make(ResponseCode.BAD_REQUEST);
+            }
         }
     }
 

@@ -98,6 +98,10 @@ rocketmq:
 orders:
   # 是否打印出生成供测试用的 token
   print-token: true
+  # 普通商品库存过期时间 (10000s)
+  ordinary-stock-expire: 10000
+  # 写回数据库信号量的过期时间 (100s)
+  write-back-semaphore-expire: 100
   freight-model:
     # 运费模板 Redis 缓存失效时间
     redis-expire: 300

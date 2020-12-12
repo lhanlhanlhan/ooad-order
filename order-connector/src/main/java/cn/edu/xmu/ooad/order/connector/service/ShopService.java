@@ -61,10 +61,12 @@ public class ShopService {
     public SkuInfo getSkuInfo(Long skuId) {
         if (skuId == 1) {
             // 在这里把其他模块的 Model 转为统一的 Map
-            return new SkuInfo(skuId, "Apple MacBook Pro 2020 13' Grey", 1324500L, 1L, 1280L, 1L);
+//            return new SkuInfo(skuId, "Apple MacBook Pro 2020 13' Grey", 1324500L, 1L, 1280L, 1L);
+            return new SkuInfo();
         } else {
             // 在这里把其他模块的 Model 转为统一的 Map
-            return new SkuInfo(skuId, "Air Jordan 1 Red-White", 262800L, 2L, 2230L, 2L);
+//            return new SkuInfo(skuId, "Air Jordan 1 Red-White", 262800L, 2L, 2230L, 2L);
+            return new SkuInfo();
         }
     }
 

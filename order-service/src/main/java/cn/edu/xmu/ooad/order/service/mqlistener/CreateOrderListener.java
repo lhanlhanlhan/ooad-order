@@ -1,29 +1,33 @@
-package cn.edu.xmu.ooad.order.service.listener;
+package cn.edu.xmu.ooad.order.service.mqlistener;
 
-import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
+import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
-import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.service.FreightService;
-import cn.edu.xmu.ooad.order.service.listener.model.CreateOrderDemand;
+import cn.edu.xmu.ooad.order.service.mqproducer.MQService;
+import cn.edu.xmu.ooad.order.service.mqlistener.model.CreateOrderDemand;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.utils.Accessories;
+import cn.edu.xmu.ooad.order.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.util.JacksonUtil;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
+import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -31,8 +35,8 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +48,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RocketMQMessageListener(
-        consumerGroup = "order-group",
+        consumerGroup = "order-create-order-group",
         topic = "order-create-order-topic",
         consumeMode = ConsumeMode.CONCURRENTLY,
         consumeThreadMax = 30)
@@ -55,11 +59,26 @@ public class CreateOrderListener implements RocketMQListener<String> {
     @Autowired
     private FreightService freightService;
 
-    @Resource
+    @DubboReference(check = false)
     private IShopService iShopService;
 
     @Autowired
     private OrderDao orderDao;
+
+    // Redis 工具
+    @Autowired
+    private RedisUtils redisUtils;
+
+    @Autowired
+    private MQService mqService;
+
+    // 普通商品库存过期时间
+    @Value("${orders.ordinary-stock-expire}")
+    private Integer stockExpireTime;
+
+    // 写回信号量过期时间
+    @Value("${orders.write-back-semaphore-expire}")
+    private Integer writeBackExpire;
 
     /**
      * 收到创建订单讯息
@@ -101,11 +120,23 @@ public class CreateOrderListener implements RocketMQListener<String> {
      */
     @Transactional
     public int createNormalOrder(Long customerId, OrderNewVo orderNewVo, String sn) {
+        // 下单此刻时间
+        LocalDateTime nowTime = LocalDateTime.now();
+
         // TODO - 秒杀的认定
 
-        List<OrderItemVo> orderItemVos = orderNewVo.getOrderItems();
+        // TODO - 优惠活动、优惠券
+//        Set<Long> couponActs = new Hash<>();
+//        List<Long> orderItems = new LinkedList<>();
+//        for (OrderItemVo orderItemVo : orderNewVo.getOrderItems()) {
+//            if (orderItemVo.)
+//        }
+        List<OrderItem> orderItems = orderNewVo.getOrderItems().stream()
+                .map(OrderItem::new)
+                .collect(Collectors.toList());
 
         // 获取优惠券 TODO - 优惠活动金额的计算，用 core 模块提供的模板，可能有各种返回值
+
 
         int calcRet = 0;
         if (calcRet != 0) {
@@ -116,7 +147,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
         APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId,
-                orderItemVos.stream()
+                orderItems.stream()
                         .map(FreightOrderItemVo::new)
                         .collect(Collectors.toList()));
         if (freightCalcRes.getCode() != ResponseCode.OK) {
@@ -125,24 +156,24 @@ public class CreateOrderListener implements RocketMQListener<String> {
         Long totalFreight = (Long) freightCalcRes.getData();
 
         // TODO - 下单，扣库存
-//        for (Map<String, Object> itemInfo : orderItems) {
-//            if (!decreaseStock(itemInfo)) {
-//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
-//            }
-//        }
+        LinkedList<Long> writeBackQueue = new LinkedList<>();
+        for (OrderItem item : orderItems) {
+            if (!decreaseStock(item.getSkuId(), item.getQuantity(), writeBackQueue)) {
+                // 回滚数据库事务
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return 1;
+            }
+        }
 
         // TODO - 核销优惠券
 
         /* 以下是数据库部分 */
 
-        LocalDateTime nowTime = LocalDateTime.now();
-
         // 计算各商品的价格及其对应 Po
-        List<OrderItemPo> orderItemPos = new ArrayList<>(orderItemVos.size());
+        List<OrderItemPo> orderItemPos = new ArrayList<>(orderItems.size());
         long totalPrice = 0L;
         long totalDiscount = 0L;
-        for (OrderItemVo item : orderItemVos) {
+        for (OrderItem item : orderItems) {
             Long skuId = item.getSkuId();
             Integer quantity = item.getQuantity();
             // 创建新 po，设置除了 orderId、beSharedId 以外的资料
@@ -203,6 +234,10 @@ public class CreateOrderListener implements RocketMQListener<String> {
             }
         }
 
+        // 下单成功，批量提交商品库存数据库写回
+        for (Long skuId : writeBackQueue) {
+            mqService.sendWriteBackStockMessage(skuId);
+        }
         // 返回成功
         return 0;
     }
@@ -226,21 +261,52 @@ public class CreateOrderListener implements RocketMQListener<String> {
         return orderPo;
     }
 
+    static String decrScript = "local buyNum = ARGV[1]\n" +
+            "local skuKey = KEYS[1]\n" +
+            "local skuStock = redis.call('get', skuKey)\n" +
+            "if skuStock >= buyNum\n" +
+            "then redis.call('decrby', skuKey, buyNum)\n" +
+            "return buyNum\n" +
+            "else\n" +
+            "return 0\n" +
+            "end";
+
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存
-     * // TODO - redis
-     *
-     * @param itemInfo
+     * @param skuId
+     * @param quantity
      * @return
      */
-    private boolean decreaseStock(Map<String, Object> itemInfo) {
-        Long skuId = (Long) itemInfo.get("skuId");
-        Integer quantity = (Integer) itemInfo.get("quantity");
-        int decStatus = iShopService.decreaseStock(skuId, quantity);
-        if (decStatus == 1) {
-            // 库存不足
-            logger.warn("not in stock: skuid=" + skuId);
+    private boolean decreaseStock(Long skuId, Integer quantity, LinkedList<Long> writeBackQueue) {
+        String keyStock = "sk_" + skuId;
+        Long stock = redisUtils.get(keyStock, Long.class);
+        if (null == stock) {
+            // 没有库存，先 load 一下
+            stock = iShopService.getStock(skuId);
+            redisUtils.set(keyStock, stock, stockExpireTime);
+        }
+        // 先看看库存够不够先！否则亏了
+        if (stock < quantity) {
             return false;
+        }
+        // 够，就减库存
+        List<String> keys = new ArrayList<>(1);
+        keys.add(keyStock);
+        Object result = redisUtils.execute(decrScript, keys, quantity);
+        if (result.equals("0")) {
+            // 扣库存不成功
+            return false;
+        }
+        // 扣库存成功，然后发送更新库存信号
+        String key = "wb_" + skuId;
+        Boolean semWroteBack = redisUtils.get(key, Boolean.class);
+        if (semWroteBack == null || !semWroteBack) {
+            // 调用 write back
+            // mqService.sendWriteBackStockMessage(skuId);
+            // 先放在等待队列，待事务完成后，再批量 write back
+            writeBackQueue.add(skuId);
+            // 信号量设为 1
+            redisUtils.set(key, Boolean.TRUE, writeBackExpire);
         }
         return true;
     }
