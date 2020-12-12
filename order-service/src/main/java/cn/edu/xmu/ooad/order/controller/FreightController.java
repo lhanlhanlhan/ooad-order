@@ -16,11 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 运费控制器类
@@ -62,7 +59,7 @@ public class FreightController {
     @InspectCustomer // TODO - Reactive 的话，core 中的鉴权系列的返回 obj 也必须是 Reactive Mono 的！
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
-                                          @Validated @RequestBody List<FreightOrderItemVo> items) {
+                                         @Validated @RequestBody List<FreightOrderItemVo> items) {
         if (logger.isDebugEnabled()) {
             logger.debug("post region/{rid}/price; rid=" + rid + " items=" + items);
         }

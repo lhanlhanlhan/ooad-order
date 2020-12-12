@@ -4,7 +4,6 @@ import cn.edu.xmu.ooad.goods.require.IFreightModelService;
 import cn.edu.xmu.ooad.goods.require.model.FreightModelSimple;
 import cn.edu.xmu.ooad.order.dao.FreightDao;
 import org.apache.dubbo.config.annotation.DubboService;
-import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

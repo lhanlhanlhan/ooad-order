@@ -3,11 +3,9 @@ package cn.edu.xmu.ooad.order.model.bo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 对应一个地区的运费模板规则

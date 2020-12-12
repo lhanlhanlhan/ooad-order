@@ -16,7 +16,6 @@
 
     <modules>
         <module>order-service</module>
-        <module>order-gateway</module>
         <module>order-core</module>
         <module>order-connector</module>
     </modules>

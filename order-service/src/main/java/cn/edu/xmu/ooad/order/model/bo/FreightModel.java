@@ -1,20 +1,14 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
-import cn.edu.xmu.ooad.order.dao.FreightDao;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
-import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
-import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
-import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
-import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 运费模板业务类
@@ -35,19 +29,9 @@ public abstract class FreightModel implements Serializable {
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
 
-    public static FreightModel create(FreightModelPo freightModelPo) {
-        switch (freightModelPo.getType()) {
-            case 0: // 重量模板
-                return new WeightFreightModel(freightModelPo);
-            case 1: // 件数模板
-                return new PieceFreightModel(freightModelPo);
-            default:
-                return null;
-        }
-    }
-
     /**
      * 拷贝构造！因为这个是会放 redis 里滴
+     *
      * @param freightModelPo
      */
     protected FreightModel(FreightModelPo freightModelPo) {
@@ -58,6 +42,17 @@ public abstract class FreightModel implements Serializable {
         this.gmtCreate = freightModelPo.getGmtCreate();
         this.gmtModified = freightModelPo.getGmtModified();
         this.unit = freightModelPo.getUnit();
+    }
+
+    public static FreightModel create(FreightModelPo freightModelPo) {
+        switch (freightModelPo.getType()) {
+            case 0: // 重量模板
+                return new WeightFreightModel(freightModelPo);
+            case 1: // 件数模板
+                return new PieceFreightModel(freightModelPo);
+            default:
+                return null;
+        }
     }
 
     /**

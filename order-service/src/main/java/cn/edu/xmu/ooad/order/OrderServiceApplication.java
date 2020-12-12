@@ -25,10 +25,9 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableDubbo(scanBasePackages = "cn.edu.xmu.ooad.order.service.impl")
 public class OrderServiceApplication implements ApplicationRunner {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceApplication.class);
     @Value("${orders.print-token}")
     private Boolean printToken;
-
-    private static final Logger logger = LoggerFactory.getLogger(OrderServiceApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(OrderServiceApplication.class, args);

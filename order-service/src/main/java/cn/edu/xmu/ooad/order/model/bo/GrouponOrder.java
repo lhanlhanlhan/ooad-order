@@ -1,7 +1,6 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
-import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 

@@ -8,7 +8,6 @@ import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 重量运费模板业务类

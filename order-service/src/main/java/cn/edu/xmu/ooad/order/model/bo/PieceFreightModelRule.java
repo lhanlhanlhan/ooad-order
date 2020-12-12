@@ -6,7 +6,6 @@ import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Han Li
