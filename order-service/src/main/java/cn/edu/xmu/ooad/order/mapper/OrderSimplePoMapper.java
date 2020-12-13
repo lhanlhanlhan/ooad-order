@@ -2,7 +2,6 @@ package cn.edu.xmu.ooad.order.mapper;
 
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePoExample;
-
 import java.util.List;
 
 public interface OrderSimplePoMapper {

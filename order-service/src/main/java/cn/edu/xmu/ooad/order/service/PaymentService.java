@@ -435,7 +435,7 @@ public class PaymentService {
         refundPo.setAftersaleId(aftersaleId);
         // 模拟支付环境的都是已经退款
         refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
-        refundPo.setAmout(amount);
+        refundPo.setAmount(amount);
         refundPo.setGmtCreate(LocalDateTime.now());
         refundPo.setGmtModified(null);
         // 将退款单Po对象插入数据库

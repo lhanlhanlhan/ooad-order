@@ -51,7 +51,6 @@ CREATE TABLE `order_item` (
   `price` bigint DEFAULT NULL,
   `discount` bigint DEFAULT NULL,
   `name` varchar(128) DEFAULT NULL,
-  `coupon_id` bigint DEFAULT NULL,
   `coupon_activity_id` bigint DEFAULT NULL,
   `be_share_id` bigint DEFAULT NULL,
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -110,7 +109,7 @@ CREATE TABLE `payment` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `amount` bigint DEFAULT NULL,
   `actual_amount` bigint DEFAULT NULL,
-  `payment_pattern` tinyint DEFAULT NULL,
+  `payment_pattern` varchar(64) DEFAULT NULL,
   `pay_time` datetime DEFAULT NULL,
   `pay_sn` varchar(128) DEFAULT NULL,
   `begin_time` datetime DEFAULT NULL,
@@ -155,7 +154,7 @@ DROP TABLE IF EXISTS `refund`;
 CREATE TABLE `refund` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `payment_id` bigint DEFAULT NULL,
-  `amout` bigint DEFAULT NULL,
+  `amount` bigint DEFAULT NULL,
   `order_id` bigint DEFAULT NULL,
   `aftersale_id` bigint DEFAULT NULL,
   `state` tinyint DEFAULT NULL,
@@ -198,4 +197,4 @@ CREATE TABLE `weight_freight_model` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-12-03 21:21:39
+-- Dump completed on 2020-12-10 19:32:05

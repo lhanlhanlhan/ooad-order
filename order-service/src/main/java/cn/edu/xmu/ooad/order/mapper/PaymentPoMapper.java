@@ -2,7 +2,6 @@ package cn.edu.xmu.ooad.order.mapper;
 
 import cn.edu.xmu.ooad.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.model.po.PaymentPoExample;
-
 import java.util.List;
 
 public interface PaymentPoMapper {

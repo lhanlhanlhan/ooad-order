@@ -28,7 +28,7 @@ public class RefundVo {
     public RefundVo(RefundPo po) {
         this.id = po.getId();
         this.paymentId = po.getPaymentId();
-        this.amount = po.getAmout();
+        this.amount = po.getAmount();
         this.state = po.getState();
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
