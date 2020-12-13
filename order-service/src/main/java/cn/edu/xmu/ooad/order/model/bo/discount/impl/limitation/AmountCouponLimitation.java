@@ -1,7 +1,7 @@
 package cn.edu.xmu.ooad.order.model.bo.discount.impl.limitation;
 
-import cn.edu.xmu.ooad.order.bo.OrderItem;
-import cn.edu.xmu.ooad.order.discount.BaseCouponLimitation;
+import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponLimitation;
 
 import java.util.List;
 

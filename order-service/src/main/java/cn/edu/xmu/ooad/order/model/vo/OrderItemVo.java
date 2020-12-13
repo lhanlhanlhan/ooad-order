@@ -42,17 +42,4 @@ public class OrderItemVo implements Serializable {
         this.couponActId = item.getCouponActId();
         this.beSharedId = item.getBeSharedId();
     }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("skuId", this.skuId);
-        map.put("orderId", this.orderId);
-        map.put("name", this.name);
-        map.put("quantity", this.quantity);
-        map.put("price", this.price);
-        map.put("discount", this.discount);
-        map.put("couponActId", this.couponActId);
-        map.put("beSharedId", this.beSharedId);
-        return map;
-    }
 }

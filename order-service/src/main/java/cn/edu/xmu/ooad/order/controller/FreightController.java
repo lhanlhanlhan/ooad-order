@@ -5,11 +5,14 @@ import cn.edu.xmu.ooad.order.annotations.LoginUser;
 import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
 import cn.edu.xmu.ooad.order.aspects.InspectCustomer;
 import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.require.IShopService;
+import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.service.FreightService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 运费控制器类
@@ -36,6 +41,10 @@ public class FreightController {
     // 运费服务
     @Autowired
     private FreightService freightService;
+
+    // 商品服务
+    @DubboReference(check = false)
+    private IShopService iShopService;
 
     /**
      * f1: 买家用运费模板计算一批订单商品的运费
@@ -56,7 +65,7 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer // TODO - Reactive 的话，core 中的鉴权系列的返回 obj 也必须是 Reactive Mono 的！
+    @InspectCustomer
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
                                          @Validated @RequestBody List<FreightOrderItemVo> items) {
@@ -67,8 +76,28 @@ public class FreightController {
         if (items == null || items.size() == 0) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
         }
-        // 调用服务层
-        return ResponseUtils.make(freightService.calcFreight(rid, items));
+        // 在运算运费前，要提前获得商品模块 sku 信息，否则重复获取 sku 信息
+        Map<Long, SkuInfo> skuInfoMap = new HashMap<>(items.size());
+        for (FreightOrderItemVo orderItemVo : items) {
+            SkuInfo skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
+            if (skuInfo == null) {
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "查无商品"));
+            }
+            skuInfoMap.put(orderItemVo.getSkuId(), skuInfo);
+        }
+
+        // 计算运费
+        int freight = (int) freightService.calcFreight(rid, items, skuInfoMap);
+        switch (freight) {
+            case -3: // 含禁止物品
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN));
+            case -2:
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "未定义的运费模板 id"));
+            case -1:
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "计算运费不成功"));
+            default:
+                return ResponseUtils.make(new APIReturnObject<>(freight));
+        }
     }
 
     /**
@@ -192,7 +221,6 @@ public class FreightController {
     })
     @InspectAdmin //登录
     @GetMapping("freightmodels/{id}")
-    // TODO - 主语是谁？商家还是平台管理员？
     public Object getFreightModelSimple(@PathVariable Long id,
                                         @LoginUser Long adminId,
                                         @AdminShop Long adminShopId) {

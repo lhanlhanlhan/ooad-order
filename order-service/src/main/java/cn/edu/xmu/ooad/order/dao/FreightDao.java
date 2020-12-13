@@ -146,7 +146,9 @@ public class FreightDao {
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
         FreightModelPoExample.Criteria criteria = freightModelPoExample.createCriteria();
         criteria.andIdEqualTo(id);
-        criteria.andShopIdEqualTo(shopId);
+        if (shopId != 0) {
+            criteria.andShopIdEqualTo(shopId);
+        }
 
         List<FreightModelPo> freightModelPoList;
         try {

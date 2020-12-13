@@ -10,12 +10,15 @@ import cn.edu.xmu.ooad.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderStatusVo;
+import cn.edu.xmu.ooad.order.require.IOtherService;
+import cn.edu.xmu.ooad.order.require.models.RegionInfo;
 import cn.edu.xmu.ooad.order.service.OrderService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,9 @@ public class OrderController {
     // 订单服务
     @Autowired
     private OrderService orderService;
+
+    @DubboReference(check = false)
+    private IOtherService iOtherService;
 
     /**
      * o1: 获得订单的所有状态 [DONE]
@@ -144,7 +150,10 @@ public class OrderController {
         if (logger.isDebugEnabled()) {
             logger.debug("post orders; vo=" + orderInfo);
         }
-        // TODO - region id 合法性检查
+        // region id 合法性检查
+        if (!iOtherService.isRegionIdExists(orderInfo.getRegionId())) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST, "该地区 id 是非法的"));
+        }
         return ResponseUtils.make(orderService.createOrder(customerId, orderInfo));
     }
 

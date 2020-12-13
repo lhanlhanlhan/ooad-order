@@ -1,8 +1,8 @@
 package cn.edu.xmu.ooad.order.model.bo.discount.impl.discount;
 
-import cn.edu.xmu.ooad.order.bo.OrderItem;
-import cn.edu.xmu.ooad.order.discount.BaseCouponDiscount;
-import cn.edu.xmu.ooad.order.discount.BaseCouponLimitation;
+import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponDiscount;
+import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponLimitation;
 
 import java.util.List;
 
@@ -26,7 +26,8 @@ public class PriceCouponDiscount extends BaseCouponDiscount {
 
 		for (OrderItem oi : orderItems) {
 			long discount = (long) ((1.0 * oi.getQuantity() * oi.getPrice() / total) * value / oi.getQuantity());
-			oi.setDiscount(discount);
+			// 优惠金额是累加的吧？亲
+			oi.addDiscount(discount);
 		}
 	}
 }

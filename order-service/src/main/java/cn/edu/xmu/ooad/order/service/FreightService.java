@@ -52,33 +52,24 @@ public class FreightService {
      *
      * @param regionId      地區id
      * @param orderItemList 商品 list
-     */ // TODO - 返回值不要 Object，优化一下
-    public APIReturnObject<?> calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList) {
+     * @return -1：失败；-2：运费模板 id 未定义；-3：包含禁寄物品
+     */
+    // TODO - 能不能不要拿 SKU INFO 阿？好浪费。只拿 freight model id 就好了
+    public long calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList, Map<Long, SkuInfo> skuInfoMap) {
         // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
         List<SkuInfo> skuInfoList = new ArrayList<>(orderItemList.size());
         List<FreightModel> freightModelList = new ArrayList<>(orderItemList.size());
         for (FreightOrderItemVo freightItem : orderItemList) {
-            // 准备商品信息 (希望商品模块帮我们缓存了 ～)
+            // 准备商品信息
             Long skuId = freightItem.getSkuId();
-            SkuInfo skuInfo;
-            try {
-                skuInfo = iShopService.getSkuInfo(skuId);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.BAD_REQUEST);
-            }
-            if (skuInfo == null) {
-                // 商品、订单模块数据库不一致
-                logger.error("计算运费、准备商品资料时，检测到商品、订单模块数据库不一致! skuId=" + skuId);
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
+            SkuInfo skuInfo = skuInfoMap.get(skuId);
             // 准备运费模板信息
             Long modelId = skuInfo.getFreightId(); // 会不会未定义？未定义的话，这个字段应该为 0
             FreightModel model = freightDao.getFreightModel(modelId);
             if (model == null) {
                 // 商品、订单模块数据库不一致
                 logger.error("计算运费、抽取运费模板时，检测到运费模板未定义! skuId=" + skuId);
-                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST, "賣家沒有定義商品的運費模板！");
+                return -2;
             }
 
             // 准备列表
@@ -87,7 +78,8 @@ public class FreightService {
         }
         // 2. 用每个模板计算所有物品的最大运费
         AtomicReference<Boolean> calcSucceeded = new AtomicReference<>(true);
-        Optional<Long> freight = freightModelList.parallelStream().map(model -> {
+        Optional<Long> freight = freightModelList.stream().map(model -> {
+            // 用该运费模板计算运费
             long subFreight = model.calcFreight(regionId, orderItemList, skuInfoList);
             if (subFreight == -1) {
                 // 包含禁寄物品
@@ -97,10 +89,10 @@ public class FreightService {
         }).max(Long::compareTo);
 
         if (calcSucceeded.get() && freight.isPresent()) {
-            return new APIReturnObject<>(freight);
+            return freight.get();
         } else {
             // 包含禁寄物品
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN);
+            return -3;
         }
     }
 
