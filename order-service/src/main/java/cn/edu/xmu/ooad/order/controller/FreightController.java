@@ -1,9 +1,8 @@
 package cn.edu.xmu.ooad.order.controller;
 
-import cn.edu.xmu.ooad.order.annotations.AdminShop;
-import cn.edu.xmu.ooad.order.annotations.LoginUser;
-import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
-import cn.edu.xmu.ooad.order.aspects.InspectCustomer;
+import cn.edu.xmu.ooad.annotation.Audit;
+import cn.edu.xmu.ooad.annotation.Depart;
+import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.order.model.vo.*;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
@@ -65,7 +64,7 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer
+    @Audit
     @PostMapping("region/{rid}/price")
     public Object getFreightPriceByModel(@PathVariable Long rid,
                                          @Validated @RequestBody List<FreightOrderItemVo> items) {
@@ -117,12 +116,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PostMapping("shops/{id}/freightmodels")
     public Object createFreightModel(@PathVariable Long id,
                                      @Validated @RequestBody FreightModelNewVo freightModelNewVo,
                                      @LoginUser Long adminId,
-                                     @AdminShop Long adminShopId) {
+                                     @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelNewVo + " adminId=" + adminId);
         }
@@ -151,14 +150,14 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //管理员登录
+    @Audit //管理员登录
     @GetMapping("shops/{id}/freightmodels")
     public Object getFreightModel(@PathVariable Long id,                     //店铺id
                                   @RequestParam(required = false) String name,
                                   @RequestParam(required = false) Integer page,
                                   @RequestParam(required = false) Integer pageSize,
                                   @LoginUser Long adminId,
-                                  @AdminShop Long adminShopId) {
+                                  @Depart Long adminShopId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("get shops/{id}/freightmodels; id = " + id + " name = " + name + " page = " + page +
@@ -187,12 +186,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PostMapping("shops/{shopId}/freightmodels/{id}/clone")
     public Object cloneFreightModel(@PathVariable Long shopId,
                                     @PathVariable Long id,
                                     @LoginUser Long adminId,
-                                    @AdminShop Long adminShopId) {
+                                    @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("post shops/{shopId}/freightmodels/{id}/clone; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -219,11 +218,11 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @GetMapping("freightmodels/{id}")
     public Object getFreightModelSimple(@PathVariable Long id,
                                         @LoginUser Long adminId,
-                                        @AdminShop Long adminShopId) {
+                                        @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get freightmodels/{id};id = " + id + " adminId = " + adminId);
         }
@@ -249,13 +248,13 @@ public class FreightController {
             @ApiResponse(code = 802, message = "运费模板名重复"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PutMapping("shops/{shopId}/freightmodels/{id}")
     public Object modifyShopFreightModel(@PathVariable Long shopId,
                                          @PathVariable Long id,
                                          @Validated @RequestBody FreightModelEditVo freightModelEditVo,
                                          @LoginUser Long adminId,
-                                         @AdminShop Long adminShopId) {
+                                         @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + freightModelEditVo);
         }
@@ -289,12 +288,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @DeleteMapping("shops/{shopId}/freightmodels/{id}")
     public Object deleteFreightModel(@PathVariable Long shopId,
                                      @PathVariable Long id,
                                      @LoginUser Long adminId,
-                                     @AdminShop Long adminShopId) {
+                                     @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("delete shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -322,13 +321,13 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PostMapping("shops/{shopId}/freightmodels/{id}/default")
     // TODO 到底freight_models还是freightmodels？？？
     public Object defineDefaultFreightModel(@PathVariable Long shopId,
                                             @PathVariable Long id,
                                             @LoginUser Long adminId,
-                                            @AdminShop Long adminShopId) {
+                                            @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("delete shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -357,13 +356,13 @@ public class FreightController {
             @ApiResponse(code = 803, message = "运费模板中该地区已定义"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PostMapping("shops/{shopId}/freightmodels/{id}/weightItems")
     public Object defineWeightFreightModle(@PathVariable Long shopId,
                                            @PathVariable Long id,
                                            @RequestBody WeightFreightModelVo weightFreightModelVo,
                                            @LoginUser Long adminId,
-                                           @AdminShop Long adminShopId) {
+                                           @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/freightmodels/{id}/weightItems;shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
@@ -391,12 +390,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @GetMapping("shops/{shopId}/freightmodels/{id}/weightItems")
     public Object getWeightFreightModel(@PathVariable Long shopId,
                                         @PathVariable Long id,
                                         @LoginUser Long adminId,
-                                        @AdminShop Long adminShopId) {
+                                        @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get shops/{shopId}/freightmodels/{id}/weightItems; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -425,13 +424,13 @@ public class FreightController {
             @ApiResponse(code = 803, message = "运费模板中该地区已定义"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PostMapping("shops/{shopId}/freightmodels/{id}/pieceItems")
     public Object definePieceFreightModle(@PathVariable Long shopId,
                                           @PathVariable Long id,
                                           @RequestBody PieceFreightModelVo pieceFreightModelVo,
                                           @LoginUser Long adminId,
-                                          @AdminShop Long adminShopId) {
+                                          @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + pieceFreightModelVo);
         }
@@ -459,12 +458,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @GetMapping("shops/{shopId}/freightmodels/{id}/pieceItems")
     public Object getPieceFreightModel(@PathVariable Long shopId,
                                        @PathVariable Long id,
                                        @LoginUser Long adminId,
-                                       @AdminShop Long adminShopId) {
+                                       @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get shops/{shopId}/freightmodels/{id}/pieceItems; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -493,13 +492,13 @@ public class FreightController {
             @ApiResponse(code = 803, message = "运费模板中该地区已定义"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PutMapping("shops/{shopId}/weightItems/{id}")
     public Object modifyWeightFreightModel(@PathVariable Long shopId,
                                            @PathVariable Long id,
                                            @RequestBody WeightFreightModelVo weightFreightModelVo,
                                            @LoginUser Long adminId,
-                                           @AdminShop Long adminShopId) {
+                                           @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/weightItems/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
@@ -527,12 +526,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @DeleteMapping("shops/{shopId}/weightItems/{id}")
     public Object deleteWeightFreightModel(@PathVariable Long shopId,
                                            @PathVariable Long id,
                                            @LoginUser Long adminId,
-                                           @AdminShop Long adminShopId) {
+                                           @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("delete shops/{shopId}/weightItems/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
@@ -562,13 +561,13 @@ public class FreightController {
             @ApiResponse(code = 803, message = "运费模板中该地区已定义"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @PutMapping("shops/{shopId}/pieceItems/{id}")
     public Object modifyPieceFreightModel(@PathVariable Long shopId,
                                           @PathVariable Long id,
                                           @RequestBody PieceFreightModelVo vo,
                                           @LoginUser Long adminId,
-                                          @AdminShop Long adminShopId) {
+                                          @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + vo);
         }
@@ -596,12 +595,12 @@ public class FreightController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin //登录
+    @Audit //登录
     @DeleteMapping("shops/{shopId}/pieceItems/{id}")
     public Object deletePieceFreightModel(@PathVariable Long shopId,
                                           @PathVariable Long id,
                                           @LoginUser Long adminId,
-                                          @AdminShop Long adminShopId) {
+                                          @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("delete shops/{shopId}/pieceItems/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }

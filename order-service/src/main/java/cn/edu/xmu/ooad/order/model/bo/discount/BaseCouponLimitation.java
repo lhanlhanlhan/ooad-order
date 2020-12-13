@@ -18,22 +18,21 @@ import java.util.List;
 @NoArgsConstructor
 public abstract class BaseCouponLimitation {
 
-	public BaseCouponLimitation(long value) {
-		this.value = value;
-		this.className = this.getClass().getName();
-	}
+    // 件数或金额 (分)
+    protected long value;
+    protected String className;
 
-	// 件数或金额 (分)
-	protected long value;
+    public BaseCouponLimitation(long value) {
+        this.value = value;
+        this.className = this.getClass().getName();
+    }
 
-	protected String className;
+    public static BaseCouponLimitation getInstance(String jsonString) throws JsonProcessingException, ClassNotFoundException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(jsonString);
+        String className = root.get("className").asText();
+        return (BaseCouponLimitation) mapper.readValue(jsonString, Class.forName(className));
+    }
 
-	public abstract boolean pass(List<OrderItem> orderItems);
-
-	public static BaseCouponLimitation getInstance(String jsonString) throws JsonProcessingException, ClassNotFoundException {
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode root = mapper.readTree(jsonString);
-		String className = root.get("className").asText();
-		return (BaseCouponLimitation) mapper.readValue(jsonString, Class.forName(className));
-	}
+    public abstract boolean pass(List<OrderItem> orderItems);
 }

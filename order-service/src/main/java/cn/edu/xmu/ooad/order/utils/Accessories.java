@@ -22,6 +22,7 @@ public class Accessories {
     /**
      * 增加 20% 以内的随机时间
      * 如果 timeout <0 则会返回 60s+ 随机时间
+     *
      * @param timeout 时间
      * @return 增加后的随机时间
      */

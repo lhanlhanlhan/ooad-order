@@ -2,13 +2,13 @@ package cn.edu.xmu.ooad.order.model.vo;
 
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
+import cn.edu.xmu.ooad.order.require.models.ShopInfo;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 public class OrderVo {
 
     private final Long id;
-    private Map<String, Object> customer;
-    private Map<String, Object> shop;
+    private CustomerInfo customer;
+    private ShopInfo shop;
     private Long pid;
     private Byte orderType;
     private Byte state;
@@ -82,22 +82,5 @@ public class OrderVo {
         // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
         LocalDateTime gmtCreate = order.getGmtCreated();
         this.gmtCreate = gmtCreate == null ? ResponseUtils.UNIX_TIMESTAMP_START : gmtCreate.toString();
-    }
-
-    private Map<String, Object> buildCustomerVo(Map<String, Object> data) {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", data.get("id"));
-        userInfo.put("userName", data.get("userName"));
-        userInfo.put("realName", data.get("realName"));
-        return userInfo;
-    }
-
-    private Map<String, Object> buildShopVo(Map<String, Object> data) {
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", data.get("id"));
-        userInfo.put("name", data.get("name"));
-        userInfo.put("gmtCreate", data.get("gmtCreate"));
-        userInfo.put("gmtModified", data.get("gmtModified"));
-        return userInfo;
     }
 }

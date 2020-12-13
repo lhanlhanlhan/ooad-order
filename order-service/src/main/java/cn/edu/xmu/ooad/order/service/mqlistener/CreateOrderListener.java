@@ -11,36 +11,34 @@ import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
-import cn.edu.xmu.ooad.order.require.*;
+import cn.edu.xmu.ooad.order.require.ICouponService;
+import cn.edu.xmu.ooad.order.require.IGrouponService;
+import cn.edu.xmu.ooad.order.require.IPreSaleService;
+import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.*;
 import cn.edu.xmu.ooad.order.service.FreightService;
-import cn.edu.xmu.ooad.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.service.mqlistener.model.CreateOrderDemand;
-import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.utils.RedisUtils;
-import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.util.JacksonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
-import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.annotation.Resource;
-import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -59,43 +57,48 @@ import java.util.stream.Collectors;
 public class CreateOrderListener implements RocketMQListener<String> {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateOrderListener.class);
-
+    static String addBackScript = " local buyNum = tonumber(ARGV[1]) " +
+            " local skuKey = KEYS[1] " +
+            " redis.call('add', skuKey, buyNum) " +
+            " return ARGV[1] " +
+            " end ";
+    static String decrScript = " local buyNum = tonumber(ARGV[1]) " +
+            " local skuKey = KEYS[1] " +
+            " local skuStock = tonumber(redis.call('get', skuKey)) " +
+            " if skuStock >= buyNum " +
+            " then redis.call('decrby', skuKey, buyNum) " +
+            " return ARGV[1] " +
+            " else " +
+            " return '0' " +
+            " end ";
     @Autowired
     private FreightService freightService;
-
     @DubboReference(check = false)
     private IShopService iShopService;
-
     @DubboReference(check = false)
     private ICouponService iCouponService;
-
     @DubboReference(check = false)
     private IGrouponService iGrouponService;
-
     @DubboReference(check = false)
     private IPreSaleService iPreSaleService;
-
     @Autowired
     private OrderDao orderDao;
-
     // Redis 工具
     @Autowired
     private RedisUtils redisUtils;
-
     // MQ 服务
     @Autowired
     private MQService mqService;
-
     // 普通商品库存过期时间
     @Value("${orders.ordinary-stock-expire}")
     private Integer stockExpireTime;
-
     // 写回信号量过期时间
     @Value("${orders.write-back-semaphore-expire}")
     private Integer writeBackExpire;
 
     /**
      * 收到创建订单讯息
+     *
      * @param message 讯息字符串
      */
     @Override
@@ -131,6 +134,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
     /**
      * MQ 消费服务 1：创建普通订单 (假定订单内的所有【优惠券】都是【用户已经拥有】的)
+     *
      * @param customerId 用户 ID
      * @param orderNewVo 新订单 Vo
      * @return 0：成功；1：库存不足；2：失败；3：运费无法计算；4：无此商品
@@ -479,15 +483,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
         return 0;
     }
 
-
-    static String addBackScript = " local buyNum = tonumber(ARGV[1]) " +
-            " local skuKey = KEYS[1] " +
-            " redis.call('add', skuKey, buyNum) " +
-            " return ARGV[1] " +
-            " end ";
-
     /**
      * ** 内部方法 ** 失败了充正库存
+     *
      * @param skuStock
      */
     @RedisOptimized
@@ -500,8 +498,6 @@ public class CreateOrderListener implements RocketMQListener<String> {
             redisUtils.execute(addBackScript, keys, stock.toString());
         });
     }
-
-
 
     /**
      * **内部方法** 根据 Vo 新建 OrderPo
@@ -521,18 +517,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
         return orderPo;
     }
 
-    static String decrScript = " local buyNum = tonumber(ARGV[1]) " +
-            " local skuKey = KEYS[1] " +
-            " local skuStock = tonumber(redis.call('get', skuKey)) " +
-            " if skuStock >= buyNum " +
-            " then redis.call('decrby', skuKey, buyNum) " +
-            " return ARGV[1] " +
-            " else " +
-            " return '0' " +
-            " end ";
-
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存
+     *
      * @param skuId
      * @param quantity
      * @return 0：成功；1：库存不足；2：失败
@@ -576,6 +563,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
     /**
      * **内部方法** 根据 OrderItemInfo 扣秒杀库存
+     *
      * @param skuId
      * @param quantity
      * @return 0：成功；1：库存不足；2：失败
@@ -606,6 +594,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存 (不发消息，仅适用于单品订单)
+     *
      * @param skuId
      * @param quantity
      * @return 0：成功；1：库存不足；2：失败

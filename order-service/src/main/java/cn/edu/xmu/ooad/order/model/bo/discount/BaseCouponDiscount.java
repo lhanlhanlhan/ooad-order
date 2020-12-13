@@ -19,52 +19,50 @@ import java.util.List;
 @NoArgsConstructor
 public abstract class BaseCouponDiscount implements Computable, JsonSerializable {
 
-	public BaseCouponDiscount(BaseCouponLimitation limitation, long value) {
-		this.couponLimitation = limitation;
-		this.value = value;
-		this.className = this.getClass().getName();
-	}
+    // 百分点或金额 (分)
+    protected long value;
+    protected String className;
+    protected BaseCouponLimitation couponLimitation;
 
-	// 百分点或金额 (分)
-	protected long value;
+    public BaseCouponDiscount(BaseCouponLimitation limitation, long value) {
+        this.couponLimitation = limitation;
+        this.value = value;
+        this.className = this.getClass().getName();
+    }
 
-	protected String className;
+    public static BaseCouponDiscount getInstance(String jsonString) throws JsonProcessingException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(jsonString);
+        String className = root.get("className").asText();
+        BaseCouponDiscount bc = (BaseCouponDiscount) Class.forName(className).getConstructor().newInstance();
 
-	protected BaseCouponLimitation couponLimitation;
+        String limitation = root.get("couponLimitation").toString();
+        BaseCouponLimitation bl = BaseCouponLimitation.getInstance(limitation);
 
-	public List<OrderItem> compute(List<OrderItem> orderItems) {
-		if (!couponLimitation.pass(orderItems)) {
-			for (OrderItem oi : orderItems) {
-				oi.setCouponActId(null);
-			}
-			return orderItems;
-		}
+        bc.setCouponLimitation(bl);
+        bc.setValue(root.get("value").asLong());
+        bc.setClassName(className);
 
-		calcAndSetDiscount(orderItems);
+        return bc;
+    }
 
-		return orderItems;
-	}
+    public List<OrderItem> compute(List<OrderItem> orderItems) {
+        if (!couponLimitation.pass(orderItems)) {
+            for (OrderItem oi : orderItems) {
+                oi.setCouponActId(null);
+            }
+            return orderItems;
+        }
 
-	public abstract void calcAndSetDiscount(List<OrderItem> orderItems);
+        calcAndSetDiscount(orderItems);
 
-	@Override
-	public String toJsonString() throws JsonProcessingException {
-		return new ObjectMapper().writeValueAsString(this);
-	}
+        return orderItems;
+    }
 
-	public static BaseCouponDiscount getInstance(String jsonString) throws JsonProcessingException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode root = mapper.readTree(jsonString);
-		String className = root.get("className").asText();
-		BaseCouponDiscount bc = (BaseCouponDiscount) Class.forName(className).getConstructor().newInstance();
+    public abstract void calcAndSetDiscount(List<OrderItem> orderItems);
 
-		String limitation = root.get("couponLimitation").toString();
-		BaseCouponLimitation bl = BaseCouponLimitation.getInstance(limitation);
-
-		bc.setCouponLimitation(bl);
-		bc.setValue(root.get("value").asLong());
-		bc.setClassName(className);
-
-		return bc;
-	}
+    @Override
+    public String toJsonString() throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(this);
+    }
 }

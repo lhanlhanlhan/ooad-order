@@ -1,39 +1,38 @@
 package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.annotations.RedisOptimized;
-import cn.edu.xmu.ooad.order.connector.service.CouponService;
-import cn.edu.xmu.ooad.order.connector.service.CustomerService;
-import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.bo.GrouponOrder;
 import cn.edu.xmu.ooad.order.model.bo.Order;
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
-import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
-import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
-import cn.edu.xmu.ooad.order.model.vo.*;
+import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
+import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
+import cn.edu.xmu.ooad.order.model.vo.OrderSimpleVo;
+import cn.edu.xmu.ooad.order.model.vo.OrderVo;
+import cn.edu.xmu.ooad.order.require.ICustomerService;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
-import cn.edu.xmu.ooad.order.require.models.SkuInfo;
+import cn.edu.xmu.ooad.order.require.models.ShopInfo;
 import cn.edu.xmu.ooad.order.service.mqproducer.MQService;
-import cn.edu.xmu.ooad.order.utils.*;
+import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.Accessories;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -52,11 +51,11 @@ public class OrderService {
     @Autowired
     private OrderDao orderDao;
 
-    @Autowired
-    private CustomerService customerService;
+    @DubboReference(check = false)
+    private IShopService iShopService;
 
-    @Autowired
-    private ShopService shopService;
+    @DubboReference(check = false)
+    private ICustomerService iCustomerService;
 
     @Autowired
     private MQService mqService;
@@ -146,16 +145,12 @@ public class OrderService {
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        CustomerInfo customer = customerService.getCustomerInfo(id);
-        Map<String, Object> customerVo = new HashMap<>();
-        customerVo.put("id", customer.getId());
-        customerVo.put("userName", customer.getUsername());
-        customerVo.put("realName", customer.getRealName());
-        customerVo.put("state", customer.getState());
-        vo.setCustomer(customerVo);
+        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
+        vo.setCustomer(customer);
+
         // 补充 Vo 的 Shop 信息：联系商品模块
         Long shopId = order.getShopId();
-        Map<String, Object> shop = shopService.getShopInfo(shopId);
+        ShopInfo shop = iShopService.getShopInfo(shopId);
         vo.setShop(shop);
 
         // 封装并返回【标准返回】
@@ -393,92 +388,91 @@ public class OrderService {
         return new APIReturnObject<>(returnObj);
     }
 
-    /**
-     * 服务 o8：创建售后订单 (价格为 $0.- 的订单)
-     *
-     * @param shopId  店铺 id
-     * @param orderVo 订单详细资料
-     * @return APIReturnObject
-     */
-    @Transactional
-    public APIReturnObject<?> createAfterSaleOrder(Long shopId,
-                                                   AfterSaleOrderVo orderVo) {
-        // 扣库存
-        List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
-        for (Map<String, Object> item : orderItemList) {
-            Long skuId = ((Integer) item.get("skuId")).longValue();
-            Integer quantity = (Integer) item.get("quantity");
-            // 联系商品模块扣库存
-            int decreaseStatus = shopService.decreaseStock(skuId, quantity);
-            if (decreaseStatus == 1) {
-                logger.warn("not in stock: skuid=" + skuId);
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
-            }
-        }
-
-        // 数据库部分
-
-        LocalDateTime nowTime = LocalDateTime.now();
-
-        // 创建订单
-        OrderPo orderPo = new OrderPo();
-        orderPo.setCustomerId(orderVo.getCustomerId());
-        orderPo.setRegionId(orderVo.getRegion_id());
-        orderPo.setAddress(orderVo.getAddress());
-        orderPo.setMobile(orderVo.getMobile());
-        orderPo.setMessage(orderVo.getMessage());
-        orderPo.setConsignee(orderVo.getConsignee());
-        orderPo.setShopId(shopId);
-        orderPo.setOrderSn(Accessories.genSerialNumber()); // 暂时用 UUID 生成 sn
-        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
-        orderPo.setDiscountPrice(0L);
-        orderPo.setFreightPrice(0L);
-        orderPo.setOrderType(OrderType.NORMAL.getCode()); // 订单种类为普通订单
-        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode()); // 订单状态为已支付 (售后单待发货)
-        orderPo.setGmtCreate(nowTime);
-
-        // 写入订单系统
-        if (!insertOrderPo(orderPo)) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-        }
-
-        // 获取刚刚创建订单的 id
-        Long orderId = orderPo.getId();
-
-        // 记录进订单系统
-        List<OrderItemPo> orderItemPoList = new ArrayList<>(orderItemList.size());
-        for (Map<String, Object> item : orderItemList) {
-            Long skuId = ((Integer) item.get("skuId")).longValue();
-            Integer quantity = (Integer) item.get("quantity");
-            // 创建新 po
-            OrderItemPo orderItemPo = new OrderItemPo();
-            orderItemPo.setGoodsSkuId(skuId);
-            orderItemPo.setQuantity(quantity);
-            // 联系商品模块获取商品资料
-            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
-            orderItemPo.setOrderId(orderId);
-            orderItemPo.setGoodsSkuId(skuId);
-            orderItemPo.setQuantity(quantity);
-            // 这是售后订单，价格一律为 0，没有优惠券、没有优惠活动、没有推广
-            orderItemPo.setPrice(0L);
-            orderItemPo.setDiscount(0L);
-            orderItemPo.setName(skuInfo.getName());
-            orderItemPo.setGmtCreate(nowTime);
-
-            // 记录进订单系统
-            if (!insertOrderItemPo(orderItemPo)) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
-            orderItemPoList.add(orderItemPo);
-        }
-
-        // 获取订单完整资讯并返回
-        return makeFullOrder(orderPo, orderItemPoList);
-    }
-
+//    /**
+//     * 服务 o8：创建售后订单 (价格为 $0.- 的订单)
+//     *
+//     * @param shopId  店铺 id
+//     * @param orderVo 订单详细资料
+//     * @return APIReturnObject
+//     */
+//    @Transactional
+//    public APIReturnObject<?> createAfterSaleOrder(Long shopId,
+//                                                   AfterSaleOrderVo orderVo) {
+//        // 扣库存
+//        List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
+//        for (Map<String, Object> item : orderItemList) {
+//            Long skuId = ((Integer) item.get("skuId")).longValue();
+//            Integer quantity = (Integer) item.get("quantity");
+//            // 联系商品模块扣库存
+//            int decreaseStatus = shopService.decreaseStock(skuId, quantity);
+//            if (decreaseStatus == 1) {
+//                logger.warn("not in stock: skuid=" + skuId);
+//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
+//            }
+//        }
+//
+//        // 数据库部分
+//
+//        LocalDateTime nowTime = LocalDateTime.now();
+//
+//        // 创建订单
+//        OrderPo orderPo = new OrderPo();
+//        orderPo.setCustomerId(orderVo.getCustomerId());
+//        orderPo.setRegionId(orderVo.getRegion_id());
+//        orderPo.setAddress(orderVo.getAddress());
+//        orderPo.setMobile(orderVo.getMobile());
+//        orderPo.setMessage(orderVo.getMessage());
+//        orderPo.setConsignee(orderVo.getConsignee());
+//        orderPo.setShopId(shopId);
+//        orderPo.setOrderSn(Accessories.genSerialNumber()); // 暂时用 UUID 生成 sn
+//        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
+//        orderPo.setDiscountPrice(0L);
+//        orderPo.setFreightPrice(0L);
+//        orderPo.setOrderType(OrderType.NORMAL.getCode()); // 订单种类为普通订单
+//        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode()); // 订单状态为已支付 (售后单待发货)
+//        orderPo.setGmtCreate(nowTime);
+//
+//        // 写入订单系统
+//        if (!insertOrderPo(orderPo)) {
+//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+//        }
+//
+//        // 获取刚刚创建订单的 id
+//        Long orderId = orderPo.getId();
+//
+//        // 记录进订单系统
+//        List<OrderItemPo> orderItemPoList = new ArrayList<>(orderItemList.size());
+//        for (Map<String, Object> item : orderItemList) {
+//            Long skuId = ((Integer) item.get("skuId")).longValue();
+//            Integer quantity = (Integer) item.get("quantity");
+//            // 创建新 po
+//            OrderItemPo orderItemPo = new OrderItemPo();
+//            orderItemPo.setGoodsSkuId(skuId);
+//            orderItemPo.setQuantity(quantity);
+//            // 联系商品模块获取商品资料
+//            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+//            orderItemPo.setOrderId(orderId);
+//            orderItemPo.setGoodsSkuId(skuId);
+//            orderItemPo.setQuantity(quantity);
+//            // 这是售后订单，价格一律为 0，没有优惠券、没有优惠活动、没有推广
+//            orderItemPo.setPrice(0L);
+//            orderItemPo.setDiscount(0L);
+//            orderItemPo.setName(skuInfo.getName());
+//            orderItemPo.setGmtCreate(nowTime);
+//
+//            // 记录进订单系统
+//            if (!insertOrderItemPo(orderItemPo)) {
+//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+//            }
+//            orderItemPoList.add(orderItemPo);
+//        }
+//
+//        // 获取订单完整资讯并返回
+//        return makeFullOrder(orderPo, orderItemPoList);
+//    }
 
     /**
      * 服务 o9：店家修改订单信息 [DONE]
@@ -531,15 +525,11 @@ public class OrderService {
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        CustomerInfo customer = customerService.getCustomerInfo(id);
-        Map<String, Object> customerVo = new HashMap<>();
-        customerVo.put("id", customer.getId());
-        customerVo.put("userName", customer.getUsername());
-        customerVo.put("realName", customer.getRealName());
-        customerVo.put("state", customer.getState());
-        vo.setCustomer(customerVo);
+        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
+        vo.setCustomer(customer);
+
         // 补充 Vo 的 Shop 信息：联系商品模块
-        Map<String, Object> shop = shopService.getShopInfo(shopId);
+        ShopInfo shop = iShopService.getShopInfo(shopId);
         vo.setShop(shop);
 
         // 封装并返回【标准返回】
@@ -615,6 +605,7 @@ public class OrderService {
 
     /**
      * 大服务 买家创建订单
+     *
      * @param customerId
      * @param orderNewVo
      * @return
@@ -635,68 +626,5 @@ public class OrderService {
         // 提交新建订单的讯息
         mqService.sendCreateOrderInfo(customerId, orderNewVo, sn, orderType);
         return new APIReturnObject<>(sn);
-    }
-
-    /**
-     * **内部方法**：将 orderItemPo 插入数据库中
-     *
-     * @param itemPo
-     * @return
-     */
-    private boolean insertOrderItemPo(OrderItemPo itemPo) {
-        try {
-            int response = orderDao.addOrderItem(itemPo);
-            return response > 0;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * **内部方法**：将 orderItemPo 插入数据库中
-     *
-     * @param orderPo
-     * @return
-     */
-    private boolean insertOrderPo(OrderPo orderPo) {
-        try {
-            int response = orderDao.addOrder(orderPo);
-            return response > 0;
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * **内部方法**：获取订单完整资讯并返回 (不找数据库)
-     *
-     * @param orderPo         订单数据库对象
-     * @param orderItemPoList 订单项目数据库对象列表
-     * @return
-     */
-    private APIReturnObject<OrderVo> makeFullOrder(OrderPo orderPo, List<OrderItemPo> orderItemPoList) {
-        // 把 orderItemPoList 塞入 orderPo 中
-        orderPo.setOrderItemList(orderItemPoList);
-        // 新建业务对象
-        Order order = Order.createOrder(orderPo);
-        OrderVo vo = new OrderVo(order);
-        // 补充 Vo 的 Customer 信息：联系其他模块
-        CustomerInfo customer = customerService.getCustomerInfo(order.getCustomerId());
-        Map<String, Object> customerVo = new HashMap<>();
-        customerVo.put("id", customer.getId());
-        customerVo.put("userName", customer.getUsername());
-        customerVo.put("realName", customer.getRealName());
-        customerVo.put("state", customer.getState());
-        vo.setCustomer(customerVo);
-        // 补充 Vo 的 Shop 信息 (如有)：联系其他模块下载
-        Long shopId = order.getShopId();
-        if (shopId != null) {
-            // 注意到分单前的订单，商铺可能不止一家；这里只针对 shopId 不为空的情况 (团购/预售等商铺号已知的情况)
-            Map<String, Object> shop = shopService.getShopInfo(shopId);
-            vo.setShop(shop);
-        }
-        return new APIReturnObject<>(vo);
     }
 }

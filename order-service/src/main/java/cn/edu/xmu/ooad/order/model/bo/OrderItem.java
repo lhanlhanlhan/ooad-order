@@ -2,7 +2,6 @@ package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
-import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

@@ -1,6 +1,5 @@
 package cn.edu.xmu.ooad.order.service;
 
-import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.dao.FreightDao;
 import cn.edu.xmu.ooad.order.model.bo.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;

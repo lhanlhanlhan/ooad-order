@@ -43,6 +43,7 @@ public class WriteBackStockListener implements RocketMQListener<Long> {
 
     /**
      * 写回一个 skuId 目前在 redis 中的库存
+     *
      * @param skuId sku id
      */
     @Override

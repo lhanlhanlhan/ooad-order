@@ -1,11 +1,11 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
-import cn.edu.xmu.ooad.order.connector.service.ShopService;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
+import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
@@ -52,19 +52,19 @@ public class NormalOrder extends Order {
             return null;
         }
         // 获取 ShopService
-        ShopService shopService = SpringUtils.getBean(ShopService.class);
+        IShopService iShopService = SpringUtils.getBean(IShopService.class);
         // 获取所有店铺的订购商品
         Map<Long, List<OrderItem>> shopsItemLists = new HashMap<>();
         Map<Long, Long> shopsOrigPriceList = new HashMap<>();
         Map<Long, Long> shopsDiscountList = new HashMap<>();
         Map<Long, Long> shopsFreightList = new HashMap<>();
-        // TODO - 运费平摊我还不是很会也，就按照每个店铺付款金额平摊吧。
+        // 运费平摊，就按照每个店铺付款金额平摊吧
         // 获取单位运费
         long unitFreight = this.getFreightPrice() / (this.getOriginPrice() - this.getDiscountPrice());
         for (OrderItem item : this.orderItemList) {
             // 获取商品的信息
             Long skuId = item.getSkuId();
-            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+            SkuInfo skuInfo = iShopService.getSkuInfo(skuId);
             Long shopId = skuInfo.getShopId();
 
             // 检查这个店铺的订购列表有没有创建，没有的话，就新建并放入一个该店铺的新列表

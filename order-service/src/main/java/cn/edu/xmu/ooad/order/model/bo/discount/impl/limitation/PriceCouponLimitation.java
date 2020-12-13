@@ -10,21 +10,21 @@ import java.util.List;
  */
 public class PriceCouponLimitation extends BaseCouponLimitation {
 
-	public PriceCouponLimitation() {
+    public PriceCouponLimitation() {
 
-	}
+    }
 
-	public PriceCouponLimitation(long value) {
-		super(value);
-	}
+    public PriceCouponLimitation(long value) {
+        super(value);
+    }
 
-	@Override
-	public boolean pass(List<OrderItem> orderItems) {
-		long t = 0;
-		for (OrderItem oi : orderItems) {
-			t += oi.getQuantity() * oi.getPrice();
-		}
-		return t > value;
-	}
+    @Override
+    public boolean pass(List<OrderItem> orderItems) {
+        long t = 0;
+        for (OrderItem oi : orderItems) {
+            t += oi.getQuantity() * oi.getPrice();
+        }
+        return t > value;
+    }
 
 }

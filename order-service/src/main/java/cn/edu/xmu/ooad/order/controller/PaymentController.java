@@ -1,9 +1,8 @@
 package cn.edu.xmu.ooad.order.controller;
 
-import cn.edu.xmu.ooad.order.annotations.AdminShop;
-import cn.edu.xmu.ooad.order.annotations.LoginUser;
-import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
-import cn.edu.xmu.ooad.order.aspects.InspectCustomer;
+import cn.edu.xmu.ooad.annotation.Audit;
+import cn.edu.xmu.ooad.annotation.Depart;
+import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.order.enums.PayPattern;
 import cn.edu.xmu.ooad.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.model.vo.PaymentNewVo;
@@ -58,7 +57,7 @@ public class PaymentController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
-    @InspectCustomer//需要登录
+    @Audit//需要登录
     @GetMapping("payments/states")
     public Object getPaymentStatus(@LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
@@ -84,7 +83,7 @@ public class PaymentController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
     })
-    @InspectCustomer//需要登录
+    @Audit//需要登录
     @GetMapping("payments/patterns")
     public Object getPaymentPattern(@LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
@@ -117,7 +116,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
-    @InspectCustomer  // 需要登入
+    @Audit  // 需要登入
     @PostMapping("orders/{id}/payments")
     public Object createPaymentBill(@RequestBody PaymentNewVo paymentNewVo,
                                     @PathVariable Long id,
@@ -143,7 +142,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectCustomer  // 需要登入
+    @Audit  // 需要登入
     @GetMapping("orders/{id}/payments")
     public Object getSelfPaymentBillByOrderId(@PathVariable Long id,
                                               @LoginUser Long customerId) {
@@ -169,12 +168,12 @@ public class PaymentController {
             @ApiImplicitParam(name = "shopId", required = true, dataType = "Long", paramType = "path"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectAdmin // 管理员登入
+    @Audit // 管理员登入
     @GetMapping("shops/{shopId}/orders/{id}/payments")
     public Object getOrderPayInfo(@PathVariable Long shopId,
                                   @PathVariable Long id,
                                   @LoginUser Long adminId,
-                                  @AdminShop Long adminShopId) {
+                                  @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; orderId = " + id +
                     "; adminId = " + adminId + "; adminShopId= " + adminShopId);
@@ -201,7 +200,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")
     })
-    @InspectCustomer
+    @Audit
     @PostMapping("aftersales/{id}/payments")
     public Object createPaymentBillFromAftersale(@RequestBody PaymentNewVo paymentNewVo,
                                                  @PathVariable Long id,
@@ -226,7 +225,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectCustomer//需要登入
+    @Audit//需要登入
     @GetMapping("aftersales/{id}/payments")
     public Object getSelfPaymentBillByAfterSaleId(@PathVariable Long id,
                                                   @LoginUser Long customerId) {
@@ -252,12 +251,12 @@ public class PaymentController {
             @ApiImplicitParam(name = "shopId", required = true, dataType = "Long", paramType = "path"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectAdmin
+    @Audit
     @GetMapping("shops/{shopId}/aftersales/{id}/payments")
     public Object getAfterSalePayInfo(@PathVariable Long shopId,
                                       @PathVariable Long id,
                                       @LoginUser Long adminId,
-                                      @AdminShop Long adminShopId) {
+                                      @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "aftersaleId = " + id +
                     " adminId = " + adminId + " adminShopId " + adminShopId);
@@ -287,13 +286,13 @@ public class PaymentController {
             @ApiImplicitParam(name = "shopId", required = true, dataType = "Long", paramType = "path"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectAdmin
+    @Audit
     @PostMapping("shops/{shopId}/payments/{id}/refund")
     public Object createRefund(@PathVariable Long shopId,
                                @PathVariable Long id,
                                @RequestBody Map<String, Long> refundAmountVo,
                                @LoginUser Long adminId,
-                               @AdminShop Long adminShopId) {
+                               @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; paymentId = " + id +
                     "; refundAmount =" + refundAmountVo +
@@ -328,12 +327,12 @@ public class PaymentController {
             @ApiImplicitParam(name = "shopId", required = true, dataType = "Long", paramType = "path"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectAdmin
+    @Audit
     @GetMapping("shops/{shopId}/orders/{id}/refund")
     public Object adminGetRefundInfoByOrderId(@PathVariable Long shopId,
                                               @PathVariable Long id,
                                               @LoginUser Long adminId,
-                                              @AdminShop Long adminShopId) {
+                                              @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; orderId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
@@ -356,12 +355,12 @@ public class PaymentController {
             @ApiImplicitParam(name = "shopId", required = true, dataType = "Long", paramType = "path"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectAdmin
+    @Audit
     @GetMapping("shops/{shopId}/aftersales/{id}/refund")
     public Object adminGetRefundInfoByAftersaleId(@PathVariable Long shopId,
                                                   @PathVariable Long id,
                                                   @LoginUser Long adminId,
-                                                  @AdminShop Long adminShopId) {
+                                                  @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; aftersaleId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
@@ -380,7 +379,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectCustomer  // 需要登入
+    @Audit  // 需要登入
     @GetMapping("orders/{id}/refunds")
     public Object getSelfRefundInfoByOrderId(@PathVariable Long id,
                                              @LoginUser Long customerId) {
@@ -402,7 +401,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
-    @InspectCustomer  // 需要登入
+    @Audit  // 需要登入
     @GetMapping("aftersales/{id}/refunds")
     public Object getSelfRefundInfoByAftersaleId(@PathVariable Long id,
                                                  @LoginUser Long customerId) {

@@ -1,6 +1,5 @@
 package cn.edu.xmu.ooad.order.service;
 
-import cn.edu.xmu.ooad.order.connector.service.AfterSaleService;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
@@ -15,9 +14,11 @@ import cn.edu.xmu.ooad.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentVo;
 import cn.edu.xmu.ooad.order.model.vo.RefundVo;
+import cn.edu.xmu.ooad.order.require.IAfterSaleService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +44,8 @@ public class PaymentService {
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
-    @Autowired
-    private AfterSaleService afterSaleService;
+    @DubboReference
+    private IAfterSaleService iAfterSaleService;
 
     @Autowired
     private PaymentDao paymentDao;
@@ -292,8 +293,8 @@ public class PaymentService {
      * 服务 6: 买家为售后单创建支付单
      */
     public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
-        // TODO - 由商品模塊检查一下，这张售后单可不可以创建支付单
-        if (!afterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
+        // 由其他模塊检查一下，这张售后单可不可以创建支付单
+        if (!iAfterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
         }
 
@@ -342,8 +343,8 @@ public class PaymentService {
      * @param aftersaleId 售后单ID
      */
     public APIReturnObject<?> getPaymentByAftersaleId(Long aftersaleId, Long customerId) {
-        // TODO - 其他模塊获取售后单，检查是否属于买家
-        if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+        // 其他模塊获取售后单，检查是否属于买家
+        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
 
@@ -369,7 +370,7 @@ public class PaymentService {
      */
     public APIReturnObject<?> getPaymentInfo(Long shopId, Long aftersaleId) {
         // TODO - 其他模塊获取售后单，检查是否属于店铺
-        if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+        if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
         // 根据售后单号查询支付单
@@ -417,7 +418,7 @@ public class PaymentService {
             }
         } else if (aftersaleId != null) {
             // 查询售后 id 对应之售后单的信息是否是此商铺的
-            if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+            if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
                 logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + paymentId);
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
             }
@@ -491,7 +492,7 @@ public class PaymentService {
      */
     public APIReturnObject<?> getRefundByAftersaleId(Long shopId, Long aftersaleId) {
         // TODO - 其他模塊检查售后单是否属于店铺
-        if (!afterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+        if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
         // 根据售后单号查询退款单
@@ -541,8 +542,8 @@ public class PaymentService {
      * @return APIReturnObject<RefundVo>
      */
     public APIReturnObject<?> getCustomerRefundByAftersaleId(Long customerId, Long aftersaleId) {
-        // TODO - 其他模塊，检查售后单是否属于买家
-        if (!afterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+        // 其他模塊，检查售后单是否属于买家
+        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
         // 根据售后单号查询退款单

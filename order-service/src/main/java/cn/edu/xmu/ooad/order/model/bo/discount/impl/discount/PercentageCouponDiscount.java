@@ -11,17 +11,18 @@ import java.util.List;
  */
 public class PercentageCouponDiscount extends BaseCouponDiscount {
 
-	public PercentageCouponDiscount(){}
+    public PercentageCouponDiscount() {
+    }
 
-	public PercentageCouponDiscount(BaseCouponLimitation limitation, long value) {
-		super(limitation, value);
-	}
+    public PercentageCouponDiscount(BaseCouponLimitation limitation, long value) {
+        super(limitation, value);
+    }
 
-	@Override
-	public void calcAndSetDiscount(List<OrderItem> orderItems) {
-		for (OrderItem oi : orderItems) {
-			// 优惠金额是累加的吧？亲
-			oi.addDiscount(value / 100 * oi.getPrice());
-		}
-	}
+    @Override
+    public void calcAndSetDiscount(List<OrderItem> orderItems) {
+        for (OrderItem oi : orderItems) {
+            // 优惠金额是累加的吧？亲
+            oi.addDiscount(value / 100 * oi.getPrice());
+        }
+    }
 }

@@ -7,5 +7,5 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 public interface JsonSerializable {
 
-	String toJsonString() throws JsonProcessingException;
+    String toJsonString() throws JsonProcessingException;
 }

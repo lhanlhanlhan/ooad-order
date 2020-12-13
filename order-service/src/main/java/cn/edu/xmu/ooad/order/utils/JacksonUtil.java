@@ -52,7 +52,7 @@ public class JacksonUtil {
         return null;
     }
 
-    public static <T> List<T> parseObjectList(String body, String field, Class<T> clazz ) {
+    public static <T> List<T> parseObjectList(String body, String field, Class<T> clazz) {
         ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
         JsonNode node;
@@ -209,7 +209,7 @@ public class JacksonUtil {
         return null;
     }
 
-    public static <T> T toObj(String data, Class<T> clazz){
+    public static <T> T toObj(String data, Class<T> clazz) {
         ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
         try {
@@ -220,7 +220,7 @@ public class JacksonUtil {
         return null;
     }
 
-    public static <T> List<T> toObjectList(String body, Class<T> clazz){
+    public static <T> List<T> toObjectList(String body, Class<T> clazz) {
         ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
 

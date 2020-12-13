@@ -1,20 +1,15 @@
 package cn.edu.xmu.ooad.order.controller;
 
-import cn.edu.xmu.ooad.order.annotations.AdminShop;
-import cn.edu.xmu.ooad.order.annotations.LoginUser;
-import cn.edu.xmu.ooad.order.aspects.InspectAdmin;
-import cn.edu.xmu.ooad.order.aspects.InspectCustomer;
+import cn.edu.xmu.ooad.annotation.Audit;
+import cn.edu.xmu.ooad.annotation.Depart;
+import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
-import cn.edu.xmu.ooad.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.model.vo.AfterSaleOrderVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.ooad.order.require.IOtherService;
-import cn.edu.xmu.ooad.order.require.models.RegionInfo;
 import cn.edu.xmu.ooad.order.service.OrderService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.utils.Accessories;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.ResponseUtils;
 import io.swagger.annotations.*;
@@ -67,7 +62,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectAdmin // 需要登入
+    @Audit // 需要登入
     @GetMapping("orders/states")
     public Object getAllStatus() {
         if (logger.isDebugEnabled()) {
@@ -105,7 +100,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectCustomer  // 需要登入
+    @Audit  // 需要登入
     @GetMapping("orders")
     public Object getAllOrders(@RequestParam(required = false) String orderSn,
                                @RequestParam(required = false) Byte state,
@@ -144,7 +139,7 @@ public class OrderController {
             @ApiResponse(code = 900, message = "商品库存不足"),
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectCustomer
+    @Audit
     @PostMapping("orders")
     public Object createOrder(@LoginUser Long customerId, @Validated @RequestBody OrderNewVo orderInfo) {
         if (logger.isDebugEnabled()) {
@@ -174,7 +169,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectCustomer
+    @Audit
     @GetMapping("orders/{id}")
     public Object getDetailedOrder(@PathVariable Long id,
                                    @LoginUser Long customerId) {
@@ -203,7 +198,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer // 需要登入
+    @Audit // 需要登入
     @PutMapping("orders/{id}")
     public Object modifyOrder(@PathVariable Long id,
                               @RequestBody OrderEditVo orderEditVo,
@@ -232,7 +227,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer
+    @Audit
     @DeleteMapping("orders/{id}")
     public Object deleteOrCancelOrder(@PathVariable Long id,
                                       @LoginUser Long customerId) {
@@ -260,7 +255,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer
+    @Audit
     @PutMapping("orders/{id}/confirm")
     public Object confirmOrder(@PathVariable Long id,
                                @LoginUser Long customerId) {
@@ -288,7 +283,7 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectCustomer
+    @Audit
     @PostMapping("orders/{id}/groupon-normal")
     public Object exchangeToNormalOrder(@PathVariable Long id,
                                         @LoginUser Long customerId) {
@@ -322,7 +317,7 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectAdmin  // 需要管理员登入
+    @Audit  // 需要管理员登入
     @GetMapping("shops/{shopId}/orders")
     public Object adminGetShopAllOrders(@PathVariable Long shopId,
                                         @RequestParam(required = false) Long customerId,
@@ -334,7 +329,7 @@ public class OrderController {
                                         @RequestParam(required = false) Integer page,
                                         @RequestParam(required = false) Integer pageSize,
                                         @LoginUser Long adminId,
-                                        @AdminShop Long adminShopId) {
+                                        @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId=" + shopId + " customerId=" + customerId + " orderSn=" + orderSn +
                     " state=" + state + " beginTime=" + beginTime +
@@ -351,39 +346,39 @@ public class OrderController {
         ));
     }
 
-    /**
-     * o10: 管理员建立售后订单 [改为内部 API：12/12/2020]
-     *
-     * @param orderVo 订单详情
-     * @return java.lang.Object
-     * @author Han Li
-     * Created at 29/11/2020 13:24
-     * Created by Han Li at 29/11/2020 13:24
-     */
-    @ApiOperation(value = "管理员建立售后订单")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 800, message = "商品库存不足"),
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @InspectAdmin // 管理员登入
-//    @PostMapping("shops/{shopId}/orders")
-    @Deprecated
-    public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
-                                       @PathVariable Long shopId,
-                                       @LoginUser Long adminId,
-                                       @AdminShop Long adminShopId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("post orders; vo=" + orderVo);
-        }
-        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
-        }
-        return ResponseUtils.make(orderService.createAfterSaleOrder(adminShopId, orderVo));
-    }
+//    /**
+//     * o10: 管理员建立售后订单 [改为内部 API：12/12/2020]
+//     *
+//     * @param orderVo 订单详情
+//     * @return java.lang.Object
+//     * @author Han Li
+//     * Created at 29/11/2020 13:24
+//     * Created by Han Li at 29/11/2020 13:24
+//     */
+//    @ApiOperation(value = "管理员建立售后订单")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
+//    })
+//    @ApiResponses({
+//            @ApiResponse(code = 800, message = "商品库存不足"),
+//            @ApiResponse(code = 0, message = "成功"),
+//    })
+//    @Audit // 管理员登入
+////    @PostMapping("shops/{shopId}/orders")
+//    @Deprecated
+//    public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
+//                                       @PathVariable Long shopId,
+//                                       @LoginUser Long adminId,
+//                                       @Depart Long adminShopId) {
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("post orders; vo=" + orderVo);
+//        }
+//        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
+//        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+//            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+//        }
+//        return ResponseUtils.make(orderService.createAfterSaleOrder(adminShopId, orderVo));
+//    }
 
     /**
      * o11: 店家修改订单 (留言) [DONE]
@@ -402,12 +397,12 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin // 需要登入
+    @Audit // 需要登入
     @PutMapping("shops/{shopId}/orders/{id}")
     public Object shopModifyOrder(@PathVariable Long id,
                                   @PathVariable Long shopId,
                                   @RequestBody OrderEditVo orderEditVo,
-                                  @AdminShop Long adminShopId) {
+                                  @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id + " vo=" + orderEditVo);
         }
@@ -435,11 +430,11 @@ public class OrderController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @InspectAdmin
+    @Audit
     @GetMapping("shops/{shopId}/orders/{id}")
     public Object getDetailedOrder(@PathVariable Long id,
                                    @PathVariable Long shopId,
-                                   @AdminShop Long adminShopId) {
+                                   @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id);
         }
@@ -468,11 +463,11 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin
+    @Audit
     @DeleteMapping("shops/{shopId}/orders/{id}")
     public Object shopCancelOrder(@PathVariable Long shopId,
                                   @PathVariable Long id,
-                                  @AdminShop Long adminShopId) {
+                                  @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id);
         }
@@ -501,12 +496,12 @@ public class OrderController {
             @ApiResponse(code = 800, message = "订单状态禁止"),
             @ApiResponse(code = 0, message = "成功")
     })
-    @InspectAdmin
+    @Audit
     @PutMapping("shops/{shopId}/orders/{id}/deliver")
     public Object shopDeliverOrder(@PathVariable Long shopId,
                                    @PathVariable Long id,
                                    @RequestBody Map<String, String> body,
-                                   @AdminShop Long adminShopId) {
+                                   @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("shops/{shopId}/orders/{id}/deliver; shopId=" + shopId + " id=" + id);
         }
