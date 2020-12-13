@@ -1,5 +1,8 @@
 package cn.edu.xmu.ooad.order.service.mqproducer;
 
+import cn.edu.xmu.ooad.order.enums.OrderType;
+import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
+import cn.edu.xmu.ooad.order.service.mqlistener.model.CreateOrderDemand;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -54,5 +57,27 @@ public class MQService implements ApplicationEventPublisherAware {
                 });
     }
 
+    // 发送下订单讯息
+    public void sendCreateOrderInfo(Long customerId, OrderNewVo vo, String sn, OrderType type) {
+        // 构建需求体
+        CreateOrderDemand demand = new CreateOrderDemand();
+        demand.setCustomerId(customerId);
+        demand.setOrderNewVo(vo);
+        demand.setType(type.getCode());
+        demand.setSn(sn);
+        // 提交写回库存讯息
+        logger.info("已提交创建订单讯息 sn=" + sn);
+        rocketMQTemplate.asyncSend("order-create-order-topic",
+                MessageBuilder.withPayload(demand).build(), new SendCallback() {
+                    @Override
+                    public void onSuccess(SendResult sendResult) {
+                        logger.info("发送创建订单讯息成功。sn=" + sn);
+                    }
 
+                    @Override
+                    public void onException(Throwable throwable) {
+                        logger.error("发送创建订单讯息【失败】。sn=" + sn);
+                    }
+                });
+    }
 }

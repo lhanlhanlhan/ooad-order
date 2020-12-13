@@ -8,6 +8,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,8 @@ public class RedisUtils {
     private RedisTemplate<String, Serializable> redisTemplate;
     @Autowired
     private ReactiveRedisTemplate<String, Serializable> reactiveRedisTemplate;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 删除缓存
@@ -147,18 +150,18 @@ public class RedisUtils {
     }
 
     /**
-     * 执行 LUA 脚本
+     * 执行 LUA 脚本, 返回 string
      * @param script
      * @param args
      * @param keys
-     * @param <T>
      * @return
      */
-    public Object execute(String script, List<String> keys, Object ...args) {
-        DefaultRedisScript<Object> redisScript = new DefaultRedisScript<>(script);
-        Object res;
+    public String execute(String script, List<String> keys, Object ...args) {
+        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>(script);
+        redisScript.setResultType(String.class);
+        String res;
         try {
-            res = redisTemplate.execute(redisScript, keys, args);
+            res = stringRedisTemplate.execute(redisScript, keys, args);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

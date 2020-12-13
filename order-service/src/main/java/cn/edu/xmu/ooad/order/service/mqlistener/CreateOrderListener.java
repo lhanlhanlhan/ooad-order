@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -116,7 +117,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
      * MQ 消费服务 1：创建普通订单 (假定订单内的所有【优惠券】都是【用户已经拥有】的)
      * @param customerId 用户 ID
      * @param orderNewVo 新订单 Vo
-     * @return 0：成功；1：失败
+     * @return 0：成功；1：库存不足；2：失败
      */
     @Transactional
     public int createNormalOrder(Long customerId, OrderNewVo orderNewVo, String sn) {
@@ -144,6 +145,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
             return 1;
         }
 
+
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
         APIReturnObject<?> freightCalcRes = freightService.calcFreight(regionId,
@@ -153,15 +155,18 @@ public class CreateOrderListener implements RocketMQListener<String> {
         if (freightCalcRes.getCode() != ResponseCode.OK) {
             return 1;
         }
-        Long totalFreight = (Long) freightCalcRes.getData();
+        Long totalFreight = ((Optional<Long>) freightCalcRes.getData()).get();
 
-        // TODO - 下单，扣库存
+        // 下单，扣库存
         LinkedList<Long> writeBackQueue = new LinkedList<>();
+        int decStockRes;
         for (OrderItem item : orderItems) {
-            if (!decreaseStock(item.getSkuId(), item.getQuantity(), writeBackQueue)) {
+            decStockRes = decreaseStock(item.getSkuId(), item.getQuantity(), writeBackQueue);
+            if (decStockRes != 0) {
                 // 回滚数据库事务
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return 1;
+                // TODO - 下单失败回滚库存变更
+                return decStockRes;
             }
         }
 
@@ -261,54 +266,58 @@ public class CreateOrderListener implements RocketMQListener<String> {
         return orderPo;
     }
 
-    static String decrScript = "local buyNum = ARGV[1]\n" +
-            "local skuKey = KEYS[1]\n" +
-            "local skuStock = redis.call('get', skuKey)\n" +
-            "if skuStock >= buyNum\n" +
-            "then redis.call('decrby', skuKey, buyNum)\n" +
-            "return buyNum\n" +
-            "else\n" +
-            "return 0\n" +
-            "end";
+    static String decrScript = " local buyNum = tonumber(ARGV[1]) " +
+            " local skuKey = KEYS[1] " +
+            " local skuStock = tonumber(redis.call('get', skuKey)) " +
+            " if skuStock >= buyNum " +
+            " then redis.call('decrby', skuKey, buyNum) " +
+            " return ARGV[1] " +
+            " else " +
+            " return '0' " +
+            " end ";
 
     /**
      * **内部方法** 根据 OrderItemInfo 扣库存
      * @param skuId
      * @param quantity
-     * @return
+     * @return 0：成功；1：库存不足；2：失败
      */
-    private boolean decreaseStock(Long skuId, Integer quantity, LinkedList<Long> writeBackQueue) {
+    private int decreaseStock(Long skuId, Integer quantity, LinkedList<Long> writeBackQueue) {
         String keyStock = "sk_" + skuId;
-        Long stock = redisUtils.get(keyStock, Long.class);
+        Integer stock = redisUtils.get(keyStock, Integer.class);
         if (null == stock) {
             // 没有库存，先 load 一下
-            stock = iShopService.getStock(skuId);
+//            stock = iShopService.getStock(skuId).intValue();
+            stock = 10;
             redisUtils.set(keyStock, stock, stockExpireTime);
         }
         // 先看看库存够不够先！否则亏了
         if (stock < quantity) {
-            return false;
+            // 库存不足
+            return 1;
         }
         // 够，就减库存
         List<String> keys = new ArrayList<>(1);
         keys.add(keyStock);
-        Object result = redisUtils.execute(decrScript, keys, quantity);
-        if (result.equals("0")) {
-            // 扣库存不成功
-            return false;
+        String result = redisUtils.execute(decrScript, keys, quantity.toString());
+        if (result != null && result.equals("0")) {
+            // 扣库存不成功：库存不足
+            return 1;
+        } else if (result == null) {
+            // 扣库存不成功：其他错误？
+            return 1;
         }
         // 扣库存成功，然后发送更新库存信号
         String key = "wb_" + skuId;
         Boolean semWroteBack = redisUtils.get(key, Boolean.class);
         if (semWroteBack == null || !semWroteBack) {
             // 调用 write back
-            // mqService.sendWriteBackStockMessage(skuId);
             // 先放在等待队列，待事务完成后，再批量 write back
             writeBackQueue.add(skuId);
             // 信号量设为 1
             redisUtils.set(key, Boolean.TRUE, writeBackExpire);
         }
-        return true;
+        return 0;
     }
 
     /**

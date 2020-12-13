@@ -13,6 +13,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -89,4 +90,12 @@ public class RedisConfig {
         RedisSerializationContext<String, Serializable> context = builder.key(stringRedisSerializer).value(jackson2JsonRedisSerializer).hashKey(stringRedisSerializer).hashValue(jackson2JsonRedisSerializer).build();
         return new ReactiveRedisTemplate<>(factory, context);
     }
+
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(LettuceConnectionFactory factory) {
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(factory);
+        return template;
+    }
+
 }

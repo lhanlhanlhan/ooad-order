@@ -145,20 +145,7 @@ public class OrderController {
             logger.debug("post orders; vo=" + orderInfo);
         }
         // TODO - region id 合法性检查
-
-        // 判断订单申请种类
-        if (orderInfo.getGrouponId() != null) {
-            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.GROUPON));
-        } else if (orderInfo.getPresaleId() != null) {
-            return ResponseUtils.make(orderService.createOneItemOrder(customerId, orderInfo, OrderType.PRE_SALE));
-        } else {
-            int ret = orderService.createNormalOrder(customerId, orderInfo, Accessories.genSerialNumber());
-            if (ret == 0) {
-                return ResponseUtils.ok();
-            } else {
-                return ResponseUtils.make(ResponseCode.BAD_REQUEST);
-            }
-        }
+        return ResponseUtils.make(orderService.createOrder(customerId, orderInfo));
     }
 
 
