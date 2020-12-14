@@ -28,6 +28,7 @@ public abstract class FreightModel implements Serializable {
     private Byte defaultModel;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
+    private Long shopId;
 
     /**
      * 拷贝构造！因为这个是会放 redis 里滴
@@ -42,6 +43,24 @@ public abstract class FreightModel implements Serializable {
         this.gmtCreate = freightModelPo.getGmtCreate();
         this.gmtModified = freightModelPo.getGmtModified();
         this.unit = freightModelPo.getUnit();
+        this.shopId = freightModelPo.getShopId();
+    }
+
+    /**
+     * 创建 Po 对象
+     * @return Po 对象
+     */
+    public FreightModelPo toPo() {
+        FreightModelPo po = new FreightModelPo();
+        po.setId(this.id);
+        po.setName(this.name);
+        po.setType(this.type);
+        po.setDefaultModel(this.defaultModel);
+        po.setGmtCreate(this.gmtCreate);
+        po.setGmtModified(this.gmtModified);
+        po.setUnit(this.unit);
+        po.setShopId(this.shopId);
+        return po;
     }
 
     public static FreightModel create(FreightModelPo freightModelPo) {

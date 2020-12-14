@@ -295,7 +295,7 @@ public class PaymentService {
     public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
         // 由其他模塊检查一下，这张售后单可不可以创建支付单
         if (!iAfterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.BAD_REQUEST, "这张售后单无效或无法创建支付单");
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOT_VALID, "这张售后单无效或无法创建支付单");
         }
 
         // 创建支付单Po对象

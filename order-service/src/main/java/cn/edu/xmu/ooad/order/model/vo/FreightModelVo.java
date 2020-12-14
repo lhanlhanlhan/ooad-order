@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.model.bo.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import lombok.Data;
 
@@ -21,7 +22,7 @@ public class FreightModelVo {
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
 
-    public FreightModelVo(FreightModelPo po) {
+    public FreightModelVo(FreightModel po) {
         this.id = po.getId();
         this.name = po.getName();
         this.type = po.getType();

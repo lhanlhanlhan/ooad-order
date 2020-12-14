@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         FieldError fe = e.getBindingResult().getFieldError();
         if (fe == null) {
             logger.info("校验器发生未指明的错误：" + e.getMessage());
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST);
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID);
         }
         // 获取错误资料
         String defaultMessage = fe.getDefaultMessage();
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
         // 将错误信息返回给前台
         return ResponseUtils.make(
                 new APIReturnObject<>(HttpStatus.BAD_REQUEST,
-                        ResponseCode.BAD_REQUEST,
+                        ResponseCode.FIELD_NOT_VALID,
                         defaultMessage));
     }
 }

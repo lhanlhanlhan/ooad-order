@@ -147,7 +147,7 @@ public class OrderController {
         }
         // region id 合法性检查
         if (!iOtherService.isRegionIdExists(orderInfo.getRegionId())) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST, "该地区 id 是非法的"));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "该地区 id 是非法的"));
         }
         return ResponseUtils.make(orderService.createOrder(customerId, orderInfo));
     }
@@ -338,7 +338,7 @@ public class OrderController {
         }
         // 检查是否具有查询对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         // 获取数据并返回
         return ResponseUtils.make(orderService.getShopOrders(
@@ -408,7 +408,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopModifyOrder(id, shopId, orderEditVo));
@@ -440,7 +440,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.getShopOrder(id, shopId));
@@ -473,7 +473,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopCancelOrder(id, shopId));
@@ -507,11 +507,11 @@ public class OrderController {
         }
         // 检查是否具有发货的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         String sn = body.get("freightSn");
         if (null == sn) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopDeliverOrder(id, shopId, sn));

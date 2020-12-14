@@ -180,7 +180,7 @@ public class PaymentController {
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
 
         return ResponseUtils.make(paymentService.getOrderPaymentInfo(shopId, id));
@@ -263,7 +263,7 @@ public class PaymentController {
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
 
         //调用服务层
@@ -300,13 +300,13 @@ public class PaymentController {
         }
         // 检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
         }
         // 获取冀退款之金额
         Long refundAmount = refundAmountVo.get("amount");
         if (refundAmount == null) {
             // 输入金额有误，没有输入
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.BAD_REQUEST));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
         }
         // 调用服务层
         return ResponseUtils.make(paymentService.createRefund(shopId, id, refundAmount));

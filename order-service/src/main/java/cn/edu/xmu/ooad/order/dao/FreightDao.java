@@ -138,36 +138,6 @@ public class FreightDao {
     }
 
     /**
-     * 获取店铺的运费模板 (单个)
-     */
-    public APIReturnObject<FreightModelPo> getShopFreightModel(Long id, Long shopId) {
-        // 创建 PoExample 对象，以实现多参数查询
-        FreightModelPoExample freightModelPoExample = new FreightModelPoExample();
-        // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
-        FreightModelPoExample.Criteria criteria = freightModelPoExample.createCriteria();
-        criteria.andIdEqualTo(id);
-        if (shopId != 0) {
-            criteria.andShopIdEqualTo(shopId);
-        }
-
-        List<FreightModelPo> freightModelPoList;
-        try {
-            freightModelPoList = freightModelPoMapper.selectByExample(freightModelPoExample);
-            // 根据实际情况做取舍
-            if (freightModelPoList.size() == 0) {
-                // 返回不存在
-                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
-            } else {
-                return new APIReturnObject<>(freightModelPoList.get(0));
-            }
-        } catch (Exception e) {
-            // 数据库 错误
-            logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-        }
-    }
-
-    /**
      * 根据模板ID/明细ID返回重量模板明细
      */
     public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModels(Long fId, Long id) {

@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.dao.FreightDao;
 import cn.edu.xmu.ooad.order.model.bo.FreightModel;
+import cn.edu.xmu.ooad.order.model.bo.PieceFreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;
@@ -186,15 +187,14 @@ public class FreightService {
     @Transactional
     public APIReturnObject<?> cloneFreightModel(Long shopId, Long id) {
         // 取出原本的運費模板
-        APIReturnObject<FreightModelPo> mainTable = freightDao.getShopFreightModel(id, shopId);
-        if (mainTable.getCode() != ResponseCode.OK) {
-            // 找不到或資料庫錯誤
-            return mainTable;
+        FreightModel mainTable = freightDao.getFreightModel(id);
+        if (mainTable == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
 
         LocalDateTime nowTime = LocalDateTime.now();
         // 先克隆主表
-        FreightModelPo po = mainTable.getData();
+        FreightModelPo po = mainTable.toPo();
         // 直接改 Po，再存过一遍
         po.setId(null); // 将 id 改为空
         po.setGmtCreate(nowTime);
@@ -212,8 +212,7 @@ public class FreightService {
         Long mainId = po.getId();
 
         // 再克隆分表
-        Byte type = po.getType();
-        if (type == 0) {
+        if (mainTable instanceof PieceFreightModel) {
             APIReturnObject<List<PieceFreightModelPo>> pieceTable = freightDao.getPieceFreightModels(id, null);
             if (pieceTable.getCode() != ResponseCode.OK) {
                 // 分表未查到，回滚
@@ -224,7 +223,7 @@ public class FreightService {
             // 如果还没定义明细，就直接返回好了
             List<PieceFreightModelPo> pieceList = pieceTable.getData();
             if (pieceList.size() == 0) {
-                return mainTable;
+                return new APIReturnObject<>(po);
             }
             // 克隆所有明细
             for (PieceFreightModelPo piecePo : pieceList) {
@@ -249,7 +248,7 @@ public class FreightService {
             // 如果还没定义明细，就直接返回好了
             List<WeightFreightModelPo> weightList = weightTable.getData();
             if (weightList.size() == 0) {
-                return mainTable;
+                return new APIReturnObject<>(po);
             }
             // 克隆所有明细
             for (WeightFreightModelPo weightPo : weightList) {
@@ -264,7 +263,7 @@ public class FreightService {
         }
 
         // 返回改动过的主表
-        return mainTable;
+        return new APIReturnObject<>(po);
     }
 
     /**
@@ -276,13 +275,13 @@ public class FreightService {
      * Created by Chen Kechun at 25/11/2020 16:58
      */
     public APIReturnObject<?> getFreightModelSimple(Long id, Long shopId) {
-        APIReturnObject<FreightModelPo> poObj = freightDao.getShopFreightModel(id, shopId);
-        if (poObj.getCode() != ResponseCode.OK) {
+        FreightModel model = freightDao.getFreightModel(id);
+        if (model == null) {
             // 未能找到
-            return poObj;
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
         // 构造 Vo 返回
-        return new APIReturnObject<>(new FreightModelVo(poObj.getData()));
+        return new APIReturnObject<>(new FreightModelVo(model));
     }
 
     /**
@@ -350,16 +349,15 @@ public class FreightService {
     @Transactional
     public APIReturnObject<?> deleteShopFreightModel(Long shopId, Long id) {
         // 用老方法获取原来信息，因為要看看是屬於那一種運費模板
-        APIReturnObject<FreightModelPo> returnObject = freightDao.getShopFreightModel(id, shopId);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            return returnObject;
+        FreightModel model = freightDao.getFreightModel(id);
+        if (model == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        FreightModelPo po = returnObject.getData();
-        Long origShopId = po.getShopId();
-        Byte type = po.getType();
+        Long origShopId = model.getShopId();
+        Byte type = model.getType();
         // 判断该商店是否拥有
         if (!origShopId.equals(shopId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE);
         }
 
         // 将删除写入数据库

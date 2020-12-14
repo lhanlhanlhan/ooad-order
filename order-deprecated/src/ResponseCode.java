@@ -11,6 +11,16 @@ public enum ResponseCode {
     OK(0, "成功"),
 
     /**
+     * 用户自己的错误
+     */
+    BAD_REQUEST(400, "您的輸入有誤"),
+    NEED_LOGIN(401, "需要登入才可使用"),
+    RESOURCE_NOT_EXIST(404, "资源不存在"),
+    INVALID_USER(405, "用户不存在或不可使用"),
+    REQUEST_NOT_ALLOWED(406, "请求不被服务器支援"),
+    ORDER_TYPE_NOT_CORRESPOND(407, "订单种类不支援此操作"),
+
+    /**
      * 服务器内部错误
      */
     INTERNAL_SERVER_ERR(500, "服务器内部错误"),
@@ -18,17 +28,9 @@ public enum ResponseCode {
     JWT_EXPIRED(502, "JWT过期"),
 
     /**
-     * 用户自己的错误
-     */
-    FIELD_NOT_VALID(503, "字段不合法"),
-    RESOURCE_NOT_EXIST(504, "操作的资源id不存在"),
-    RESOURCE_ID_OUT_SCOPE(505, "操作的资源id不是自己的对象"),
-    REQUEST_NOT_ALLOWED(505, "请求不被服务器支援"),
-    ORDER_TYPE_NOT_CORRESPOND(506, "订单种类不支援此操作"),
-
-    /**
      * 订单模块错误
      */
+    GOODS_NOT_IN_STOCK(800, "库存不足"),
     ORDER_STATE_NOT_ALLOW(801, "订单状态禁止"),
     FREIGHT_MODEL_NAME_SAME(802, "运费模板名重复"),
     REGION_SAME(803, "运费模板中该地区已经定义"),
@@ -36,13 +38,8 @@ public enum ResponseCode {
     FREIGHT_REGION_FORBIDDEN(805, "订购列表中包含禁止寄往该地区之物品"),
     ORDER_MODIFY_REGION_FORBIDDEN(806, "您不能改变寄送目的地区"),
     PAY_MORE(807, "您的付款金额超出了订单总价"),
-
-    /**
-     * 商品模块错误
-     */
-    SKU_NOT_ENOUGH(900, "商品规格库存不够"),
-
     ;
+
     private final int code;
     private final String message;
 
