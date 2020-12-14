@@ -52,8 +52,6 @@
         <!-- 用 <where> 构造一系列 where -->
         <where>
             id = #{param1}
-            <if test="customerId != null">and customer_id = #{param2}</if>
-            <if test="shopId != null">and shop_id = #{param3}</if>
             <if test="includeDeleted == false">and be_deleted is null</if>
         </where>
     </select>
@@ -105,8 +103,6 @@
         ON o.id = oi.order_id
         <where>
             o.id = #{param1}
-            <if test="customerId != null">and o.customer_id = #{param2}</if>
-            <if test="shopId != null">and o.shop_id = #{param3}</if>
             <if test="includeDeleted == false">and o.be_deleted is null</if>
         </where>
     </select>

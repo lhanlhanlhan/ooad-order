@@ -1,9 +1,12 @@
 package cn.edu.xmu.ooad.order.dao;
 
+import cn.edu.xmu.ooad.order.exceptions.NoSuchOrderTypeException;
+import cn.edu.xmu.ooad.order.mapper.OrderFullPoMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderSimplePoMapper;
 import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.model.bo.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
@@ -11,12 +14,14 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 订单 Dao
@@ -36,6 +41,9 @@ public class OrderDao {
     @Autowired
     private OrderSimplePoMapper orderSimplePoMapper;
     // Order 的 Mapper
+    @Autowired
+    private OrderFullPoMapper orderFullPoMapper;
+    // Order 的 Mapper (手写)
     @Autowired
     private OrderMapper orderMapper;
     // OrderItem 的 Mapper
@@ -122,7 +130,7 @@ public class OrderDao {
                 if (logger.isInfoEnabled()) {
                     logger.info(e.getMessage());
                 }
-                return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "起始日期格式错误");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "起始日期格式错误");
             }
         }
         if (endTime != null) {
@@ -134,7 +142,7 @@ public class OrderDao {
                 if (logger.isInfoEnabled()) {
                     logger.info(e.getMessage());
                 }
-                return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "结束日期格式错误");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "结束日期格式错误");
             }
         }
         if (shopId != null) {
@@ -169,27 +177,54 @@ public class OrderDao {
         // 调用 Mapper 查询经过拼接 Item 的 OrderPo
         OrderPo orderPo;
         try {
-            orderPo = orderMapper.findOrderWithItem(orderId, customerId, shopId, includeDeleted);
+            orderPo = orderMapper.findOrder(orderId, includeDeleted);
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
         }
+
         // 不获取已被逻辑删除及根本不存在的订单
         if (orderPo == null || (orderPo.getBeDeleted() != null)) {
-            if (logger.isInfoEnabled()) {
-                logger.info("订单不存在或已被删除或不属于该用户：id = " + orderId);
-            }
-            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 不属于用户");
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
-        // 檢查一下，是否根本沒有 OrderItem (查不出 OrderItem 時由於 JOIN 的關係 List 中會有一個 NULL 對象)
-        if (orderPo.getOrderItemList().get(0).getId() == null) {
-            orderPo.setOrderItemList(null);
-        }
-        // 创建订单业务对象
-        Order order = Order.createOrder(orderPo);
 
-        // 把 orderPo 转换成 bo 对象，再转为 Po 对象
+        // 查看所属
+        if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+        }
+        if (shopId != null && shopId.equals(orderPo.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+        }
+
+        // 查询 order item
+        OrderItemPoExample example = new OrderItemPoExample();
+        OrderItemPoExample.Criteria criteria = example.createCriteria();
+        criteria.andOrderIdEqualTo(orderId);
+        List<OrderItemPo> orderItemPos;
+        try {
+            orderItemPos = orderItemPoMapper.selectByExample(example);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+        }
+
+        // 转为业务对象
+        List<OrderItem> orderItems = orderItemPos
+                .stream()
+                .map(OrderItem::new)
+                .collect(Collectors.toList());
+
+        // 创建订单业务对象
+        Order order;
+        try {
+            order = Order.createOrder(orderPo);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+        }
+        order.setOrderItemList(orderItems);
+
         return new APIReturnObject<>(order);
     }
 
@@ -205,21 +240,33 @@ public class OrderDao {
         // 调用 Mapper 查询 OrderPo
         OrderPo orderPo;
         try {
-            orderPo = orderMapper.findOrder(orderId, customerId, shopId, includeDeleted);
+            orderPo = orderMapper.findOrder(orderId, includeDeleted);
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
         }
+
         // 不获取已被逻辑删除及根本不存在的订单
         if (orderPo == null || (orderPo.getBeDeleted() != null)) {
-            if (logger.isInfoEnabled()) {
-                logger.info("订单不存在或已被删除或不属于该用户：id = " + orderId);
-            }
-            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST, "订单不存在 / 已删除 / 無檢視權限");
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
+
+        // 查看所属
+        if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+        }
+        if (shopId != null && shopId.equals(orderPo.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+        }
+
         // 创建订单业务对象
-        Order order = Order.createOrder(orderPo);
+        Order order;
+        try {
+            order = Order.createOrder(orderPo);
+        } catch (Exception e) {
+            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+        }
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
         return new APIReturnObject<>(order);

@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.model.bo;
 
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
+import cn.edu.xmu.ooad.order.exceptions.NoSuchOrderTypeException;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import lombok.Data;
@@ -72,7 +73,7 @@ public abstract class Order {
         }
     }
 
-    public static Order createOrder(OrderPo orderPo) {
+    public static Order createOrder(OrderPo orderPo) throws NoSuchOrderTypeException {
         switch (orderPo.getOrderType()) {
             case 0: // 普通订单
                 return new NormalOrder(orderPo);
@@ -81,7 +82,7 @@ public abstract class Order {
             case 2: // 预售
                 return new PreSaleOrder(orderPo);
             default:
-                return null;
+                throw new NoSuchOrderTypeException();
         }
     }
 

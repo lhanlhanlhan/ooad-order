@@ -145,7 +145,15 @@
         </table>
 
         <!-- 表 4 -->
-        <!-- OrderPo 完整对象：不用 generator 生成，自己写 -->
+        <!-- OrderPo 完整对象 -->
+        <table tableName="orders" domainObjectName="OrderFullPo"
+               enableCountByExample="true" enableUpdateByExample="true"
+               enableDeleteByExample="false" enableSelectByExample="true"
+               selectByExampleQueryId="false" delimitIdentifiers="true">
+            <!-- 注意：enableSelectByExample = true，以允许不确定参数查询 -->
+            <property name="useActualColumnNames" value="false"/>
+            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>
         <!-- OrderSimplePo 概要对象 -->
         <table tableName="orders" domainObjectName="OrderSimplePo"
                enableCountByExample="false" enableUpdateByExample="false"
@@ -175,7 +183,7 @@
         <!-- 表 5 -->
         <table tableName="order_item" domainObjectName="OrderItemPo"
                enableCountByExample="false" enableUpdateByExample="false"
-               enableDeleteByExample="false" enableSelectByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="true"
                selectByExampleQueryId="false">
             <property name="useActualColumnNames" value="false"/>
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>

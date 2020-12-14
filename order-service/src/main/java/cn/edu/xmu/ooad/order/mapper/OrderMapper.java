@@ -14,9 +14,11 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface OrderMapper {
 
-    OrderPo findOrder(Long id, Long customerId, Long shopId, boolean includeDeleted);
+    OrderPo findOrder(Long id, boolean includeDeleted);
 
-    OrderPo findOrderWithItem(Long id, Long customerId, Long shopId, boolean includeDeleted);
+    // 不准再用连接查询查询了，答应我，好吗？
+    @Deprecated
+    OrderPo findOrderWithItem(Long id, boolean includeDeleted);
 
     int updateOrder(OrderEditPo editPo);
 
