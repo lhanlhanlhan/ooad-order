@@ -148,7 +148,7 @@ public class PaymentDao {
             logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
-        // TODO - 订单的退款单只能有0个/1个吗？就不能有多张吗？
+        // 订单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {
             logger.info("发现多于1张退款单绑定在该【订单】上, API只能返回一个！ orderId=" + orderId);
         } else if (refundPoList.size() == 0) {
@@ -176,7 +176,7 @@ public class PaymentDao {
             logger.error(e.getMessage());
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
-        // TODO - 售后单的退款单只能有0个/1个吗？就不能有多张吗？
+        // 售后单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {
             logger.info("发现多于1张退款单绑定在该【售后单】上, API只能返回一个！ afterSaleId=" + afterSaleId);
         } else if (refundPoList.size() == 0) {

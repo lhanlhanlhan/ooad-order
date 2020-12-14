@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
@@ -49,12 +50,14 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canPay() {
-        OrderStatus state = this.getState();
-        OrderStatus subState = this.getSubstate();
-        // 预售订单，只能主状态为待支付 && 从状态为待支付首/尾款的才可以支付
-        return state == OrderStatus.PENDING_PAY &&
-                (subState == OrderStatus.PENDING_DEPOSIT ||
-                        subState == OrderStatus.PENDING_REM_BALANCE);
+        switch (this.getSubstate()) {
+            case NEW:
+                return true;
+            case PENDING_REM_BALANCE:
+                return this.canPayRemBalance();
+            default:
+                return false;
+        }
     }
 
     /**
@@ -63,7 +66,7 @@ public class PreSaleOrder extends Order {
     @Override
     public boolean canModify() {
         // 只有「未发货」才能让客户修改
-        return this.getState() == OrderStatus.PAID;
+        return this.getSubstate() == OrderChildStatus.PAID;
     }
 
     /**
@@ -71,22 +74,7 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canDelete() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给删除
-        if (status == null) {
-            return false;
-        }
-        // 只有已签收 or 已取消 or 已退款 or 订单终止 or 预售终止的才让删除
-        switch (status) {
-            case SIGNED:
-            case REFUNDED:
-            case TERMINATED:
-            case PRE_SALE_TERMINATED:
-            case CANCELLED:
-                return true;
-            default:
-                return false;
-        }
+        return (this.getState() == OrderStatus.CANCELLED || this.getState() == OrderStatus.DONE);
     }
 
     /**
@@ -94,14 +82,8 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给不给取消
-        if (status == null) {
-            return false;
-        }
-
         // 只有未支付的才能被客户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -109,13 +91,8 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canShopCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给取消
-        if (status == null) {
-            return false;
-        }
         // 只有未支付的才能被商户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -123,13 +100,8 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canSign() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给签收
-        if (status == null) {
-            return false;
-        }
-        // 只有订单状态为「已到货」的可以签收
-        return status == OrderStatus.REACHED;
+        // 只有订单状态为「已发货」的可以签收
+        return getSubstate() == OrderChildStatus.SHIPPED;
     }
 
     /**
@@ -137,11 +109,28 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canDeliver() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给发货
-        if (status == null) {
-            return false;
+        // 只有「已付款完成 (已成团)」的团购订单，才能被发货
+        return getSubstate() == OrderChildStatus.PAID;
+    }
+
+    /**
+     * TODO - 判断可否支付尾款
+     * @return
+     */
+    public boolean canPayRemBalance() {
+        return false;
+    }
+
+    @Override
+    public void triggerPaid() {
+        if (this.getSubstate() == OrderChildStatus.PENDING_REM_BALANCE) {
+            // 改成付款完成
+            this.setState(OrderStatus.PENDING_RECEIVE);
+            this.setSubstate(OrderChildStatus.PAID);
+        } else {
+            // 改成待支付尾款
+            this.setState(OrderStatus.PENDING_PAY);
+            this.setSubstate(OrderChildStatus.PENDING_REM_BALANCE);
         }
-        return status == OrderStatus.PAID;
     }
 }

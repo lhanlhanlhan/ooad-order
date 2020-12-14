@@ -121,6 +121,8 @@
             <if test="beDeleted!=null and beDeleted==false">be_deleted = null,</if>
             <if test="shipmentSn!=null and shipmentSn!=''">shipment_sn = #{shipmentSn},</if>
             <if test="state!=null">state = #{state},</if>
+            <if test="substate!=null">substate = #{subState},</if>
+            <if test="substate==-1">substate = null,</if>
             <if test="orderType!=null">order_type = #{orderType},</if>
             gmt_modified = CURRENT_TIME
         </set>

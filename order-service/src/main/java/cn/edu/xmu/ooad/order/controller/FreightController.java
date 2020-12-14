@@ -278,7 +278,6 @@ public class FreightController {
      * Created at 2/12/2020 19:45
      * Created by Chen Kechun at 2/12/2020 19:45
      */
-    //TODO - 需同步删除与商品的
     @ApiOperation(value = "删除运费模板，需同步删除与商品的")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
@@ -322,8 +321,7 @@ public class FreightController {
             @ApiResponse(code = 0, message = "成功")
     })
     @Audit //登录
-    @PostMapping("shops/{shopId}/freightmodels/{id}/default")
-    // TODO 到底freight_models还是freightmodels？？？
+    @PostMapping("shops/{shopId}/freight_models/{id}/default")
     public Object defineDefaultFreightModel(@PathVariable Long shopId,
                                             @PathVariable Long id,
                                             @LoginUser Long adminId,

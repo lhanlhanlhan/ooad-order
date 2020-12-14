@@ -1,8 +1,8 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.require.IShopService;
@@ -12,7 +12,6 @@ import cn.edu.xmu.ooad.order.utils.SpringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Han Li
@@ -90,26 +89,6 @@ public class NormalOrder extends Order {
         LocalDateTime nowTime = LocalDateTime.now();
         ArrayList<Order> orderList = new ArrayList<>(shopsItemLists.size());
         shopsItemLists.forEach((shopId, shopOrderItems) -> {
-            // 把 shopOrderItems 中的各对象转为有 OrderItemPo 的 OrderItem
-            List<OrderItem> orderItems = shopOrderItems
-                    .stream()
-                    .map(item -> {
-                        OrderItemPo orderItemPo = new OrderItemPo();
-                        // 设置 po 的各项目
-                        orderItemPo.setId(item.getId()); // 是將orderItem軟連結過去
-                        orderItemPo.setGoodsSkuId(item.getSkuId());
-                        orderItemPo.setQuantity(item.getQuantity());
-                        orderItemPo.setPrice(item.getPrice());
-                        orderItemPo.setDiscount(item.getDiscount());
-                        orderItemPo.setCouponActivityId(item.getCouponActId());
-                        orderItemPo.setBeShareId(item.getBeSharedId());
-                        orderItemPo.setName(item.getName()); // 下单时的名字
-                        orderItemPo.setGmtCreate(nowTime);
-                        return orderItemPo;
-                    })
-                    .map(OrderItem::new)
-                    .collect(Collectors.toList());
-
             // 生成一笔 OrderPo
             OrderPo orderPo = new OrderPo();
             // 可以从父订单拿到的资料
@@ -124,17 +103,17 @@ public class NormalOrder extends Order {
             orderPo.setShopId(shopId); // 本商店 Id
             orderPo.setOriginPrice(shopsOrigPriceList.get(shopId));
             orderPo.setDiscountPrice(shopsDiscountList.get(shopId));
-            orderPo.setFreightPrice(shopsFreightList.get(shopId)); // TODO - 运费怎么平摊？
+            orderPo.setFreightPrice(shopsFreightList.get(shopId)); // 运费怎么平摊？ mingqiu 说按照实付金额分
             // 订单种类为普通订单，订单状态为已支付 (已支付才能分单)
             orderPo.setOrderType(OrderType.NORMAL.getCode());
-            orderPo.setState(OrderStatus.PAID.getCode()); // 普通订单没有 subState
+            orderPo.setState(OrderChildStatus.PAID.getCode()); // 普通订单没有 subState
             orderPo.setGmtCreate(nowTime);
             orderPo.setOrderSn(Accessories.genSerialNumber());
 
             // 生成一笔 Order
             NormalOrder order = new NormalOrder(orderPo);
             // 無語，差點忘記把 item 放進去了媽的
-            order.setOrderItemList(orderItems);
+            order.setOrderItemList(shopOrderItems);
             orderList.add(order);
         });
 
@@ -146,7 +125,7 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canPay() {
-        return this.getState() == OrderStatus.PENDING_PAY;
+        return this.getSubstate() == OrderChildStatus.NEW;
     }
 
     /**
@@ -155,7 +134,7 @@ public class NormalOrder extends Order {
     @Override
     public boolean canModify() {
         // 只有「未发货」才能让客户修改
-        return this.getState() == OrderStatus.PAID;
+        return this.getSubstate() == OrderChildStatus.PAID;
     }
 
     /**
@@ -163,22 +142,7 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canDelete() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给删除
-        if (status == null) {
-            return false;
-        }
-        // 只有已签收 or 已取消 or 已退款 or 订单终止 or 预售终止的才让删除
-        switch (status) {
-            case SIGNED:
-            case REFUNDED:
-            case TERMINATED:
-            case PRE_SALE_TERMINATED:
-            case CANCELLED:
-                return true;
-            default:
-                return false;
-        }
+        return (this.getState() == OrderStatus.CANCELLED || this.getState() == OrderStatus.DONE);
     }
 
     /**
@@ -186,14 +150,8 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给不给取消
-        if (status == null) {
-            return false;
-        }
-
         // 只有未支付的才能被客户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -201,13 +159,8 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canShopCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给取消
-        if (status == null) {
-            return false;
-        }
         // 只有未支付的才能被商户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -215,13 +168,8 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canSign() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给签收
-        if (status == null) {
-            return false;
-        }
-        // 只有订单状态为「已到货」的可以签收
-        return status == OrderStatus.REACHED;
+        // 只有订单状态为「已发货」的可以签收
+        return getSubstate() == OrderChildStatus.SHIPPED;
     }
 
     /**
@@ -229,11 +177,14 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canDeliver() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给发货
-        if (status == null) {
-            return false;
-        }
-        return status == OrderStatus.PAID;
+        // 只有「已付款完成 (已成团)」的团购订单，才能被发货
+        return getSubstate() == OrderChildStatus.PAID;
+    }
+
+    @Override
+    public void triggerPaid() {
+        // 订单状态改成已支付
+        this.setState(OrderStatus.PENDING_RECEIVE);
+        this.setSubstate(OrderChildStatus.PAID);
     }
 }

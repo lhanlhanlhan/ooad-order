@@ -54,7 +54,6 @@ public class FreightService {
      * @param orderItemList 商品 list
      * @return -1：失败；-2：运费模板 id 未定义；-3：包含禁寄物品
      */
-    // TODO - 能不能不要拿 SKU INFO 阿？好浪费。只拿 freight model id 就好了
     public long calcFreight(Long regionId, List<FreightOrderItemVo> orderItemList, Map<Long, SkuInfo> skuInfoMap) {
         // 1. 获取所有商品明细 (联系商品模块) 及所有关联之运费模板
         List<SkuInfo> skuInfoList = new ArrayList<>(orderItemList.size());
@@ -371,6 +370,12 @@ public class FreightService {
 
         // 返回
         if (response >= 0) {
+            // 同步删除商品模块那边的
+            if (0 != iShopService.deleteFreightModel(id, shopId)) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                logger.error("商品模块那边删除运费模板失败！modelId=" + id);
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
             return new APIReturnObject<>();
         } else {
             logger.error("删除运费模板失败！modelId=" + id);

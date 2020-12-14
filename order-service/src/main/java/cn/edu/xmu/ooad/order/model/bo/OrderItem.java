@@ -70,6 +70,7 @@ public class OrderItem {
         orderItemPo.setName(name);
         orderItemPo.setGmtCreate(LocalDateTime.now());
         orderItemPo.setCouponActivityId(couponActId);
+        orderItemPo.setBeShareId(beSharedId);
 
         return orderItemPo;
     }

@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.bo.GrouponOrder;
@@ -238,7 +239,7 @@ public class OrderService {
         } else if (cancelable) {
             delPo = new OrderEditPo();
             delPo.setState(OrderStatus.CANCELLED.getCode());
-            delPo.setSubState(null);
+            delPo.setSubState((byte) -1); // sub state 置为空
         } else {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
@@ -277,8 +278,8 @@ public class OrderService {
         // 买家确认收货
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setState(OrderStatus.SIGNED.getCode());
-        po.setSubState(null);
+        po.setState(OrderStatus.DONE.getCode());
+        po.setSubState((byte) -1); // sub state 置为空
 
         return orderDao.modifyOrder(po);
     }
@@ -317,10 +318,8 @@ public class OrderService {
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
         po.setOrderType(OrderType.NORMAL.getCode()); // 普通订单
-        po.setState(OrderStatus.PAID.getCode()); // 状态改为已支付
-        po.setSubState(null);
-
-        // TODO - 还会不会触发更复杂的逻辑？
+        po.setState(OrderStatus.PENDING_RECEIVE.getCode()); // 状态改为待发货
+        po.setSubState(OrderChildStatus.PAID.getCode()); // 状态改为已支付
 
         return orderDao.modifyOrder(po);
     }
@@ -563,7 +562,7 @@ public class OrderService {
         }
         delPo = new OrderEditPo();
         delPo.setState(OrderStatus.CANCELLED.getCode());
-        delPo.setSubState(null);
+        delPo.setSubState((byte) -1); // sub state 置为空
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);
@@ -596,8 +595,8 @@ public class OrderService {
         }
         delPo = new OrderEditPo();
         delPo.setShipmentSn(deliverSn);
-        delPo.setState(OrderStatus.SHIPPED.getCode());
-        delPo.setSubState(null);
+        delPo.setState(OrderStatus.PENDING_RECEIVE.getCode());
+        delPo.setSubState(OrderChildStatus.SHIPPED.getCode());
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);

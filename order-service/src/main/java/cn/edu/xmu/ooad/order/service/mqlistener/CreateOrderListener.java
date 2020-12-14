@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.service.mqlistener;
 
 import cn.edu.xmu.ooad.order.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.dao.OrderDao;
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.model.bo.OrderItem;
@@ -339,7 +340,6 @@ public class CreateOrderListener implements RocketMQListener<String> {
             orderPo.setFreightPrice(totalFreight);
             // 订单种类为普通订单，订单状态为待支付
             orderPo.setOrderType(OrderType.NORMAL.getCode());
-            orderPo.setState(OrderStatus.PENDING_PAY.getCode()); // 普通订单没有 subState
             orderPo.setGmtCreate(nowTime);
             orderPo.setOrderSn(sn);
         }
@@ -444,16 +444,8 @@ public class CreateOrderListener implements RocketMQListener<String> {
             orderPo.setOriginPrice(totalPrice);
             orderPo.setDiscountPrice(0L); // 团购/预售没有优惠
             orderPo.setFreightPrice(totalFreight);
-            // 订单种类为团购/预售订单，订单状态为待支付
+            // 种类及创建时间
             orderPo.setOrderType(type.getCode());
-            orderPo.setState(OrderStatus.PENDING_PAY.getCode()); // 普通订单没有 subState
-            if (type == OrderType.GROUPON) {
-                orderPo.setSubstate(OrderStatus.PENDING_GROUP.getCode()); // 待参团
-                orderPo.setGrouponId(orderNewVo.getGrouponId()); // 设置团购 id
-            } else {
-                orderPo.setSubstate(OrderStatus.PENDING_DEPOSIT.getCode()); // 待支付定金
-                orderPo.setPresaleId(orderNewVo.getPresaleId()); // 设置预售 if
-            }
             orderPo.setGmtCreate(nowTime);
             orderPo.setOrderSn(sn);
         }
@@ -514,6 +506,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
         orderPo.setMobile(orderNewVo.getMobile());
         orderPo.setMessage(orderNewVo.getMessage());
         orderPo.setConsignee(orderNewVo.getConsignee());
+        // 订单种类为团购/预售订单，订单状态为待支付
+        orderPo.setState(OrderStatus.PENDING_PAY.getCode()); // 普通订单没有 subState
+        orderPo.setSubstate(OrderChildStatus.NEW.getCode()); //
         return orderPo;
     }
 

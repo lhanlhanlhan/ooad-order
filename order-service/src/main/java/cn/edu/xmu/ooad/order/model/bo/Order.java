@@ -1,8 +1,10 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.exceptions.NoSuchOrderTypeException;
+import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import lombok.Data;
@@ -30,10 +32,62 @@ public abstract class Order {
     // 完整业务对象 【代理】
     private OrderPo orderPo = null;
 
+    private Long id;
+
+    private Long customerId;
+
+    private Long shopId;
+
+    private String orderSn;
+
+    private Long pid;
+
+    private String consignee;
+
+    private Long regionId;
+
+    private String address;
+
+    private String mobile;
+
+    private String message;
+
+    private Byte orderType;
+
+    private Long freightPrice;
+
+    private Long couponId;
+
+    private Long couponActivityId;
+
+    private Long discountPrice;
+
+    private Long originPrice;
+
+    private Long presaleId;
+
+    private Long grouponId;
+
+    private Long grouponDiscount;
+
+    private Integer rebateNum;
+
+    private LocalDateTime confirmTime;
+
+    private String shipmentSn;
+
+    private OrderStatus state;
+
+    private OrderChildStatus substate;
+
+    private Byte beDeleted;
+
+    private LocalDateTime gmtCreate;
+
+    private LocalDateTime gmtModified;
+
     /**
      * 创建概要业务对象
-     *
-     * @param orderSimplePo SimplePo 对象
      */
     public Order(OrderSimplePo orderSimplePo) {
         this.orderSimplePo = orderSimplePo;
@@ -133,7 +187,16 @@ public abstract class Order {
     public abstract boolean canDeliver();
 
 
+    /*
+     * 订单的一些触发器
+     */
+
     /**
+     * 成功创建一笔支付后的触发器
+     */
+    public abstract void triggerPaid();
+
+    /*
      * Getters
      */
 
@@ -236,13 +299,13 @@ public abstract class Order {
         return OrderStatus.getByCode(state);
     }
 
-    public OrderStatus getSubstate() {
+    public OrderChildStatus getSubstate() {
         Byte state = orderPo == null ? orderSimplePo.getSubstate() : orderPo.getSubstate();
         if (state == null) {
             return null;
         }
         // 订单状态非法，不给修改
-        return OrderStatus.getByCode(state);
+        return OrderChildStatus.getByCode(state);
     }
 
     public Byte getBeDeleted() {

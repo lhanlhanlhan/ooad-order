@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
@@ -49,7 +50,7 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canPay() {
-        return this.getState() == OrderStatus.PENDING_PAY;
+        return this.getSubstate() == OrderChildStatus.NEW;
     }
 
     /**
@@ -58,7 +59,7 @@ public class GrouponOrder extends Order {
     @Override
     public boolean canModify() {
         // 只有「未发货」才能让客户修改
-        return this.getState() == OrderStatus.PAID;
+        return this.getSubstate() == OrderChildStatus.PAID;
     }
 
     /**
@@ -66,22 +67,7 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canDelete() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给删除
-        if (status == null) {
-            return false;
-        }
-        // 只有已签收 or 已取消 or 已退款 or 订单终止 or 预售终止的才让删除
-        switch (status) {
-            case SIGNED:
-            case REFUNDED:
-            case TERMINATED:
-            case PRE_SALE_TERMINATED:
-            case CANCELLED:
-                return true;
-            default:
-                return false;
-        }
+        return (this.getState() == OrderStatus.CANCELLED || this.getState() == OrderStatus.DONE);
     }
 
     /**
@@ -89,14 +75,8 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给不给取消
-        if (status == null) {
-            return false;
-        }
-
         // 只有未支付的才能被客户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -104,13 +84,8 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canShopCancel() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给取消
-        if (status == null) {
-            return false;
-        }
         // 只有未支付的才能被商户取消
-        return status == OrderStatus.PENDING_PAY;
+        return this.getState() == OrderStatus.PENDING_PAY;
     }
 
     /**
@@ -118,13 +93,8 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canSign() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给签收
-        if (status == null) {
-            return false;
-        }
-        // 只有订单状态为「已到货」的可以签收
-        return status == OrderStatus.REACHED;
+        // 只有订单状态为「已发货」的可以签收
+        return getSubstate() == OrderChildStatus.SHIPPED;
     }
 
     /**
@@ -132,26 +102,22 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canDeliver() {
-        OrderStatus status = this.getState();
-        // 订单状态非法，不给发货
-        if (status == null) {
-            return false;
-        }
-        // 只有「已成团」的团购订单，才能被发货
-        return getSubstate() == OrderStatus.GROUPED;
+        // 只有「已付款完成 (已成团)」的团购订单，才能被发货
+        return getSubstate() == OrderChildStatus.PAID;
     }
 
     /**
      * 判断该 团购订单 是否可被从团购转为普通订单
      */
     public boolean canChangeToNormal() {
-        OrderStatus subState = this.getSubstate();
-        // 订单状态非法，不给转换
-        if (subState == null) {
-            return false;
-        }
-
         // 只有订单类型为团购、订单状态为「未到达门槛」的可以改成普通订单
-        return subState == OrderStatus.GROUP_FAILED;
+        return getSubstate() == OrderChildStatus.GROUP_FAILED;
+    }
+
+    @Override
+    public void triggerPaid() {
+        // 订单状态改成已支付、待成团
+        this.setState(OrderStatus.PENDING_RECEIVE);
+        this.setSubstate(OrderChildStatus.PENDING_GROUP);
     }
 }

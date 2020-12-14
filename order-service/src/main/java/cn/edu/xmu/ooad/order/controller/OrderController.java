@@ -3,7 +3,7 @@ package cn.edu.xmu.ooad.order.controller;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
 import cn.edu.xmu.ooad.annotation.LoginUser;
-import cn.edu.xmu.ooad.order.enums.OrderStatus;
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderStatusVo;
@@ -70,7 +70,7 @@ public class OrderController {
         }
         // 创造对应枚举数组
         List<OrderStatusVo> orderStatusVos = new ArrayList<>();
-        for (OrderStatus os : OrderStatus.values()) {
+        for (OrderChildStatus os : OrderChildStatus.values()) {
             orderStatusVos.add(new OrderStatusVo((os)));
         }
         // 返回

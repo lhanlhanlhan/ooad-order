@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
@@ -43,7 +44,7 @@ public class OrderSimpleVo {
         this.discountPrice = order.getDiscountPrice();
         this.originPrice = order.getOriginPrice();
         OrderStatus state = order.getState();
-        OrderStatus subState = order.getSubstate();
+        OrderChildStatus subState = order.getSubstate();
         this.state = state == null ? null : state.getCode();
         this.substate = subState == null ? null : subState.getCode();
         this.gmtCreated = order.getGmtCreated();

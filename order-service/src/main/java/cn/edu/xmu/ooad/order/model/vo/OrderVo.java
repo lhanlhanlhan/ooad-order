@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.bo.Order;
 import cn.edu.xmu.ooad.order.require.models.CustomerInfo;
@@ -29,6 +30,8 @@ public class OrderVo {
     private Byte state;
     private Byte subState;
     private String gmtCreate;
+    private String gmtModified;
+    private String confirmTime;
     private Long originPrice;
     private Long discountPrice;
     private Long freightPrice;
@@ -39,6 +42,8 @@ public class OrderVo {
     private String consignee;
     private Long couponId;
     private Long grouponId;
+    private Long presaleId;
+    private String shipmentSn;
     private List<OrderItemVo> orderItems;
 
     /**
@@ -57,7 +62,7 @@ public class OrderVo {
         this.orderType = order.getOrderType().getCode();
 
         OrderStatus state = order.getState();
-        OrderStatus subState = order.getSubstate();
+        OrderChildStatus subState = order.getSubstate();
         this.state = state == null ? null : state.getCode();
         this.subState = subState == null ? null : subState.getCode();
 
@@ -70,7 +75,9 @@ public class OrderVo {
         this.mobile = order.getMobile();
         this.consignee = order.getConsignee();
         this.couponId = order.getCouponId();
-        this.grouponId = order.getGrouponId(); // TODO - 问邱明：没有 preSaleId?
+        this.grouponId = order.getGrouponId();
+        this.presaleId = order.getPresaleId();
+        this.shipmentSn = order.getShipmentSn();
         this.orderItems = // 如果是父訂單，這邊就會是 null
                 order.getOrderItemList() == null ?
                         null :
@@ -79,8 +86,11 @@ public class OrderVo {
                                 .map(OrderItemVo::new)
                                 .collect(Collectors.toList());
 
-        // TODO - 这个 API 是数字，但是其他 API 大都是 String，没见过数字，咋整
         LocalDateTime gmtCreate = order.getGmtCreated();
+        LocalDateTime gmtModified = order.getGmtModified();
+        LocalDateTime confirmTime = order.getConfirmTime();
         this.gmtCreate = gmtCreate == null ? ResponseUtils.UNIX_TIMESTAMP_START : gmtCreate.toString();
+        this.gmtModified = gmtModified == null ? this.gmtCreate : gmtModified.toString();
+        this.confirmTime = confirmTime == null ? null : confirmTime.toString();
     }
 }

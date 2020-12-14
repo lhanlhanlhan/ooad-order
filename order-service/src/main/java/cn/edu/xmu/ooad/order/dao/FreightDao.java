@@ -203,14 +203,25 @@ public class FreightDao {
             PieceFreightModelPoExample example = new PieceFreightModelPoExample();
             PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
             criteria.andFreightModelIdEqualTo(id);
+            List<PieceFreightModelPo> list = pieceFreightModelPoMapper.selectByExample(example);
+            // 依次删除缓存 (如可能)
+            list.forEach(lItem -> {
+                String key = "pf_" + id + "_" + lItem.getRegionId();
+                redisUtils.del(key);
+            });
             ret = pieceFreightModelPoMapper.deleteByExample(example);
         } else {
             WeightFreightModelPoExample example = new WeightFreightModelPoExample();
             WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
             criteria.andFreightModelIdEqualTo(id);
+            List<WeightFreightModelPo> list = weightFreightModelPoMapper.selectByExample(example);
+            // 依次删除缓存 (如可能)
+            list.forEach(lItem -> {
+                String key = "wf_" + id + "_" + lItem.getRegionId();
+                redisUtils.del(key);
+            });
             ret = weightFreightModelPoMapper.deleteByExample(example);
         }
-        // TODO - 模板明细的缓存耗子喂汁吧 去操您妈咯
         return ret;
     }
 
@@ -287,7 +298,7 @@ public class FreightDao {
             return res;
         }
         // 删除缓存 (如有)
-        String key = "wf_" + po.getId();
+        String key = "wf_" + po.getId() + "_" + po.getRegionId();
         redisUtils.del(key);
         return 1;
     }
@@ -305,7 +316,7 @@ public class FreightDao {
             return res;
         }
         // 删除缓存 (如有)
-        String key = "pf_" + po.getId();
+        String key = "pf_" + po.getId() + "_" + po.getRegionId();
         redisUtils.del(key);
         return 1;
     }

@@ -2,7 +2,7 @@ package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.dao.PaymentDao;
-import cn.edu.xmu.ooad.order.enums.OrderStatus;
+import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.PayPattern;
 import cn.edu.xmu.ooad.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.enums.RefundStatus;
@@ -77,7 +77,7 @@ public class PaymentService {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW, "基于订单状态，您不能支付这笔订单！");
         }
 
-        // 获取已支付之金额 TODO 还有没有更优秀的方法啊我操
+        // 获取已支付之金额
         // 获取该订单上的所有支付单
         APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(orderId);
         if (poListObj.getCode() != ResponseCode.OK) {
@@ -140,34 +140,13 @@ public class PaymentService {
         paidPrice += paymentPo.getAmount();
         // 已足额支付，更改订单状态，分单
         if (paidPrice == shallPayPrice) {
+            // 触发足额支付动作
+            simpleOrder.triggerPaid();
             // 更改订单状态
             OrderEditPo editPo = new OrderEditPo();
             editPo.setId(orderId);
-            switch (simpleOrder.getOrderType()) {
-                case GROUPON:   // 团购订单，改为已参团
-                    editPo.setState(OrderStatus.PAID.getCode());
-                    editPo.setSubState(OrderStatus.GROUP_FORMED.getCode());
-                    break;
-                case PRE_SALE:  // 预售订单，改为已支付定金 | 已支付尾款
-                    // 如果是已支付定金
-                    OrderStatus subState = simpleOrder.getSubstate();
-                    if (subState == OrderStatus.DEPOSIT_PAID) {
-                        // 改为已支付 + 已支付尾款
-                        editPo.setState(OrderStatus.PAID.getCode());
-                        editPo.setSubState(OrderStatus.REM_BALANCE_PAID.getCode());
-                    }
-                    // 未支付定金
-                    else {
-                        // 未支付 + 已支付定金 (不是待支付尾款，因为尾款支付时间还没到)
-                        editPo.setState(OrderStatus.PENDING_PAY.getCode());
-                        editPo.setSubState(OrderStatus.DEPOSIT_PAID.getCode());
-                    }
-                    break;
-                default:
-                    // 已支付
-                    editPo.setState(OrderStatus.PAID.getCode());
-                    break;
-            }
+            editPo.setState(simpleOrder.getState().getCode());
+            editPo.setSubState(simpleOrder.getSubstate().getCode());
 
             // 2. 分单 TODO - 优化分单过程
             // 查询夫订单
@@ -369,7 +348,6 @@ public class PaymentService {
      * @param aftersaleId 售后单ID
      */
     public APIReturnObject<?> getPaymentInfo(Long shopId, Long aftersaleId) {
-        // TODO - 其他模塊获取售后单，检查是否属于店铺
         if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
@@ -491,7 +469,7 @@ public class PaymentService {
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByAftersaleId(Long shopId, Long aftersaleId) {
-        // TODO - 其他模塊检查售后单是否属于店铺
+        // 其他模塊检查售后单是否属于店铺
         if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
         }
