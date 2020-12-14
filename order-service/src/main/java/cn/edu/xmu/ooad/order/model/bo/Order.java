@@ -128,6 +128,9 @@ public abstract class Order {
     }
 
     public static Order createOrder(OrderPo orderPo) throws NoSuchOrderTypeException {
+        if (orderPo.getOrderType() == null) {
+            return null;
+        }
         switch (orderPo.getOrderType()) {
             case 0: // 普通订单
                 return new NormalOrder(orderPo);

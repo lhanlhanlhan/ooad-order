@@ -402,6 +402,9 @@ public class FreightService {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
+        // 取消原先的 default model
+        freightDao.cancelDefaultModel(shopId);
+
         // 创建更新体
         FreightModelPo po = new FreightModelPo();
         po.setId(id);

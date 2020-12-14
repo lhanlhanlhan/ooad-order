@@ -334,4 +334,27 @@ public class OrderDao {
     public int addOrder(OrderPo po) {
         return orderMapper.addOrder(po);
     }
+
+
+    /**
+     * 获取 OrderItem
+     * @param orderItemId
+     * @return
+     */
+    public OrderItem getOrderItem(Long orderItemId) {
+        OrderItemPo po = orderItemPoMapper.selectByPrimaryKey(orderItemId);
+        if (po == null) {
+            return null;
+        }
+        return new OrderItem(po);
+    }
+
+    /**
+     * 获取 OrderItem Po
+     * @param orderItemId
+     * @return
+     */
+    public OrderItemPo getOrderItemPo(Long orderItemId) {
+        return orderItemPoMapper.selectByPrimaryKey(orderItemId);
+    }
 }

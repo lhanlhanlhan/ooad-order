@@ -467,4 +467,19 @@ public class FreightDao {
         }
         return results;
     }
+
+    /**
+     * 取消某个商店的默认模板 (Redis 也删除)
+     * @param shopId
+     */
+    public void cancelDefaultModel(Long shopId) {
+        FreightModelPoExample example = new FreightModelPoExample();
+        FreightModelPoExample.Criteria criteria = example.createCriteria();
+        criteria.andShopIdEqualTo(shopId);
+
+        FreightModelPo fmUpdatePo = new FreightModelPo();
+        fmUpdatePo.setDefaultModel((byte) 0);
+
+        freightModelPoMapper.updateByExample(fmUpdatePo, example);
+    }
 }
