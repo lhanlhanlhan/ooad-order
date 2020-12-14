@@ -12,10 +12,7 @@ import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.model.vo.OrderNewVo;
-import cn.edu.xmu.ooad.order.require.ICouponService;
-import cn.edu.xmu.ooad.order.require.IGrouponService;
-import cn.edu.xmu.ooad.order.require.IPreSaleService;
-import cn.edu.xmu.ooad.order.require.IShopService;
+import cn.edu.xmu.ooad.order.require.*;
 import cn.edu.xmu.ooad.order.require.models.*;
 import cn.edu.xmu.ooad.order.service.FreightService;
 import cn.edu.xmu.ooad.order.service.mqlistener.model.CreateOrderDemand;
@@ -82,6 +79,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
     private IGrouponService iGrouponService;
     @DubboReference(check = false)
     private IPreSaleService iPreSaleService;
+    @DubboReference(check = false)
+    private IOtherService iOtherService;
+
     @Autowired
     private OrderDao orderDao;
     // Redis 工具
@@ -170,11 +170,11 @@ public class CreateOrderListener implements RocketMQListener<String> {
         if (orderNewVo.getCouponId() != null) {
             // 查询用户有无优惠券，如有，就查询该优惠券
             couponInfoDefer = iCouponService.getCoupon(customerId, orderNewVo.getCouponId());
-            // 看看优惠券有无被使用及过期 // TODO - 被使用的 state 编号是啥？
+            // 看看优惠券有无被使用及过期
             if (couponInfoDefer == null) { // 无此优惠券
                 orderNewVo.setCouponId(null);
-            } else { // 有优惠券，判断有无被使用及有无过期
-                if (couponInfoDefer.getState() == 2) { // 已使用
+            } else { // 有优惠券，判断有无被使用 / 已失效及有无过期
+                if (couponInfoDefer.getState() == 2 || couponInfoDefer.getState() == 3) { // 已使用 / 已失效
                     orderNewVo.setCouponId(null);
                     couponInfoDefer = null;
                 } else if (nowTime.isBefore(couponInfoDefer.getBeginTime()) ||
@@ -368,9 +368,10 @@ public class CreateOrderListener implements RocketMQListener<String> {
             iCouponService.setCouponUsed(couponInfo.getId());
         }
 
-        // 下单成功，批量提交商品库存数据库写回
+        // 下单成功，批量提交商品库存数据库写回，删购物车
         for (Long skuId : writeBackQueue) {
             mqService.sendWriteBackStockMessage(skuId);
+            iOtherService.delCartItem(customerId, skuId);
         }
 
         // 返回成功
@@ -471,6 +472,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
         // 下单成功，批量提交商品库存数据库写回
         mqService.sendWriteBackStockMessage(theItem.getSkuId());
+        iOtherService.delCartItem(customerId, theItem.getSkuId());
 
         return 0;
     }

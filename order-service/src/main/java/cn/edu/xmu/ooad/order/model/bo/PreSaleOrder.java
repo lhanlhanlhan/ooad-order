@@ -4,7 +4,12 @@ import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
+import cn.edu.xmu.ooad.order.require.IPreSaleService;
+import cn.edu.xmu.ooad.order.require.models.PreSaleActivityInfo;
+import cn.edu.xmu.ooad.order.utils.SpringUtils;
+import org.apache.dubbo.config.annotation.DubboReference;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -114,11 +119,20 @@ public class PreSaleOrder extends Order {
     }
 
     /**
-     * TODO - 判断可否支付尾款
+     * 判断可否支付尾款
      * @return
      */
     public boolean canPayRemBalance() {
-        return false;
+        // TODO - 能这样取接口嘛
+        IPreSaleService iPreSaleService = SpringUtils.getBean(IPreSaleService.class);
+        // 获取预售活动信息
+        PreSaleActivityInfo psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
+        if (psai == null) {
+            // 预售活动信息为空，无法直到尾款支付时间
+            return false;
+        }
+        LocalDateTime nowTime = LocalDateTime.now();
+        return nowTime.isAfter(psai.getPayTime()) && nowTime.isBefore(psai.getEndTime());
     }
 
     @Override

@@ -34,6 +34,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 1-7 组需求插件 -->
+        <dependency>
+            <groupId>cn.edu.xmu</groupId>
+            <artifactId>other-required</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot 包 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
