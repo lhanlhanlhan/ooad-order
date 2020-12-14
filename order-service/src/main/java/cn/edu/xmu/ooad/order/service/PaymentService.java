@@ -44,7 +44,7 @@ public class PaymentService {
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
-    @DubboReference
+    @DubboReference(check = false)
     private IAfterSaleService iAfterSaleService;
 
     @Autowired
