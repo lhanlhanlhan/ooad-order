@@ -1,6 +1,8 @@
 package cn.edu.xmu.ooad.order.order.service.mqlistener;
 
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
+import cn.edu.xmu.ooad.order.centre.interfaces.IFreightServiceInside;
+import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
@@ -9,12 +11,10 @@ import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.order.model.bo.discount.BaseCouponDiscount;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
-import cn.edu.xmu.ooad.order.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.require.*;
 import cn.edu.xmu.ooad.order.require.models.*;
-import cn.edu.xmu.ooad.order.order.service.FreightService;
 import cn.edu.xmu.ooad.order.order.service.mqlistener.model.CreateOrderDemand;
 import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
@@ -69,8 +69,8 @@ public class CreateOrderListener implements RocketMQListener<String> {
             " else " +
             " return '0' " +
             " end ";
-    @Autowired
-    private FreightService freightService;
+    @DubboReference(check = false)
+    private IFreightServiceInside iFreightServiceInside;
     @DubboReference(check = false)
     private IShopService iShopService;
     @DubboReference(check = false)
@@ -278,9 +278,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
-        long totalFreight = freightService.calcFreight(regionId, orderItems
+        long totalFreight = iFreightServiceInside.calcFreight(regionId, orderItems
                 .stream()
-                .map(FreightOrderItemVo::new)
+                .map(OrderItem::toCalcItem)
                 .collect(Collectors.toList()), skuInfoMap);
         if (totalFreight < 0) {
             return 3; // 运费无法计算
@@ -418,9 +418,9 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
         // 计算运费
         Long regionId = orderNewVo.getRegionId();
-        List<FreightOrderItemVo> freightItemVo = new ArrayList<>(1);
-        freightItemVo.add(new FreightOrderItemVo(theItem));
-        long totalFreight = freightService.calcFreight(regionId, freightItemVo, skuInfoMap);
+        List<FreightCalcItem> freightItemVo = new ArrayList<>(1);
+        freightItemVo.add(theItem.toCalcItem());
+        long totalFreight = iFreightServiceInside.calcFreight(regionId, freightItemVo, skuInfoMap);
         if (totalFreight < 0) {
             return 3; // 运费无法计算
         }

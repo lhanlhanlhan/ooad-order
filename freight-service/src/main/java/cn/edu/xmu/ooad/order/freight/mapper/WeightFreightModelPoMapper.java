@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.freight.mapper;
 
 import cn.edu.xmu.ooad.order.freight.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.freight.model.po.WeightFreightModelPoExample;
+
 import java.util.List;
 
 public interface WeightFreightModelPoMapper {

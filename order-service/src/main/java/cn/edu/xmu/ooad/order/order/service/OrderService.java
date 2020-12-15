@@ -7,8 +7,6 @@ import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.order.model.bo.order.impl.GrouponOrder;
 import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
-import cn.edu.xmu.ooad.order.order.model.po.OrderEditPo;
-import cn.edu.xmu.ooad.order.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderSimpleVo;

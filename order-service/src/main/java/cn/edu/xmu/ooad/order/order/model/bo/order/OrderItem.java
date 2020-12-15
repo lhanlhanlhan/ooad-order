@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.order.model.bo.order;
 
+import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderItemVo;
 import lombok.Data;
@@ -74,5 +75,13 @@ public class OrderItem {
         orderItemPo.setBeShareId(beSharedId);
 
         return orderItemPo;
+    }
+
+    // 为了计算运费，我拼了
+    public FreightCalcItem toCalcItem() {
+        FreightCalcItem item = new FreightCalcItem();
+        item.setCount(this.getQuantity());
+        item.setSkuId(this.getSkuId());
+        return item;
     }
 }

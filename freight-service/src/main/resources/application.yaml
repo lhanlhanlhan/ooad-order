@@ -1,0 +1,91 @@
+lh-server:
+  2f-ip: 59.77.13.234
+  aliyun-ip: 112.126.86.188
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+server:
+  port: 8081
+  tomcat:
+    threads:
+      max: 1000
+
+spring:
+  application:
+    name: freight-service
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    initialization-mode: never
+    schema:
+      - classpath:schema.sql
+      - classpath:indexes.sql
+    data:
+      - classpath:data.sql
+    druid:
+      # 初始化时建立物理连接的个数
+      initial-size: 3
+      # 最小连接池数量
+      min-idle: 3
+      # 最大连接池数量
+      max-active: 100
+      # 获取连接时最大等待时间
+      max-wait: 60000
+      filter:
+        stat:
+          # 是否开启慢sql查询监控
+          log-slow-sql: true
+          # 慢SQL执行时间
+          slow-sql-millis: 100
+      validation-query: select 1
+    sql-script-encoding: UTF-8
+  redis:
+    # Redis数据库索引（默认为0）
+    database: 0
+    # 连接池最大连接数（使用负值表示没有限制）
+    lettuce:
+      pool:
+        max-active: 100
+        # 连接池中的最大空闲连接
+        max-idle: 100
+        # 连接池中的最小空闲连接
+        min-idle: 0
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1
+    # 连接超时时间（毫秒）
+    timeout: 5000
+
+dubbo:
+  application:
+    name: oomall-freight-3-4
+    version: 0.0.1
+  registry:
+    address: nacos://${lh-server.2f-ip}:8848
+  protocol:
+    port: 20881
+    name: dubbo
+
+mybatis:
+  # po对象的包
+  type-aliases-package: cn.edu.xmu.ooad.order.freight.model
+  # mapper.xml所在的位置
+  mapper-locations: classpath*:cn.edu.xmu.ooad.order.freight.mapper/*.xml
+  # 自动将SQL中查出来的带下划线的字段，转换为驼峰标志，再去匹配类中的属性
+  configuration:
+    # 将数据库中的下划线转成驼峰格式
+    map-underscore-to-camel-case: true
+
+freights:
+  freight-model:
+    # 运费模板 Redis 缓存失效时间
+    redis-expire: 300
+
+# Page Helper 分页插件配置
+pagehelper:
+  helper-dialect: mysql
