@@ -2,12 +2,11 @@ package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.dao.PaymentDao;
-import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.PayPattern;
 import cn.edu.xmu.ooad.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.enums.RefundStatus;
-import cn.edu.xmu.ooad.order.model.bo.Order;
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.Order;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.OrderEditPo;
 import cn.edu.xmu.ooad.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.model.po.RefundPo;

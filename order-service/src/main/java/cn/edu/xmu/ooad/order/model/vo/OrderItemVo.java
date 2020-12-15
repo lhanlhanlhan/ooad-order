@@ -1,6 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

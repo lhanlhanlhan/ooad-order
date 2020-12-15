@@ -1,8 +1,8 @@
 package cn.edu.xmu.ooad.order.service;
 
 import cn.edu.xmu.ooad.order.dao.FreightDao;
-import cn.edu.xmu.ooad.order.model.bo.FreightModel;
-import cn.edu.xmu.ooad.order.model.bo.PieceFreightModel;
+import cn.edu.xmu.ooad.order.model.bo.freight.FreightModel;
+import cn.edu.xmu.ooad.order.model.bo.freight.impl.PieceFreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.PieceFreightModelPo;
 import cn.edu.xmu.ooad.order.model.po.WeightFreightModelPo;

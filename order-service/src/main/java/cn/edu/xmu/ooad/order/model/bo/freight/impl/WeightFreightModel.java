@@ -1,6 +1,7 @@
-package cn.edu.xmu.ooad.order.model.bo;
+package cn.edu.xmu.ooad.order.model.bo.freight.impl;
 
 import cn.edu.xmu.ooad.order.dao.FreightDao;
+import cn.edu.xmu.ooad.order.model.bo.freight.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import cn.edu.xmu.ooad.order.model.vo.FreightOrderItemVo;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;

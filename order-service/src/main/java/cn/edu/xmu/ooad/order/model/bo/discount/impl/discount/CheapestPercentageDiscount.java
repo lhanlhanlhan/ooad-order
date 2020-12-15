@@ -1,6 +1,6 @@
 package cn.edu.xmu.ooad.order.model.bo.discount.impl.discount;
 
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponDiscount;
 import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponLimitation;
 

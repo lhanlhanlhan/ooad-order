@@ -5,7 +5,7 @@ import cn.edu.xmu.ooad.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.model.bo.discount.BaseCouponDiscount;
 import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;

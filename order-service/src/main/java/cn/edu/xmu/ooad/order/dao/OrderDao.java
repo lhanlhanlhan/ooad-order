@@ -1,12 +1,11 @@
 package cn.edu.xmu.ooad.order.dao;
 
-import cn.edu.xmu.ooad.order.exceptions.NoSuchOrderTypeException;
 import cn.edu.xmu.ooad.order.mapper.OrderFullPoMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderMapper;
 import cn.edu.xmu.ooad.order.mapper.OrderSimplePoMapper;
-import cn.edu.xmu.ooad.order.model.bo.Order;
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.Order;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.model.po.*;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;

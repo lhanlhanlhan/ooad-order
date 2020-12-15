@@ -2,7 +2,7 @@ package cn.edu.xmu.ooad.order.model.vo;
 
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
-import cn.edu.xmu.ooad.order.model.bo.Order;
+import cn.edu.xmu.ooad.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import lombok.Data;
 

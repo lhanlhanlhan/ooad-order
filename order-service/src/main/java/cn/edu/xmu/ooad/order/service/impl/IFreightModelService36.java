@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.service.impl;
 import cn.edu.xmu.ooad.goods.require.IFreightModelService;
 import cn.edu.xmu.ooad.goods.require.model.FreightModelSimple;
 import cn.edu.xmu.ooad.order.dao.FreightDao;
+import cn.edu.xmu.ooad.order.model.bo.freight.FreightModel;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class IFreightModelService36 implements IFreightModelService {
     @Override
     public FreightModelSimple getFreightModel(Long freightModelId) {
         // 我们自己的 model
-        cn.edu.xmu.ooad.order.model.bo.FreightModel fm = freightDao.getFreightModel(freightModelId);
+        FreightModel fm = freightDao.getFreightModel(freightModelId);
         if (fm == null) {
             return null;
         }

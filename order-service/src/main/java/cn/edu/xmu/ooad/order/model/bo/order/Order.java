@@ -1,10 +1,12 @@
-package cn.edu.xmu.ooad.order.model.bo;
+package cn.edu.xmu.ooad.order.model.bo.order;
 
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.exceptions.NoSuchOrderTypeException;
-import cn.edu.xmu.ooad.order.model.po.OrderItemPo;
+import cn.edu.xmu.ooad.order.model.bo.order.impl.GrouponOrder;
+import cn.edu.xmu.ooad.order.model.bo.order.impl.NormalOrder;
+import cn.edu.xmu.ooad.order.model.bo.order.impl.PreSaleOrder;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import lombok.Data;

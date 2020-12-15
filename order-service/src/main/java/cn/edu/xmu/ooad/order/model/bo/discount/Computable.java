@@ -1,6 +1,6 @@
 package cn.edu.xmu.ooad.order.model.bo.discount;
 
-import cn.edu.xmu.ooad.order.model.bo.OrderItem;
+import cn.edu.xmu.ooad.order.model.bo.order.OrderItem;
 
 import java.util.List;
 

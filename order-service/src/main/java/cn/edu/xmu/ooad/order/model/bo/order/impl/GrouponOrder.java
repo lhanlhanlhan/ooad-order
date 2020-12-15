@@ -1,15 +1,20 @@
-package cn.edu.xmu.ooad.order.model.bo;
+package cn.edu.xmu.ooad.order.model.bo.order.impl;
 
 import cn.edu.xmu.ooad.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
+import cn.edu.xmu.ooad.order.enums.RefundStatus;
+import cn.edu.xmu.ooad.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.model.po.PaymentPo;
+import cn.edu.xmu.ooad.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -148,5 +153,48 @@ public class GrouponOrder extends Order {
         // 订单状态改成已支付、待成团
         this.setState(OrderStatus.PENDING_RECEIVE);
         this.setSubstate(OrderChildStatus.PENDING_GROUP);
+    }
+
+    @Override
+    public int triggerCancelled() {
+        // 根据订单的付款单创建退款单
+        PaymentDao paymentDao = SpringUtils.getBean(PaymentDao.class);
+        // 获取该订单上的所有支付单
+        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(this.getId());
+        if (poListObj.getCode() != ResponseCode.OK) { // 数据库错误
+            System.err.println("取消订单：数据库错误 orderId=" + this.getId());
+            return 1;
+        }
+        List<PaymentPo> poList = poListObj.getData();
+        // 依次创建退款单
+        for (PaymentPo paymentPo : poList) {
+            // 获取售后单ID
+            Long aftersaleId = paymentPo.getAftersaleId();
+            // 新建 refund PO对象
+            RefundPo refundPo = new RefundPo();
+            refundPo.setPaymentId(paymentPo.getId());
+            refundPo.setOrderId(this.getId()); // 此订单的 id
+            refundPo.setAftersaleId(aftersaleId);
+            // 模拟支付环境的都是已经退款
+            refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
+            refundPo.setAmount(paymentPo.getAmount());
+            refundPo.setGmtCreate(LocalDateTime.now());
+            refundPo.setGmtModified(LocalDateTime.now());
+            // TODO - 如果是返点支付，应该把返点回充至账户中
+            // 将退款单Po对象插入数据库
+            try {
+                int response = paymentDao.addRefund(refundPo);
+                if (response <= 0) {
+                    System.err.println("自动下退款单失败！orderId=" + this.getId());
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return 1;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return 1;
+            }
+        }
+        return 0;
     }
 }

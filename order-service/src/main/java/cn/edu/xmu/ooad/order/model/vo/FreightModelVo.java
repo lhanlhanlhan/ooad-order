@@ -1,6 +1,6 @@
 package cn.edu.xmu.ooad.order.model.vo;
 
-import cn.edu.xmu.ooad.order.model.bo.FreightModel;
+import cn.edu.xmu.ooad.order.model.bo.freight.FreightModel;
 import cn.edu.xmu.ooad.order.model.po.FreightModelPo;
 import lombok.Data;
 
