@@ -18,6 +18,7 @@ public class FreightModelVo {
     private Long id;
     private String name;
     private Byte type;
+    private Integer unit;
     private Boolean beDefault;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
@@ -26,6 +27,18 @@ public class FreightModelVo {
         this.id = po.getId();
         this.name = po.getName();
         this.type = po.getType();
+        this.unit = po.getUnit();
+        Byte beDefault = po.getDefaultModel();
+        this.beDefault = beDefault != null && (beDefault == 1);
+        this.gmtCreate = po.getGmtCreate();
+        this.gmtModified = po.getGmtModified();
+    }
+
+    public FreightModelVo(FreightModelPo po) {
+        this.id = po.getId();
+        this.name = po.getName();
+        this.type = po.getType();
+        this.unit = po.getUnit();
         Byte beDefault = po.getDefaultModel();
         this.beDefault = beDefault != null && (beDefault == 1);
         this.gmtCreate = po.getGmtCreate();

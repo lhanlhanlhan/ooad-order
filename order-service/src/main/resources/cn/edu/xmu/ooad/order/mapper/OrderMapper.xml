@@ -52,7 +52,7 @@
         <!-- 用 <where> 构造一系列 where -->
         <where>
             id = #{param1}
-            <if test="includeDeleted == false">and be_deleted is null</if>
+            <if test="includeDeleted == false">and be_deleted=0</if>
         </where>
     </select>
 
@@ -118,7 +118,7 @@
             <if test="mobile!=null and mobile!=''">mobile = #{mobile},</if>
             <if test="message!=null and message!=''">message = #{message},</if>
             <if test="beDeleted!=null and beDeleted==true">be_deleted = 1,</if>
-            <if test="beDeleted!=null and beDeleted==false">be_deleted = null,</if>
+            <if test="beDeleted!=null and beDeleted==false">be_deleted = 0,</if>
             <if test="shipmentSn!=null and shipmentSn!=''">shipment_sn = #{shipmentSn},</if>
             <if test="state!=null">state = #{state},</if>
             <if test="substate!=null">substate = #{subState},</if>
@@ -148,7 +148,7 @@
             <if test="id != null">id = #{param1}</if>
             <if test="customerId != null">and customer_id = #{param2}</if>
             <if test="shopId != null">and shop_id = #{param3}</if>
-            <if test="includeDeleted == false">and be_deleted is null</if>
+            <if test="includeDeleted == false">and be_deleted = 0</if>
         </where>
     </select>
 </mapper>

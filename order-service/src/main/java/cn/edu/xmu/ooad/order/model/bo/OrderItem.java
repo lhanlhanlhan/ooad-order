@@ -69,6 +69,7 @@ public class OrderItem {
         orderItemPo.setDiscount(discount);
         orderItemPo.setName(name);
         orderItemPo.setGmtCreate(LocalDateTime.now());
+        orderItemPo.setGmtModified(LocalDateTime.now());
         orderItemPo.setCouponActivityId(couponActId);
         orderItemPo.setBeShareId(beSharedId);
 

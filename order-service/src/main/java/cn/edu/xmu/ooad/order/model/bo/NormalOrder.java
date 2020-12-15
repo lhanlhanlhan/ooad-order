@@ -112,6 +112,7 @@ public class NormalOrder extends Order {
             orderPo.setOrderType(OrderType.NORMAL.getCode());
             orderPo.setState(OrderChildStatus.PAID.getCode()); // 普通订单没有 subState
             orderPo.setGmtCreate(nowTime);
+            orderPo.setGmtModified(nowTime);
             orderPo.setOrderSn(Accessories.genSerialNumber());
 
             // 生成一笔 Order

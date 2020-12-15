@@ -73,6 +73,17 @@ public class APIReturnObject<T> {
     }
 
     /**
+     * 带自定义错误码、返回讯息、HTTP 状态码的 xxx 返回对象
+     *
+     * @param code   错误码
+     */
+    public APIReturnObject(HttpStatus status, ResponseCode code, T data) {
+        this(code);
+        this.status = status;
+        this.data = data;
+    }
+
+    /**
      * 获取返回讯息 (如有)
      *
      * @return 获取返回讯息，如果自定义返回讯息为空，就获取 Code 绑定的默认返回讯息

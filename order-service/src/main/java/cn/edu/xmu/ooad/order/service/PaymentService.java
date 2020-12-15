@@ -100,7 +100,7 @@ public class PaymentService {
         paymentPo.setBeginTime(nowTime);
         paymentPo.setEndTime(nowTime);
         paymentPo.setGmtCreate(nowTime);
-        paymentPo.setGmtModified(null);
+        paymentPo.setGmtModified(nowTime);
 
         // 模拟支付，状态设置为「已支付」，方式为 "002"
         paymentPo.setState(PaymentStatus.PAID.getCode());
@@ -264,7 +264,7 @@ public class PaymentService {
         paymentPo.setBeginTime(nowTime);
         paymentPo.setEndTime(nowTime);
         paymentPo.setGmtCreate(nowTime);
-        paymentPo.setGmtModified(null);
+        paymentPo.setGmtModified(nowTime);
 
         // 设置 aftersaleId
         paymentPo.setAftersaleId(aftersaleId);
@@ -284,7 +284,7 @@ public class PaymentService {
         // 创建支付单Vo对象:
         PaymentVo paymentVo = new PaymentVo(paymentPo);
         // 将Vo对象返回
-        return new APIReturnObject<>(paymentVo);
+        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, paymentVo);
     }
 
     /**
@@ -386,7 +386,7 @@ public class PaymentService {
         refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
         refundPo.setAmount(amount);
         refundPo.setGmtCreate(LocalDateTime.now());
-        refundPo.setGmtModified(null);
+        refundPo.setGmtModified(LocalDateTime.now());
         // 将退款单Po对象插入数据库
         try {
             int response = paymentDao.addRefund(refundPo);
@@ -401,7 +401,7 @@ public class PaymentService {
         // 新建RefundVo对象
         RefundVo refundVo = new RefundVo(refundPo);
         // 将Vo对象返回
-        return new APIReturnObject<>(refundVo);
+        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, refundVo);
     }
 
     /**

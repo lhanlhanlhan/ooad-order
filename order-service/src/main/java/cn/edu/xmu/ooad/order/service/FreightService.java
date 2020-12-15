@@ -131,7 +131,7 @@ public class FreightService {
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
-                return new APIReturnObject<>();
+                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new FreightModelVo(freightModelPo));
         }
     }
 
@@ -229,7 +229,7 @@ public class FreightService {
             // 如果还没定义明细，就直接返回好了
             List<PieceFreightModelPo> pieceList = pieceTable.getData();
             if (pieceList.size() == 0) {
-                return new APIReturnObject<>(po);
+                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
             }
             // 克隆所有明细
             for (PieceFreightModelPo piecePo : pieceList) {
@@ -254,7 +254,7 @@ public class FreightService {
             // 如果还没定义明细，就直接返回好了
             List<WeightFreightModelPo> weightList = weightTable.getData();
             if (weightList.size() == 0) {
-                return new APIReturnObject<>(po);
+                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
             }
             // 克隆所有明细
             for (WeightFreightModelPo weightPo : weightList) {
@@ -269,7 +269,7 @@ public class FreightService {
         }
 
         // 返回改动过的主表
-        return new APIReturnObject<>(po);
+        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
     }
 
     /**
@@ -488,7 +488,7 @@ public class FreightService {
 //        }
         // 返回
         if (response > 0) {
-            return new APIReturnObject<>(new WeightFreightModelVo(weightFreightModelPo));
+            return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new WeightFreightModelVo(weightFreightModelPo));
         } else {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -574,7 +574,7 @@ public class FreightService {
 //        }
         // 返回
         if (response > 0) {
-            return new APIReturnObject<>(new PieceFreightModelVo(pieceFreightModelPo));
+            return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new PieceFreightModelVo(pieceFreightModelPo));
         } else {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
