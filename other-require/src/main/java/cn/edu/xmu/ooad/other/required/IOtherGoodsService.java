@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.other.required;
 
 import java.util.List;
 
+import cn.edu.xmu.ooad.other.required.model.OtherOrderSend;
 import cn.edu.xmu.ooad.other.required.model.OtherSku;
 import cn.edu.xmu.ooad.other.required.model.OtherSkuComplex;
 import cn.edu.xmu.ooad.other.required.model.OtherSkuSimple;
@@ -41,4 +42,5 @@ public interface IOtherGoodsService {
 	 */
 	public List<OtherSpu> getSpusbyShopId(Long shopId);
 	public OtherSpu getSpubySpuId(Long SpuId);
+
 }

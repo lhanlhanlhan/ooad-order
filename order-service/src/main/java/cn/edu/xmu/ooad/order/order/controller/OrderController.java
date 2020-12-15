@@ -146,7 +146,14 @@ public class OrderController {
             logger.debug("post orders; vo=" + orderInfo);
         }
         // region id 合法性检查
-        if (!iOtherService.isRegionIdExists(orderInfo.getRegionId())) {
+        boolean regionId;
+        try {
+            regionId = iOtherService.isRegionIdExists(orderInfo.getRegionId());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR));
+        }
+        if (regionId) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "该地区 id 是非法的"));
         }
         return ResponseUtils.make(orderService.createOrder(customerId, orderInfo));

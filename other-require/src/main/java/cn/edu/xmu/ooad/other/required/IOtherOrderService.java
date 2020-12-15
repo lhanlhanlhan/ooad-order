@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.other.required;
 
 import cn.edu.xmu.ooad.other.required.model.OtherOrderItemComplex;
 import cn.edu.xmu.ooad.other.required.model.OtherOrderItemSimple;
+import cn.edu.xmu.ooad.other.required.model.OtherOrderSend;
 import cn.edu.xmu.ooad.other.required.model.OtherOrderSimple;
 
 public interface IOtherOrderService {
@@ -23,4 +24,10 @@ public interface IOtherOrderService {
 	 * @return
 	 */
 	public OtherOrderSimple getOrderByOrderItemId(Long orderItemId);
+	/**
+	 * 
+	 * @param order
+	 * @return orderid
+	 */
+	public Long createASOrder(OtherOrderSend order);
 }

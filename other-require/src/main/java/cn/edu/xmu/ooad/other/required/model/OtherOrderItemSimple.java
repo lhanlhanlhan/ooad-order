@@ -19,7 +19,7 @@ public class OtherOrderItemSimple implements Serializable {
 	Long price;
 	String skuName;
 	
-	OtherOrderItemSimple(){}
+	public OtherOrderItemSimple(){}
 	/**
 	 * 构造函数
 	 * @param id ：orderitemid
@@ -28,7 +28,7 @@ public class OtherOrderItemSimple implements Serializable {
 	 * @param shopId
 	 * @param finalPrice ：实际支付时的单价
 	 */
-	OtherOrderItemSimple(Long id,Long skuId, Integer quantity, Long price, String skuName){
+	public OtherOrderItemSimple(Long id,Long skuId, Integer quantity, Long price, String skuName){
 		setOrderItemId(id);
 		setSkuId(skuId);
 		setPrice(price);
