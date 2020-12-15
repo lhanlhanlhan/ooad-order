@@ -156,7 +156,7 @@ public class OrderController {
         if (regionId) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "该地区 id 是非法的"));
         }
-        return ResponseUtils.make(orderService.createOrder(customerId, orderInfo));
+        return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
     }
 
 

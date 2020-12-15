@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.order.model.po;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * Created by Han Li at 26/11/2020 15:06
  */
 @Data
-public class OrderPo {
+public class OrderPo implements Serializable {
     private Long id;
 
     private Long customerId;

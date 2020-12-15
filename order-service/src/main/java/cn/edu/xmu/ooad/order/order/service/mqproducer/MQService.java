@@ -58,14 +58,9 @@ public class MQService implements ApplicationEventPublisherAware {
     }
 
     // 发送下订单讯息
-    public void sendCreateOrderInfo(Long customerId, OrderNewVo vo, String sn, OrderType type) {
-        // 构建需求体
-        CreateOrderDemand demand = new CreateOrderDemand();
-        demand.setCustomerId(customerId);
-        demand.setOrderNewVo(vo);
-        demand.setType(type.getCode());
-        demand.setSn(sn);
+    public void sendCreateOrderInfo(CreateOrderDemand demand) {
         // 提交写回库存讯息
+        String sn = demand.getO().getOrderSn();
         logger.info("已提交创建订单讯息 sn=" + sn);
         rocketMQTemplate.asyncSend("order-create-order-topic",
                 MessageBuilder.withPayload(demand).build(), new SendCallback() {

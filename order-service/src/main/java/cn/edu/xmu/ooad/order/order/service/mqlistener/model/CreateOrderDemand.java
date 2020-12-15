@@ -1,9 +1,12 @@
 package cn.edu.xmu.ooad.order.order.service.mqlistener.model;
 
+import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
+import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 创建订单 的 Rocket MQ 请求
@@ -14,8 +17,10 @@ import java.io.Serializable;
  */
 @Data
 public class CreateOrderDemand implements Serializable {
-    private Long customerId;
-    private OrderNewVo orderNewVo;
-    private String sn;
-    private Byte type; // 种类：0 普通 1 预售 2 团购
+    OrderPo o;
+    List<OrderItemPo> i;
+    Long couponId;
+    List<Long> writeBackQueue;
+    Long cId; // Customer ID;
+    Byte type;
 }
