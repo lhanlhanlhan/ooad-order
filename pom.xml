@@ -16,6 +16,8 @@
 
     <modules>
         <module>order-service</module>
+        <module>order-centre</module>
+        <module>freight-service</module>
     </modules>
 
     <properties>
@@ -33,7 +35,7 @@
 
             <dependency>
                 <groupId>cn.edu.xmu</groupId>
-                <artifactId>order-core</artifactId>
+                <artifactId>order-centre</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

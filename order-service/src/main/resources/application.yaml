@@ -73,9 +73,9 @@ dubbo:
 
 mybatis:
   # po对象的包
-  type-aliases-package: cn.edu.xmu.ooad.order.model
+  type-aliases-package: cn.edu.xmu.ooad.order.order.model
   # mapper.xml所在的位置
-  mapper-locations: classpath*:cn.edu.xmu.ooad.order.mapper/*.xml
+  mapper-locations: classpath*:cn.edu.xmu.ooad.order.order.mapper/*.xml
   # 自动将SQL中查出来的带下划线的字段，转换为驼峰标志，再去匹配类中的属性
   configuration:
     # 将数据库中的下划线转成驼峰格式

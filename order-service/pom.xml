@@ -20,11 +20,10 @@
             <artifactId>core</artifactId>
         </dependency>
 
-        <!-- 订单部分需求插件 -->
+        <!-- 本组核心包 -->
         <dependency>
             <groupId>cn.edu.xmu</groupId>
-            <artifactId>order-require</artifactId>
-            <version>${project.version}</version>
+            <artifactId>order-centre</artifactId>
         </dependency>
 
         <!-- 3-6 组需求插件 -->

@@ -1,4 +1,4 @@
-package cn.edu.xmu.ooad.order.utils;
+package cn.edu.xmu.ooad.order.centre.utils;
 
 /**
  * 订单模块错误码表
