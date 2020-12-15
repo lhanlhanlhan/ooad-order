@@ -1,9 +1,14 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
+import cn.edu.xmu.ooad.order.model.po.PaymentPo;
+import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
+import cn.edu.xmu.ooad.order.utils.SpringUtils;
 
 import java.util.List;
 
@@ -46,11 +51,35 @@ public class GrouponOrder extends Order {
     }
 
     /**
-     * 判断该订单可否被支付
+     * 判断该订单要支付的金额
+     *
+     * 返回：-1：内部错误；>= 0：应付金额
      */
     @Override
-    public boolean canPay() {
-        return this.getSubstate() == OrderChildStatus.NEW;
+    public long shallPayPrice() {
+        if (this.getSubstate() != OrderChildStatus.NEW) {
+            return 0L;
+        }
+        // 获取已支付之金额
+        PaymentDao paymentDao = SpringUtils.getBean(PaymentDao.class);
+        // 获取该订单上的所有支付单
+        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(this.getId());
+        if (poListObj.getCode() != ResponseCode.OK) {
+            // 数据库错误
+            return -1L;
+        }
+        List<PaymentPo> poList = poListObj.getData();
+        // 获取已支付之金额
+        long paidPrice = poList
+                .stream()
+                .mapToLong(PaymentPo::getAmount)
+                .sum();
+        // 获得总共需付款 (总共需付款 = 訂單總價+運費-優惠)
+        long allShallPayPrice = getOriginPrice() +
+                getFreightPrice() -
+                getDiscountPrice();
+
+        return allShallPayPrice - paidPrice;
     }
 
     /**

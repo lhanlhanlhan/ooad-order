@@ -138,6 +138,44 @@ public class FreightDao {
     }
 
     /**
+     * 获取运费模板 (商铺默认)
+     */
+    @RedisOptimized
+    public FreightModel getShopDefaultFreightModel(Long shopId) {
+        String key = "df_" + shopId;
+        FreightModel freightModel = redisUtils.get(key, FreightModel.class);
+        if (null != freightModel) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("getShopDefaultFreightModel: hit redis cache, key = " + key);
+            }
+            return freightModel;
+        }
+
+        // 未命中，找数据库，得到大表
+        FreightModelPoExample example = new FreightModelPoExample();
+        FreightModelPoExample.Criteria criteria = example.createCriteria();
+        criteria.andShopIdEqualTo(shopId);
+        criteria.andDefaultModelEqualTo((byte) 1);
+
+        List<FreightModelPo> fmPos;
+        try {
+            fmPos = freightModelPoMapper.selectByExample(example);
+        } catch (Exception e) {
+            logger.error("数据库错误：" + e.getMessage());
+            return null;
+        }
+        // 取出来的值存入 Redis，空值也存，防止击穿
+        if (fmPos.size() > 0) {
+            FreightModel fm = FreightModel.create(fmPos.get(0));
+            redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
+            return fm;
+        } else {
+            redisUtils.set(key, null, addRandomTime(freightModelRedisTimeout));
+            return null;
+        }
+    }
+
+    /**
      * 根据模板ID/明细ID返回重量模板明细
      */
     public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModels(Long fId, Long id) {

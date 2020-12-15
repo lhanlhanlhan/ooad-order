@@ -331,8 +331,7 @@ public class CreateOrderListener implements RocketMQListener<String> {
         }
 
         // MyBatis: 创建订单对应 Po
-        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
-        {
+        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo); {
             orderPo.setShopId(null); // 店铺 id 暂时为空，等支付后分单再说
             // 填入订单的各种价格
             orderPo.setOriginPrice(totalPrice);

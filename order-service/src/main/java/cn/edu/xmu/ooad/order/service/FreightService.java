@@ -66,11 +66,18 @@ public class FreightService {
             Long modelId = skuInfo.getFreightId(); // 会不会未定义？未定义的话，这个字段应该为 0
             FreightModel model = freightDao.getFreightModel(modelId);
             if (model == null) {
-                // 商品、订单模块数据库不一致
-                logger.error("计算运费、抽取运费模板时，检测到运费模板未定义! skuId=" + skuId);
-                return -2;
+                // 商品未定义运费模板，就获取商铺的默认模板
+                model = freightDao.getShopDefaultFreightModel(skuInfo.getShopId());
+                if (model == null) {
+                    // 商铺的默认模板未定义，平台运费模板
+                    model = freightDao.getShopDefaultFreightModel(0L);
+                    if (model == null) {
+                        // 严重错误
+                        logger.error("平台未定义默认运费模板！请联系管理员。");
+                        return -1;
+                    }
+                }
             }
-
             // 准备列表
             skuInfoList.add(skuInfo);
             freightModelList.add(model);

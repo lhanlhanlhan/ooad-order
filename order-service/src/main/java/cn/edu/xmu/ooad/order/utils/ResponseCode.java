@@ -36,6 +36,7 @@ public enum ResponseCode {
     FREIGHT_REGION_FORBIDDEN(805, "订购列表中包含禁止寄往该地区之物品"),
     ORDER_MODIFY_REGION_FORBIDDEN(806, "您不能改变寄送目的地区"),
     PAY_MORE(807, "您的付款金额超出了订单总价"),
+    PAY_NOT_ENOUGH(808, "您的付款金额未足额支付"),
 
     /**
      * 商品模块错误

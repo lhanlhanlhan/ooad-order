@@ -155,9 +155,11 @@ public abstract class Order {
      */
 
     /**
-     * 判断该订单可否被支付
+     * 判断该订单目前可被支付之金额
+     *
+     * 返回：-1：内部错误；>= 0：应付金额
      */
-    public abstract boolean canPay();
+    public abstract long shallPayPrice();
 
     /**
      * 判断订单是否可被修改

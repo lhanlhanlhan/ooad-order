@@ -1,11 +1,15 @@
 package cn.edu.xmu.ooad.order.model.bo;
 
+import cn.edu.xmu.ooad.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.model.po.OrderSimplePo;
+import cn.edu.xmu.ooad.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.require.IPreSaleService;
 import cn.edu.xmu.ooad.order.require.models.PreSaleActivityInfo;
+import cn.edu.xmu.ooad.order.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.utils.SpringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 
@@ -51,17 +55,56 @@ public class PreSaleOrder extends Order {
     }
 
     /**
-     * 判断该订单可否被支付
+     * 判断该订单要支付的金额
+     *
+     * 返回：-1：内部错误；>= 0：应付金额
      */
     @Override
-    public boolean canPay() {
-        switch (this.getSubstate()) {
-            case NEW:
-                return true;
-            case PENDING_REM_BALANCE:
-                return this.canPayRemBalance();
-            default:
-                return false;
+    public long shallPayPrice() {
+        if (this.getSubstate() == null) {
+            return 0L;
+        }
+
+        long shallPayPrice = 0;
+
+        // TODO - 能这样取接口嘛
+        IPreSaleService iPreSaleService = SpringUtils.getBean(IPreSaleService.class);
+
+        // 获取已支付之金额
+        PaymentDao paymentDao = SpringUtils.getBean(PaymentDao.class);
+        // 获取该订单上的所有支付单
+        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(this.getId());
+        if (poListObj.getCode() != ResponseCode.OK) {
+            // 数据库错误
+            return -1L;
+        }
+        List<PaymentPo> poList = poListObj.getData();
+        long paidPrice = poList
+                .stream()
+                .mapToLong(PaymentPo::getAmount)
+                .sum();
+
+        // 获取预售活动信息
+        PreSaleActivityInfo psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
+        if (psai == null) {
+            return -1L;
+        }
+        LocalDateTime nowTime = LocalDateTime.now();
+        // 看看现在是属于什么状态
+        if (nowTime.isAfter(psai.getStartTime()) && nowTime.isBefore(psai.getPayTime())) {
+            // 首款支付时间 (预售没有优惠) 首款-已支付
+            shallPayPrice = psai.getAdvancePayPrice() - paidPrice;
+            return Math.max(0L, shallPayPrice);
+        } else if (nowTime.isAfter(psai.getPayTime()) && nowTime.isBefore(psai.getEndTime())) {
+            // 尾款支付时间 (预售没有优惠) (首款+尾款-优惠金额)-已支付+运费
+            shallPayPrice = psai.getAdvancePayPrice() +
+                    psai.getRestPayPrice() -
+                    this.getDiscountPrice() -
+                    paidPrice +
+                    this.getFreightPrice();
+            return Math.max(0L, shallPayPrice);
+        } else {
+            return 0L;
         }
     }
 
@@ -116,23 +159,6 @@ public class PreSaleOrder extends Order {
     public boolean canDeliver() {
         // 只有「已付款完成 (已成团)」的团购订单，才能被发货
         return getSubstate() == OrderChildStatus.PAID;
-    }
-
-    /**
-     * 判断可否支付尾款
-     * @return
-     */
-    public boolean canPayRemBalance() {
-        // TODO - 能这样取接口嘛
-        IPreSaleService iPreSaleService = SpringUtils.getBean(IPreSaleService.class);
-        // 获取预售活动信息
-        PreSaleActivityInfo psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
-        if (psai == null) {
-            // 预售活动信息为空，无法直到尾款支付时间
-            return false;
-        }
-        LocalDateTime nowTime = LocalDateTime.now();
-        return nowTime.isAfter(psai.getPayTime()) && nowTime.isBefore(psai.getEndTime());
     }
 
     @Override

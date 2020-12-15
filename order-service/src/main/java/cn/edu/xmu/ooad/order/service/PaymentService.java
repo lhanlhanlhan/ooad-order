@@ -72,30 +72,16 @@ public class PaymentService {
         }
         Order simpleOrder = returnObject.getData();
 
-        // 看看现在的状态能不能支付
-        if (!simpleOrder.canPay()) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW, "基于订单状态，您不能支付这笔订单！");
+        // 看看现在的状态能不能支付及需要支付多少
+        long shallPayPrice = simpleOrder.shallPayPrice();
+        if (shallPayPrice == 0) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+        } else if (shallPayPrice <= -1) {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-
-        // 获取已支付之金额
-        // 获取该订单上的所有支付单
-        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(orderId);
-        if (poListObj.getCode() != ResponseCode.OK) {
-            // 数据库错误
-            return poListObj;
-        }
-        List<PaymentPo> poList = poListObj.getData();
-        // 获取已支付之金额
-        long paidPrice = poList
-                .stream()
-                .mapToLong(PaymentPo::getAmount)
-                .sum();
 
         // 看看有没有超额支付，要超额支付的话，不让支付
-        long shallPayPrice = simpleOrder.getOriginPrice() +
-                simpleOrder.getFreightPrice() -
-                simpleOrder.getDiscountPrice(); // 总共需付款 = 訂單總價+運費-優惠
-        if (paidPrice + paymentNewVo.getPrice() > shallPayPrice) {
+        if (paymentNewVo.getPrice() > shallPayPrice) {
             // 企图超额支付
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE);
         }
@@ -136,10 +122,8 @@ public class PaymentService {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
-        // 判断是否足额支付
-        paidPrice += paymentPo.getAmount();
-        // 已足额支付，更改订单状态，分单
-        if (paidPrice == shallPayPrice) {
+        // 判断是否足额支付，若已足额支付，更改订单状态，分单
+        if (paymentNewVo.getPrice() == shallPayPrice) {
             // 触发足额支付动作
             simpleOrder.triggerPaid();
             // 更改订单状态
@@ -194,11 +178,6 @@ public class PaymentService {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 return modifyRet;
             }
-        } else if (paidPrice > shallPayPrice) {
-            // 不小心超额支付了 (怎么可能？)，回滚
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            logger.error("超额支付，订单 id=" + orderId);
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
         // 创建及返回支付单Vo对象
@@ -271,17 +250,12 @@ public class PaymentService {
     /**
      * 服务 6: 买家为售后单创建支付单
      */
-    public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, PaymentNewVo paymentNewVO) {
-        // 由其他模塊检查一下，这张售后单可不可以创建支付单
-        if (!iAfterSaleService.canAfterSaleCreatePayment(aftersaleId)) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOT_VALID, "这张售后单无效或无法创建支付单");
-        }
-
+    public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, Long price) {
         // 创建支付单Po对象
         PaymentPo paymentPo = new PaymentPo();
-        // 将支付单的Po对象的amount、actualAmount值设为paymentInfoVO的price
-        paymentPo.setActualAmount(paymentNewVO.getPrice());
-        paymentPo.setAmount(paymentNewVO.getPrice());
+        // 钱
+        paymentPo.setActualAmount(price);
+        paymentPo.setAmount(price);
         paymentPo.setOrderId(null);
 
         // 各种时间
@@ -301,10 +275,7 @@ public class PaymentService {
 
         // 将支付单Po对象插入数据库
         try {
-            int response = paymentDao.addPaymentOrder(paymentPo);
-            if (response <= 0) {
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
+            paymentDao.addPaymentOrder(paymentPo);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);

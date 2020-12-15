@@ -8,6 +8,7 @@ import cn.edu.xmu.ooad.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentPatternVo;
 import cn.edu.xmu.ooad.order.model.vo.PaymentStatusVo;
+import cn.edu.xmu.ooad.order.require.IAfterSaleService;
 import cn.edu.xmu.ooad.order.service.PaymentService;
 import cn.edu.xmu.ooad.order.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.utils.ResponseCode;
@@ -16,6 +17,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,10 @@ public class PaymentController {
     //支付服务
     @Autowired
     private PaymentService paymentService;
+
+    // 其他模块服务
+    @DubboReference(check = false)
+    private IAfterSaleService iAfterSaleService;
 
     /**
      * p1: 获得支付单的所有状态 [DONE]
@@ -192,7 +198,7 @@ public class PaymentController {
      * @param id           售后单ID
      * @return java.lang.Object
      * @author 苗新宇
-     * Creted ai 02/12/2020 17:39
+     * Modified by Han Li at 15/12/2020 08:23
      */
     @ApiOperation(value = "买家为售后单创建支付单")
     @ApiImplicitParams({
@@ -208,7 +214,27 @@ public class PaymentController {
             logger.debug("get orders/{id}/payments;id=" + id + ";customerId " + customerId);
         }
 
-        return ResponseUtils.make(paymentService.createPaymentForAftersaleOrder(id, paymentNewVo));
+        // 由其他模塊检查一下，这张售后单可不可以创建支付单
+        long repairPrice = iAfterSaleService.getRepairCost(id);
+        if (repairPrice == 0) { // 不必创建售后单支付
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE, "您不必为此售后单支付");
+        } else if (repairPrice == -1) { // 无此售后单
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+        } else if (repairPrice < -1) { // 504
+            logger.error("无法查询售后单资讯，因为其他模块报告错误：" + repairPrice);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+
+        // 检查售后单支付金额是否足额支付
+        if (repairPrice != paymentNewVo.getPrice()) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.PAY_NOT_ENOUGH);
+        }
+        // 检查是不是模拟支付平台
+        if (!PayPattern.MOCK.getCode().equals(paymentNewVo.getPaymentPattern())) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REQUEST_NOT_ALLOWED, "支付平台不支持此操作");
+        }
+
+        return ResponseUtils.make(paymentService.createPaymentForAftersaleOrder(id, repairPrice));
     }
 
     /**
