@@ -240,6 +240,10 @@ public class OrderService {
             delPo = new OrderEditPo();
             delPo.setState(OrderStatus.CANCELLED.getCode());
             delPo.setSubState((byte) -1); // sub state 置为空
+            // 触发取消订单 (退款)
+            if (order.triggerCancelled() != 0) {
+                logger.error("订单取消失败, orderId=" + order.getId());
+            }
         } else {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);

@@ -201,6 +201,13 @@ public abstract class Order {
      */
     public abstract void triggerPaid();
 
+    /**
+     * 成功发起取消订单后的触发器
+     *
+     * @return 0：可以取消订单；1：订单不能取消 (发生错误)
+     */
+    public abstract int triggerCancelled();
+
     /*
      * Getters
      */
