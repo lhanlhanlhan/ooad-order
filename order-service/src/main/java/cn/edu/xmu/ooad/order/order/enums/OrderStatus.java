@@ -29,7 +29,7 @@ public enum OrderStatus {
         if (b > statuses.length) {
             return null;
         }
-        return statuses[b];
+        return statuses[b-1];
     }
 
     public byte getCode() {

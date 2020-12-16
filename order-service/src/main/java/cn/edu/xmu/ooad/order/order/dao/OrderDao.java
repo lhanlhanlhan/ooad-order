@@ -185,7 +185,7 @@ public class OrderDao {
         }
 
         // 不获取已被逻辑删除及根本不存在的订单
-        if (orderPo == null || (orderPo.getBeDeleted() != null)) {
+        if (orderPo == null || (!includeDeleted && orderPo.getBeDeleted() != null && orderPo.getBeDeleted() == 1)) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
@@ -248,8 +248,10 @@ public class OrderDao {
         }
 
         // 不获取已被逻辑删除及根本不存在的订单
-        if (orderPo == null || (orderPo.getBeDeleted() != null)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        if (!includeDeleted) {
+            if (orderPo == null || (orderPo.getBeDeleted() != null) && (orderPo.getBeDeleted() == 1)) {
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            }
         }
 
         // 查看所属

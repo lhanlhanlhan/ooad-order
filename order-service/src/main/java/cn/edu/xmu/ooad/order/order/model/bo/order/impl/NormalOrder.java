@@ -137,7 +137,7 @@ public class NormalOrder extends Order {
      */
     @Override
     public long shallPayPrice() {
-        if (this.getSubstate() != OrderChildStatus.NEW) {
+        if (this.getState() != OrderStatus.PENDING_PAY) {
             return 0L;
         }
         // 获取已支付之金额

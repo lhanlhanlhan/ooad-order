@@ -128,9 +128,12 @@ public class PaymentService {
             // 更改订单状态
             OrderEditPo editPo = new OrderEditPo();
             editPo.setId(orderId);
-            editPo.setState(simpleOrder.getState().getCode());
-            editPo.setSubState(simpleOrder.getSubstate().getCode());
-
+            if (simpleOrder.getState() != null) {
+                editPo.setState(simpleOrder.getState().getCode());
+            }
+            if (simpleOrder.getSubstate() != null) {
+                editPo.setSubState(simpleOrder.getSubstate().getCode());
+            }
             // 2. 分单 TODO - 优化分单过程
             // 查询夫订单
             APIReturnObject<Order> fullOrder = orderDao.getOrder(orderId, customerId, null, false);
@@ -227,14 +230,17 @@ public class PaymentService {
      * Created by 苗新宇 at 05/12/2020 17:29
      */
     public APIReturnObject<?> getOrderPaymentInfo(Long shopId, Long orderId) {
-        // 校验订单 id 是否存在 / 属于店鋪？
-        long countRes = orderDao.countOrders(orderId, null, shopId, true);
-        if (countRes == 0) { // 查無此單
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (countRes == -1) { // 數據庫錯誤
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        APIReturnObject<Order> order = orderDao.getSimpleOrder(orderId, null, null, true);
+        if (order.getCode() != ResponseCode.OK) {
+            return order;
         }
-
+        Order trueOrder = order.getData();
+        if (trueOrder == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        if (trueOrder.getShopId() == null || !trueOrder.getShopId().equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
         APIReturnObject<List<PaymentPo>> paymentPoList = paymentDao.getPaymentOrderByOrderId(orderId);
         //定义PaymentOrderVo集合

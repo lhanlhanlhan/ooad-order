@@ -184,7 +184,10 @@ public class PaymentController {
                     "; adminId = " + adminId + "; adminShopId= " + adminShopId);
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+//        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+//            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
+//        }
+        if (!shopId.equals(adminShopId) && adminShopId != 0) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
 
