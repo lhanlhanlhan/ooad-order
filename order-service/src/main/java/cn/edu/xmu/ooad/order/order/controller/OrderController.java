@@ -10,7 +10,7 @@ import cn.edu.xmu.ooad.order.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.ooad.order.require.IOtherService;
 import cn.edu.xmu.ooad.order.order.service.OrderService;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import io.swagger.annotations.*;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -151,10 +151,11 @@ public class OrderController {
             regionId = iOtherService.isRegionIdExists(orderInfo.getRegionId());
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, e.getMessage()));
         }
         if (regionId) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "该地区 id 是非法的"));
+            // 地区不可达
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_NOT_REACH));
         }
         return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
     }
@@ -345,7 +346,7 @@ public class OrderController {
         }
         // 检查是否具有查询对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 获取数据并返回
         return ResponseUtils.make(orderService.getShopOrders(
@@ -415,7 +416,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopModifyOrder(id, shopId, orderEditVo));
@@ -447,7 +448,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.getShopOrder(id, shopId));
@@ -480,7 +481,7 @@ public class OrderController {
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopCancelOrder(id, shopId));
@@ -514,11 +515,11 @@ public class OrderController {
         }
         // 检查是否具有发货的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         String sn = body.get("freightSn");
         if (null == sn) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID));
         }
         // 调用服务层
         return ResponseUtils.make(orderService.shopDeliverOrder(id, shopId, sn));

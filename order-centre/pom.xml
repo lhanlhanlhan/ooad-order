@@ -12,6 +12,12 @@
     <artifactId>order-centre</artifactId>
 
     <dependencies>
+        <!-- 课程核心包 -->
+        <dependency>
+            <groupId>cn.edu.xmu.ooad</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+
         <!-- 订单部分需求插件 -->
         <dependency>
             <groupId>cn.edu.xmu</groupId>

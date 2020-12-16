@@ -7,7 +7,7 @@ package cn.edu.xmu.ooad.order.centre.utils;
  * Created at 25/11/2020 8:18 上午
  * Modified by Han Li at 25/11/2020 8:18 上午
  */
-public enum ResponseCode {
+enum ResponseCode {
     OK(0, "成功"),
 
     /**

@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.centre.utils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
+import cn.edu.xmu.ooad.util.ResponseCode;
 
 /**
  * API 返回对象
