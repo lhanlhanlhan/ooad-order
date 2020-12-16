@@ -3,7 +3,7 @@ package cn.edu.xmu.ooad.order.order.dao;
 import cn.edu.xmu.ooad.order.order.mapper.PaymentPoMapper;
 import cn.edu.xmu.ooad.order.order.mapper.RefundPoMapper;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.order.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.order.model.po.PaymentPoExample;
 import cn.edu.xmu.ooad.order.order.model.po.RefundPo;
@@ -60,11 +60,11 @@ public class PaymentDao {
         } catch (Exception e) {
             // 数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         if (paymentPo == null) {
             // 未能查到
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         return new APIReturnObject<>(paymentPo);
     }
@@ -89,7 +89,7 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
 
         return new APIReturnObject<>(paymentSimplePoList);
@@ -115,7 +115,7 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         return new APIReturnObject<>(paymentSimplePoList);
     }
@@ -146,7 +146,7 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         // 订单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {
@@ -174,7 +174,7 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
         // 售后单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {

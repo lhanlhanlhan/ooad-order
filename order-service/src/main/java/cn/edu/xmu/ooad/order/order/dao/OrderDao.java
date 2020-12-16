@@ -8,7 +8,7 @@ import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.order.model.po.*;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +129,7 @@ public class OrderDao {
                 if (logger.isInfoEnabled()) {
                     logger.info(e.getMessage());
                 }
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "起始日期格式错误");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始日期格式错误");
             }
         }
         if (endTime != null) {
@@ -141,7 +141,7 @@ public class OrderDao {
                 if (logger.isInfoEnabled()) {
                     logger.info(e.getMessage());
                 }
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID, "结束日期格式错误");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "结束日期格式错误");
             }
         }
         if (shopId != null) {
@@ -185,15 +185,15 @@ public class OrderDao {
 
         // 不获取已被逻辑删除及根本不存在的订单
         if (orderPo == null || (orderPo.getBeDeleted() != null)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         // 查看所属
         if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
-            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         if (shopId != null && shopId.equals(orderPo.getShopId())) {
-            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 查询 order item
@@ -248,15 +248,15 @@ public class OrderDao {
 
         // 不获取已被逻辑删除及根本不存在的订单
         if (orderPo == null || (orderPo.getBeDeleted() != null)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         // 查看所属
         if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
-            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         if (shopId != null && shopId.equals(orderPo.getShopId())) {
-            return new APIReturnObject<>(HttpStatus.UNAUTHORIZED, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 创建订单业务对象
@@ -286,7 +286,7 @@ public class OrderDao {
         }
         // 检查修改结果
         if (affected <= 0) {
-            return new APIReturnObject<>(ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         return new APIReturnObject<>();
     }

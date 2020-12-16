@@ -1,8 +1,8 @@
 package cn.edu.xmu.ooad.order.centre.configurations;
 
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(code = HttpStatus.METHOD_NOT_ALLOWED)
     public Object handleException(HttpRequestMethodNotSupportedException e) {
         logger.info("尝试的请求不被支援：" + e.getMessage());
-        return ResponseUtils.make(new APIReturnObject<>(HttpStatus.METHOD_NOT_ALLOWED, ResponseCode.REQUEST_NOT_ALLOWED));
+        return ResponseUtils.make(new APIReturnObject<>(HttpStatus.METHOD_NOT_ALLOWED, ResponseCode.FIELD_NOTVALID, "请求不被服务器支援"));
     }
 
     /**
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         FieldError fe = e.getBindingResult().getFieldError();
         if (fe == null) {
             logger.info("校验器发生未指明的错误：" + e.getMessage());
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID);
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID);
         }
         // 获取错误资料
         String defaultMessage = fe.getDefaultMessage();
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
         // 将错误信息返回给前台
         return ResponseUtils.make(
                 new APIReturnObject<>(HttpStatus.BAD_REQUEST,
-                        ResponseCode.FIELD_NOT_VALID,
+                        ResponseCode.FIELD_NOTVALID,
                         defaultMessage));
     }
 }

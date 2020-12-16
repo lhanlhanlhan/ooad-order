@@ -3,7 +3,6 @@ package cn.edu.xmu.ooad.order.freight.dao;
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.freight.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.mapper.WeightFreightModelPoMapper;
@@ -11,6 +10,7 @@ import cn.edu.xmu.ooad.order.freight.model.bo.freight.FreightModel;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.impl.PieceFreightModelRule;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.impl.WeightFreightModelRule;
 import cn.edu.xmu.ooad.order.freight.model.po.*;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,7 +192,7 @@ public class FreightDao {
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
 

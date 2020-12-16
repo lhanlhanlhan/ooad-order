@@ -3,7 +3,6 @@ package cn.edu.xmu.ooad.order.freight.service;
 import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.Accessories;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.freight.dao.FreightDao;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.FreightModel;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.impl.PieceFreightModel;
@@ -13,6 +12,7 @@ import cn.edu.xmu.ooad.order.freight.model.po.WeightFreightModelPo;
 import cn.edu.xmu.ooad.order.freight.model.vo.*;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -128,7 +128,7 @@ public class FreightService {
         int res = insertFreightModelPo(freightModelPo);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_MODEL_NAME_SAME);
+                return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.FREIGHTNAME_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
@@ -196,7 +196,7 @@ public class FreightService {
         // 取出原本的運費模板
         FreightModel mainTable = freightDao.getFreightModel(id);
         if (mainTable == null) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         LocalDateTime nowTime = LocalDateTime.now();
@@ -210,7 +210,7 @@ public class FreightService {
         int res = insertFreightModelPo(po);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_MODEL_NAME_SAME);
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -285,7 +285,7 @@ public class FreightService {
         FreightModel model = freightDao.getFreightModel(id);
         if (model == null) {
             // 未能找到
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 构造 Vo 返回
         return new APIReturnObject<>(new FreightModelVo(model));
@@ -304,7 +304,7 @@ public class FreightService {
         // 看看是不是屬於本店
         long belongs = freightDao.countFreightModel(id, shopId, null);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -326,7 +326,7 @@ public class FreightService {
             response = freightDao.updateFreightModel(po);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_MODEL_NAME_SAME);
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
             } else {
                 logger.error(e.getMessage());
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
@@ -358,13 +358,13 @@ public class FreightService {
         // 用老方法获取原来信息，因為要看看是屬於那一種運費模板
         FreightModel model = freightDao.getFreightModel(id);
         if (model == null) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         Long origShopId = model.getShopId();
         Byte type = model.getType();
         // 判断该商店是否拥有
         if (!origShopId.equals(shopId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 将删除写入数据库
@@ -405,7 +405,7 @@ public class FreightService {
         // 看看是不是屬於本店
         long belongs = freightDao.countFreightModel(id, shopId, null);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -449,7 +449,7 @@ public class FreightService {
         // 看看是不是屬於本店、是不是重量模板
         long belongs = freightDao.countFreightModel(id, shopId, (byte) 0);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -507,7 +507,7 @@ public class FreightService {
         // 看看是不是屬於本店、是不是重量模板
         long belongs = freightDao.countFreightModel(id, shopId, (byte) 0);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -538,7 +538,7 @@ public class FreightService {
         // 看看是不是屬於本店、是不是件數模板
         long belongs = freightDao.countFreightModel(id, shopId, (byte) 1);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -593,7 +593,7 @@ public class FreightService {
         // 看看是不是屬於本店、是不是件數模板
         long belongs = freightDao.countFreightModel(id, shopId, (byte) 1);
         if (belongs == 0) { // 不存在
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (belongs == -1) { // 數據庫
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -622,7 +622,7 @@ public class FreightService {
     public APIReturnObject<?> modifyWeightFreightModel(Long shopId, Long detailId, WeightFreightModelVo vo) {
         // 鑑定
         if (weightModelItemNotBelongs(shopId, detailId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         WeightFreightModelPo po = new WeightFreightModelPo();
@@ -657,7 +657,7 @@ public class FreightService {
     @Transactional
     public APIReturnObject<?> deleteWeightFreightModel(Long shopId, Long detailId) {
         if (weightModelItemNotBelongs(shopId, detailId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         try {
@@ -683,7 +683,7 @@ public class FreightService {
     @Transactional
     public APIReturnObject<?> modifyPieceFreightModel(Long shopId, Long detailId, PieceFreightModelVo vo) {
         if (pieceModelItemNotBelongs(shopId, detailId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         PieceFreightModelPo po = new PieceFreightModelPo();
@@ -716,7 +716,7 @@ public class FreightService {
     @Transactional
     public APIReturnObject<?> deletePieceFreightModel(Long shopId, Long detailId) {
         if (pieceModelItemNotBelongs(shopId, detailId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
         try {
