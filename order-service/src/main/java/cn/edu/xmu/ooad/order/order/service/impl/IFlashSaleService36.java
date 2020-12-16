@@ -1,10 +1,10 @@
 package cn.edu.xmu.ooad.order.order.service.impl;
 
 import cn.edu.xmu.ooad.goods.require.IFlashSaleService;
+import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.require.IOtherService;
 import cn.edu.xmu.ooad.order.require.models.FlashSaleInfo;
 import cn.edu.xmu.ooad.order.require.models.FlashSaleItemInfo;
-import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import lombok.AllArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -46,6 +46,7 @@ public class IFlashSaleService36 implements IFlashSaleService {
     @AllArgsConstructor
     private class LoadFlashSaleThread implements Runnable {
         private final Long flashSaleId;
+
         @Override
         public void run() {
             // 获取秒杀信息

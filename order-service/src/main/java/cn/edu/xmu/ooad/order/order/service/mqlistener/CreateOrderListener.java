@@ -2,24 +2,17 @@ package cn.edu.xmu.ooad.order.order.service.mqlistener;
 
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.centre.interfaces.IFreightServiceInside;
-import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
+import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
-import cn.edu.xmu.ooad.order.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
-import cn.edu.xmu.ooad.order.order.model.bo.discount.BaseCouponDiscount;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
-import cn.edu.xmu.ooad.order.order.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
-import cn.edu.xmu.ooad.order.require.*;
-import cn.edu.xmu.ooad.order.require.models.*;
 import cn.edu.xmu.ooad.order.order.service.mqlistener.model.CreateOrderDemand;
 import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
-import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
+import cn.edu.xmu.ooad.order.require.*;
 import cn.edu.xmu.ooad.util.JacksonUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -32,12 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 创建订单 消息消费者

@@ -3,7 +3,6 @@ package cn.edu.xmu.ooad.order.order.model.bo.order;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.order.exceptions.NoSuchOrderTypeException;
 import cn.edu.xmu.ooad.order.order.model.bo.order.impl.GrouponOrder;
 import cn.edu.xmu.ooad.order.order.model.bo.order.impl.NormalOrder;
 import cn.edu.xmu.ooad.order.order.model.bo.order.impl.PreSaleOrder;
@@ -129,22 +128,6 @@ public abstract class Order {
         }
     }
 
-    public static Order createOrder(OrderPo orderPo) throws NoSuchOrderTypeException {
-        if (orderPo.getOrderType() == null) {
-            return null;
-        }
-        switch (orderPo.getOrderType()) {
-            case 0: // 普通订单
-                return new NormalOrder(orderPo);
-            case 1: // 团购
-                return new GrouponOrder(orderPo);
-            case 2: // 预售
-                return new PreSaleOrder(orderPo);
-            default:
-                throw new NoSuchOrderTypeException();
-        }
-    }
-
     /**
      * 支付成功后调用分单，分成若干个完整订单【每个订单内含 orderItemList，可以直接插入】
      *
@@ -158,7 +141,7 @@ public abstract class Order {
 
     /**
      * 判断该订单目前可被支付之金额
-     *
+     * <p>
      * 返回：-1：内部错误；>= 0：应付金额
      */
     public abstract long shallPayPrice();

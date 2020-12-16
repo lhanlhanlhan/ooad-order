@@ -3,26 +3,26 @@ package cn.edu.xmu.ooad.order.order.service;
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.centre.interfaces.IFreightServiceInside;
 import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
+import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderType;
 import cn.edu.xmu.ooad.order.order.model.bo.discount.BaseCouponDiscount;
+import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.order.model.bo.order.impl.GrouponOrder;
-import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.order.model.po.OrderEditPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderSimplePo;
 import cn.edu.xmu.ooad.order.order.model.vo.*;
 import cn.edu.xmu.ooad.order.order.service.mqlistener.model.CreateOrderDemand;
+import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.require.*;
 import cn.edu.xmu.ooad.order.require.models.*;
-import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
-import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.pagehelper.PageHelper;
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -56,27 +55,44 @@ public class OrderService {
 
     @Autowired
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
-
+    static String addBackScript = " local buyNum = tonumber(ARGV[1]) " +
+            " local skuKey = KEYS[1] " +
+            " redis.call('add', skuKey, buyNum) " +
+            " return ARGV[1] " +
+            " end ";
+    static String decrScript = " local buyNum = tonumber(ARGV[1]) " +
+            " local skuKey = KEYS[1] " +
+            " local skuStock = tonumber(redis.call('get', skuKey)) " +
+            " if skuStock >= buyNum " +
+            " then redis.call('decrby', skuKey, buyNum) " +
+            " return ARGV[1] " +
+            " else " +
+            " return '0' " +
+            " end ";
     @Autowired
     private OrderDao orderDao;
-
     @DubboReference(check = false)
     private IShopService iShopService;
-
     @DubboReference(check = false)
     private ICustomerService iCustomerService;
-
     @DubboReference(check = false)
     private ICouponService iCouponService;
-
     @DubboReference(check = false)
     private IFreightServiceInside iFreightServiceInside;
-
     @Autowired
     private MQService mqService;
-
     @Autowired
     private RedisUtils redisUtils;
+    @DubboReference(check = false)
+    private IGrouponService iGrouponService;
+    @DubboReference(check = false)
+    private IPreSaleService iPreSaleService;
+    // 普通商品库存过期时间
+    @Value("${orders.ordinary-stock-expire}")
+    private Integer stockExpireTime;
+    // 写回信号量过期时间
+    @Value("${orders.write-back-semaphore-expire}")
+    private Integer writeBackExpire;
 
     /**
      * 服务 o1：获取用户名下所有订单概要
@@ -141,6 +157,92 @@ public class OrderService {
         return new APIReturnObject<>(returnObj);
     }
 
+//    /**
+//     * 服务 o8：创建售后订单 (价格为 $0.- 的订单)
+//     *
+//     * @param shopId  店铺 id
+//     * @param orderVo 订单详细资料
+//     * @return APIReturnObject
+//     */
+//    @Transactional
+//    public APIReturnObject<?> createAfterSaleOrder(Long shopId,
+//                                                   AfterSaleOrderVo orderVo) {
+//        // 扣库存
+//        List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
+//        for (Map<String, Object> item : orderItemList) {
+//            Long skuId = ((Integer) item.get("skuId")).longValue();
+//            Integer quantity = (Integer) item.get("quantity");
+//            // 联系商品模块扣库存
+//            int decreaseStatus = shopService.decreaseStock(skuId, quantity);
+//            if (decreaseStatus == 1) {
+//                logger.warn("not in stock: skuid=" + skuId);
+//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
+//            }
+//        }
+//
+//        // 数据库部分
+//
+//        LocalDateTime nowTime = LocalDateTime.now();
+//
+//        // 创建订单
+//        OrderPo orderPo = new OrderPo();
+//        orderPo.setCustomerId(orderVo.getCustomerId());
+//        orderPo.setRegionId(orderVo.getRegion_id());
+//        orderPo.setAddress(orderVo.getAddress());
+//        orderPo.setMobile(orderVo.getMobile());
+//        orderPo.setMessage(orderVo.getMessage());
+//        orderPo.setConsignee(orderVo.getConsignee());
+//        orderPo.setShopId(shopId);
+//        orderPo.setOrderSn(Accessories.genSerialNumber()); // 暂时用 UUID 生成 sn
+//        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
+//        orderPo.setDiscountPrice(0L);
+//        orderPo.setFreightPrice(0L);
+//        orderPo.setOrderType(OrderType.NORMAL.getCode()); // 订单种类为普通订单
+//        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode()); // 订单状态为已支付 (售后单待发货)
+//        orderPo.setGmtCreate(nowTime);
+//
+//        // 写入订单系统
+//        if (!insertOrderPo(orderPo)) {
+//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+//        }
+//
+//        // 获取刚刚创建订单的 id
+//        Long orderId = orderPo.getId();
+//
+//        // 记录进订单系统
+//        List<OrderItemPo> orderItemPoList = new ArrayList<>(orderItemList.size());
+//        for (Map<String, Object> item : orderItemList) {
+//            Long skuId = ((Integer) item.get("skuId")).longValue();
+//            Integer quantity = (Integer) item.get("quantity");
+//            // 创建新 po
+//            OrderItemPo orderItemPo = new OrderItemPo();
+//            orderItemPo.setGoodsSkuId(skuId);
+//            orderItemPo.setQuantity(quantity);
+//            // 联系商品模块获取商品资料
+//            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
+//            orderItemPo.setOrderId(orderId);
+//            orderItemPo.setGoodsSkuId(skuId);
+//            orderItemPo.setQuantity(quantity);
+//            // 这是售后订单，价格一律为 0，没有优惠券、没有优惠活动、没有推广
+//            orderItemPo.setPrice(0L);
+//            orderItemPo.setDiscount(0L);
+//            orderItemPo.setName(skuInfo.getName());
+//            orderItemPo.setGmtCreate(nowTime);
+//
+//            // 记录进订单系统
+//            if (!insertOrderItemPo(orderItemPo)) {
+//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+//            }
+//            orderItemPoList.add(orderItemPo);
+//        }
+//
+//        // 获取订单完整资讯并返回
+//        return makeFullOrder(orderPo, orderItemPoList);
+//    }
+
     /**
      * 服务 o2：获取用户名下订单完整信息
      *
@@ -173,7 +275,6 @@ public class OrderService {
         // 封装并返回【标准返回】
         return new APIReturnObject<>(vo);
     }
-
 
     /**
      * 服务 o3：买家修改订单信息
@@ -406,92 +507,6 @@ public class OrderService {
         returnObj.put("list", orders);
         return new APIReturnObject<>(returnObj);
     }
-
-//    /**
-//     * 服务 o8：创建售后订单 (价格为 $0.- 的订单)
-//     *
-//     * @param shopId  店铺 id
-//     * @param orderVo 订单详细资料
-//     * @return APIReturnObject
-//     */
-//    @Transactional
-//    public APIReturnObject<?> createAfterSaleOrder(Long shopId,
-//                                                   AfterSaleOrderVo orderVo) {
-//        // 扣库存
-//        List<Map<String, Object>> orderItemList = orderVo.getOrderItems();
-//        for (Map<String, Object> item : orderItemList) {
-//            Long skuId = ((Integer) item.get("skuId")).longValue();
-//            Integer quantity = (Integer) item.get("quantity");
-//            // 联系商品模块扣库存
-//            int decreaseStatus = shopService.decreaseStock(skuId, quantity);
-//            if (decreaseStatus == 1) {
-//                logger.warn("not in stock: skuid=" + skuId);
-//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.GOODS_NOT_IN_STOCK);
-//            }
-//        }
-//
-//        // 数据库部分
-//
-//        LocalDateTime nowTime = LocalDateTime.now();
-//
-//        // 创建订单
-//        OrderPo orderPo = new OrderPo();
-//        orderPo.setCustomerId(orderVo.getCustomerId());
-//        orderPo.setRegionId(orderVo.getRegion_id());
-//        orderPo.setAddress(orderVo.getAddress());
-//        orderPo.setMobile(orderVo.getMobile());
-//        orderPo.setMessage(orderVo.getMessage());
-//        orderPo.setConsignee(orderVo.getConsignee());
-//        orderPo.setShopId(shopId);
-//        orderPo.setOrderSn(Accessories.genSerialNumber()); // 暂时用 UUID 生成 sn
-//        orderPo.setOriginPrice(0L); // 订单的各种价格都是 0
-//        orderPo.setDiscountPrice(0L);
-//        orderPo.setFreightPrice(0L);
-//        orderPo.setOrderType(OrderType.NORMAL.getCode()); // 订单种类为普通订单
-//        orderPo.setState(OrderStatus.AFTER_SALE_PENDING_SHIPMENT.getCode()); // 订单状态为已支付 (售后单待发货)
-//        orderPo.setGmtCreate(nowTime);
-//
-//        // 写入订单系统
-//        if (!insertOrderPo(orderPo)) {
-//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-//        }
-//
-//        // 获取刚刚创建订单的 id
-//        Long orderId = orderPo.getId();
-//
-//        // 记录进订单系统
-//        List<OrderItemPo> orderItemPoList = new ArrayList<>(orderItemList.size());
-//        for (Map<String, Object> item : orderItemList) {
-//            Long skuId = ((Integer) item.get("skuId")).longValue();
-//            Integer quantity = (Integer) item.get("quantity");
-//            // 创建新 po
-//            OrderItemPo orderItemPo = new OrderItemPo();
-//            orderItemPo.setGoodsSkuId(skuId);
-//            orderItemPo.setQuantity(quantity);
-//            // 联系商品模块获取商品资料
-//            SkuInfo skuInfo = shopService.getSkuInfo(skuId);
-//            orderItemPo.setOrderId(orderId);
-//            orderItemPo.setGoodsSkuId(skuId);
-//            orderItemPo.setQuantity(quantity);
-//            // 这是售后订单，价格一律为 0，没有优惠券、没有优惠活动、没有推广
-//            orderItemPo.setPrice(0L);
-//            orderItemPo.setDiscount(0L);
-//            orderItemPo.setName(skuInfo.getName());
-//            orderItemPo.setGmtCreate(nowTime);
-//
-//            // 记录进订单系统
-//            if (!insertOrderItemPo(orderItemPo)) {
-//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-//            }
-//            orderItemPoList.add(orderItemPo);
-//        }
-//
-//        // 获取订单完整资讯并返回
-//        return makeFullOrder(orderPo, orderItemPoList);
-//    }
 
     /**
      * 服务 o9：店家修改订单信息 [DONE]
@@ -834,7 +849,8 @@ public class OrderService {
         }
 
         // MyBatis: 创建订单对应 Po
-        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo); {
+        OrderPo orderPo = createNewOrderPo(customerId, orderNewVo);
+        {
             orderPo.setShopId(null); // 店铺 id 暂时为空，等支付后分单再说
             // 填入订单的各种价格
             orderPo.setOriginPrice(totalPrice);
@@ -861,13 +877,6 @@ public class OrderService {
         mqService.sendCreateOrderInfo(demand);
         return new APIReturnObject<>(sn);
     }
-
-
-    @DubboReference(check = false)
-    private IGrouponService iGrouponService;
-    @DubboReference(check = false)
-    private IPreSaleService iPreSaleService;
-
 
     @Transactional
     public APIReturnObject<?> createOneItemOrder(Long customerId, OrderNewVo orderNewVo, OrderType type) {
@@ -942,8 +951,6 @@ public class OrderService {
         return new APIReturnObject<>(sn);
     }
 
-
-
     /**
      * **内部方法** 根据 Vo 新建 OrderPo
      *
@@ -964,27 +971,6 @@ public class OrderService {
         orderPo.setSubstate(OrderChildStatus.NEW.getCode()); //
         return orderPo;
     }
-
-    static String addBackScript = " local buyNum = tonumber(ARGV[1]) " +
-            " local skuKey = KEYS[1] " +
-            " redis.call('add', skuKey, buyNum) " +
-            " return ARGV[1] " +
-            " end ";
-    static String decrScript = " local buyNum = tonumber(ARGV[1]) " +
-            " local skuKey = KEYS[1] " +
-            " local skuStock = tonumber(redis.call('get', skuKey)) " +
-            " if skuStock >= buyNum " +
-            " then redis.call('decrby', skuKey, buyNum) " +
-            " return ARGV[1] " +
-            " else " +
-            " return '0' " +
-            " end ";
-    // 普通商品库存过期时间
-    @Value("${orders.ordinary-stock-expire}")
-    private Integer stockExpireTime;
-    // 写回信号量过期时间
-    @Value("${orders.write-back-semaphore-expire}")
-    private Integer writeBackExpire;
 
     /**
      * ** 内部方法 ** 失败了充正库存

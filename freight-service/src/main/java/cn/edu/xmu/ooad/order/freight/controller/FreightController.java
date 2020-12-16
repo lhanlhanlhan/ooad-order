@@ -5,12 +5,12 @@ import cn.edu.xmu.ooad.annotation.Depart;
 import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.freight.model.vo.*;
 import cn.edu.xmu.ooad.order.freight.service.FreightService;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import io.swagger.annotations.*;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class FreightController {
         }
         // 先判断输入是否有误
         if (items == null || items.size() == 0) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID));
         }
         // 在运算运费前，要提前获得商品模块 sku 信息，否则重复获取 sku 信息
         Map<Long, SkuInfo> skuInfoMap = new HashMap<>(items.size());
@@ -83,7 +83,7 @@ public class FreightController {
         for (FreightOrderItemVo orderItemVo : items) {
             SkuInfo skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
             if (skuInfo == null) {
-                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "查无商品"));
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "查无商品"));
             }
             skuInfoMap.put(orderItemVo.getSkuId(), skuInfo);
             freightCalcItems.add(orderItemVo.toCalcItem());
@@ -93,9 +93,9 @@ public class FreightController {
         int freight = (int) freightService.calcFreight(rid, freightCalcItems, skuInfoMap);
         switch (freight) {
             case -3: // 含禁止物品
-                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHT_REGION_FORBIDDEN));
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_NOT_REACH));
             case -2: // 运费模板 id 未定义
-                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "未定义的运费模板 id"));
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "未定义的运费模板 id"));
             case -1: // 失败
                 return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "计算运费不成功"));
             default: // OK
@@ -130,7 +130,7 @@ public class FreightController {
             logger.debug("post shops/{id}/freightmodels; id=" + id + " vo=" + freightModelNewVo + " adminId=" + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(id)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.createShopGoodsFreightModel(id, freightModelNewVo));
     }
@@ -168,7 +168,7 @@ public class FreightController {
                     " pageSize = " + pageSize + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(id)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.getShopGoodsFreightModel(id, name, page, pageSize));
     }
@@ -200,7 +200,7 @@ public class FreightController {
             logger.debug("post shops/{shopId}/freightmodels/{id}/clone; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.cloneFreightModel(shopId, id));
     }
@@ -265,10 +265,10 @@ public class FreightController {
         // 判断是不是所有属性都为空值
         if (freightModelEditVo.getName() == null &&
                 freightModelEditVo.getUnit() == null) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID));
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.modifyShopFreightModel(shopId, id, freightModelEditVo));
     }
@@ -301,7 +301,7 @@ public class FreightController {
             logger.debug("delete shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.deleteShopFreightModel(shopId, id));
     }
@@ -334,7 +334,7 @@ public class FreightController {
             logger.debug("delete shops/{shopId}/freightmodels/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.defineDefaultFreightModel(shopId, id));
     }
@@ -369,7 +369,7 @@ public class FreightController {
             logger.debug("put shops/{shopId}/freightmodels/{id}/weightItems;shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.createWeightFreightModel(shopId, id, weightFreightModelVo));
     }
@@ -402,7 +402,7 @@ public class FreightController {
             logger.debug("get shops/{shopId}/freightmodels/{id}/weightItems; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.getWeightFreightModel(shopId, id));
     }
@@ -437,7 +437,7 @@ public class FreightController {
             logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + pieceFreightModelVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.createPieceFreightModel(shopId, id, pieceFreightModelVo));
     }
@@ -470,7 +470,7 @@ public class FreightController {
             logger.debug("get shops/{shopId}/freightmodels/{id}/pieceItems; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.getPieceFreightModel(shopId, id));
     }
@@ -505,7 +505,7 @@ public class FreightController {
             logger.debug("put shops/{shopId}/weightItems/{id}; shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + weightFreightModelVo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.modifyWeightFreightModel(shopId, id, weightFreightModelVo));
     }
@@ -538,7 +538,7 @@ public class FreightController {
             logger.debug("delete shops/{shopId}/weightItems/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.deleteWeightFreightModel(shopId, id));
     }
@@ -574,7 +574,7 @@ public class FreightController {
             logger.debug("put shops/{shopId}/freightmodels/{id};shopId = " + shopId + " id=" + id + " adminId = " + adminId + "vo=" + vo);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.modifyPieceFreightModel(shopId, id, vo));
     }
@@ -607,7 +607,7 @@ public class FreightController {
             logger.debug("delete shops/{shopId}/pieceItems/{id}; shopId = " + shopId + " id = " + id + " adminId = " + adminId);
         }
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.deletePieceFreightModel(shopId, id));
     }

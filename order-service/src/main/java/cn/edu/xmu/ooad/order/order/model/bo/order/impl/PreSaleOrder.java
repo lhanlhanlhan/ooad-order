@@ -1,5 +1,8 @@
 package cn.edu.xmu.ooad.order.order.model.bo.order.impl;
 
+import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.util.ResponseCode;
+import cn.edu.xmu.ooad.order.centre.utils.SpringUtils;
 import cn.edu.xmu.ooad.order.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
@@ -11,9 +14,6 @@ import cn.edu.xmu.ooad.order.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.require.IPreSaleService;
 import cn.edu.xmu.ooad.order.require.models.PreSaleActivityInfo;
-import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
-import cn.edu.xmu.ooad.order.centre.utils.SpringUtils;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
@@ -59,7 +59,7 @@ public class PreSaleOrder extends Order {
 
     /**
      * 判断该订单要支付的金额
-     *
+     * <p>
      * 返回：-1：内部错误；>= 0：应付金额
      */
     @Override

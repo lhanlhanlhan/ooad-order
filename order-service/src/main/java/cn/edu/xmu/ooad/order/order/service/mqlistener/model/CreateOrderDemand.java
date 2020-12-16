@@ -2,7 +2,6 @@ package cn.edu.xmu.ooad.order.order.service.mqlistener.model;
 
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
-import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import lombok.Data;
 
 import java.io.Serializable;

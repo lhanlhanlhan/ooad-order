@@ -1,7 +1,6 @@
 package cn.edu.xmu.ooad.order.order.service.impl;
 
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
@@ -20,10 +19,12 @@ public class IOtherOrderService17 implements IOtherOrderService {
     @Autowired
     private OrderDao orderDao;
 
-    /**根据orderItemId获取orderItem相关信息，若资源不存在返回空
-     * @author chenqw
+    /**
+     * 根据orderItemId获取orderItem相关信息，若资源不存在返回空
+     *
      * @param orderItemId
      * @return OrderItemSimple or null
+     * @author chenqw
      */
     @Override
     public OtherOrderItemSimple getOrderItemByOrderItemId(Long orderItemId) {
@@ -34,7 +35,8 @@ public class IOtherOrderService17 implements IOtherOrderService {
         return getOtherOrderItemSimple(orderItem);
     }
 
-    /**根据orderItemId获取orderItem相关信息和order信息，若资源不存在返回空
+    /**
+     * 根据orderItemId获取orderItem相关信息和order信息，若资源不存在返回空
      *
      * @param orderItemId
      * @return
@@ -64,10 +66,12 @@ public class IOtherOrderService17 implements IOtherOrderService {
         return orderItemComplex;
     }
 
-    /**根据orderItemId获取全部orderItem信息和order信息，若资源不存在返回空
-     * @author chenqw
+    /**
+     * 根据orderItemId获取全部orderItem信息和order信息，若资源不存在返回空
+     *
      * @param orderItemId
      * @return
+     * @author chenqw
      */
     @Override
     public OtherOrderSimple getOrderByOrderItemId(Long orderItemId) {

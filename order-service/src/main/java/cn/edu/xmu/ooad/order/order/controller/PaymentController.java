@@ -3,16 +3,16 @@ package cn.edu.xmu.ooad.order.order.controller;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
 import cn.edu.xmu.ooad.annotation.LoginUser;
+import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.order.enums.PayPattern;
 import cn.edu.xmu.ooad.order.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentPatternVo;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentStatusVo;
-import cn.edu.xmu.ooad.order.require.IAfterSaleService;
 import cn.edu.xmu.ooad.order.order.service.PaymentService;
-import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
+import cn.edu.xmu.ooad.order.require.IAfterSaleService;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -185,7 +185,7 @@ public class PaymentController {
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
 
         return ResponseUtils.make(paymentService.getOrderPaymentInfo(shopId, id));
@@ -217,9 +217,9 @@ public class PaymentController {
         // 由其他模塊检查一下，这张售后单可不可以创建支付单
         long repairPrice = iAfterSaleService.getRepairCost(id);
         if (repairPrice == 0) { // 不必创建售后单支付
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.PAY_MORE, "您不必为此售后单支付");
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOTVALID, "您不必为此售后单支付");
         } else if (repairPrice == -1) { // 无此售后单
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         } else if (repairPrice < -1) { // 504
             logger.error("无法查询售后单资讯，因为其他模块报告错误：" + repairPrice);
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
@@ -227,11 +227,11 @@ public class PaymentController {
 
         // 检查售后单支付金额是否足额支付
         if (repairPrice != paymentNewVo.getPrice()) {
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.PAY_NOT_ENOUGH);
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "您的支付金额不足");
         }
         // 检查是不是模拟支付平台
         if (!PayPattern.MOCK.getCode().equals(paymentNewVo.getPaymentPattern())) {
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REQUEST_NOT_ALLOWED, "支付平台不支持此操作");
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "支付平台不支持此操作");
         }
 
         return ResponseUtils.make(paymentService.createPaymentForAftersaleOrder(id, repairPrice));
@@ -288,7 +288,7 @@ public class PaymentController {
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
 
         //调用服务层
@@ -325,13 +325,13 @@ public class PaymentController {
         }
         // 检查是否具有查询对应店铺支付单的权限，若没有就返回404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUT_SCOPE));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 获取冀退款之金额
         Long refundAmount = refundAmountVo.get("amount");
         if (refundAmount == null) {
             // 输入金额有误，没有输入
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOT_VALID));
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID));
         }
         // 调用服务层
         return ResponseUtils.make(paymentService.createRefund(shopId, id, refundAmount));

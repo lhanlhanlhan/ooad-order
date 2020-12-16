@@ -364,7 +364,7 @@ public class FreightService {
         Byte type = model.getType();
         // 判断该商店是否拥有
         if (!origShopId.equals(shopId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 将删除写入数据库

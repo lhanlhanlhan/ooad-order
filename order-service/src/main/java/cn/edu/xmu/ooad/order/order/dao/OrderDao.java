@@ -1,13 +1,14 @@
 package cn.edu.xmu.ooad.order.order.dao;
 
+import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.order.mapper.OrderFullPoMapper;
 import cn.edu.xmu.ooad.order.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.ooad.order.order.mapper.OrderMapper;
 import cn.edu.xmu.ooad.order.order.mapper.OrderSimplePoMapper;
 import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
+import cn.edu.xmu.ooad.order.order.model.bo.order.OrderFactory;
 import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.order.model.po.*;
-import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -217,7 +218,7 @@ public class OrderDao {
         // 创建订单业务对象
         Order order;
         try {
-            order = Order.createOrder(orderPo);
+            order = OrderFactory.makeOrder(orderPo);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
@@ -262,7 +263,7 @@ public class OrderDao {
         // 创建订单业务对象
         Order order;
         try {
-            order = Order.createOrder(orderPo);
+            order = OrderFactory.makeOrder(orderPo);
         } catch (Exception e) {
             return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
         }
@@ -337,6 +338,7 @@ public class OrderDao {
 
     /**
      * 获取 OrderItem
+     *
      * @param orderItemId
      * @return
      */
@@ -350,6 +352,7 @@ public class OrderDao {
 
     /**
      * 获取 OrderItem Po
+     *
      * @param orderItemId
      * @return
      */

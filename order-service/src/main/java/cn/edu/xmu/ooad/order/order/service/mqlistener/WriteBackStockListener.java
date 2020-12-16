@@ -1,7 +1,7 @@
 package cn.edu.xmu.ooad.order.order.service.mqlistener;
 
-import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
+import cn.edu.xmu.ooad.order.require.IShopService;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

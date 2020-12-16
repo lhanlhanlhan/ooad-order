@@ -27,7 +27,8 @@
         <!-- 用 <id> 指定 Po 的数据 id -->
         <id property="id" column="id"/>
         <!-- 用 <collection> 可以让 MyBatis 自动将【连接查询】得到的多条记录合并成一个对象中的 Collection -->
-        <collection property="orderItemList" ofType="cn.edu.xmu.ooad.order.order.model.po.OrderItemPo" autoMapping="true">
+        <collection property="orderItemList" ofType="cn.edu.xmu.ooad.order.order.model.po.OrderItemPo"
+                    autoMapping="true">
             <id property="id" column="item_id"/>
             <result property="orderId" column="id"/>
             <result property="goodsSkuId" column="item_goods_sku_id"/>

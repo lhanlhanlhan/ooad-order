@@ -1,7 +1,5 @@
 package cn.edu.xmu.ooad.order.order.service.mqproducer;
 
-import cn.edu.xmu.ooad.order.order.enums.OrderType;
-import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.order.service.mqlistener.model.CreateOrderDemand;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
