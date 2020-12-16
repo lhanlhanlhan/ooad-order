@@ -23,7 +23,7 @@ import cn.edu.xmu.ooad.order.require.models.*;
 import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.Accessories;
-import cn.edu.xmu.ooad.order.centre.utils.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -200,15 +200,15 @@ public class OrderService {
         Long newRegionId = orderEditVo.getRegionId();
         Long oldRegionId = orderEditVo.getRegionId();
         if (newRegionId != null && oldRegionId != null && !newRegionId.equals(oldRegionId)) {
-            // 地区码不一致
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_MODIFY_REGION_FORBIDDEN);
+            // TODO - 地区码不一致错误码？
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.REGION_NOT_REACH);
         }
 
         // 检查订单状态是否允许
         Order order = returnObject.getData();
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 自定义修改字段
@@ -262,7 +262,7 @@ public class OrderService {
             }
         } else {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo.setId(id);
 
@@ -292,7 +292,7 @@ public class OrderService {
         Order order = returnObject.getData();
         if (!order.canSign()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 买家确认收货
@@ -326,12 +326,12 @@ public class OrderService {
         // 检查订单状态是否允许
         Order order = returnObject.getData();
         if (!(order instanceof GrouponOrder)) {
-            // 订单种类不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_TYPE_NOT_CORRESPOND);
+            // TODO - 订单种类不被允许【403 返回】错误码？
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
         if (!((GrouponOrder) order).canChangeToNormal()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 更改订单类型为普通订单
@@ -513,7 +513,7 @@ public class OrderService {
         Order order = returnObject.getData();
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
@@ -578,7 +578,7 @@ public class OrderService {
         Order order = returnObject.getData();
         if (!order.canShopCancel()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo = new OrderEditPo();
         delPo.setState(OrderStatus.CANCELLED.getCode());
@@ -611,7 +611,7 @@ public class OrderService {
         Order order = returnObject.getData();
         if (!order.canDeliver()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATE_NOT_ALLOW);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo = new OrderEditPo();
         delPo.setShipmentSn(deliverSn);
@@ -643,7 +643,7 @@ public class OrderService {
             SkuInfo skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
             if (skuInfo == null) {
                 logger.debug("查无此商品, skuId=" + orderItemVo.getSkuId()); // TODO - 数据库穿透？
-                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST, "商品不存在");
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "商品不存在");
             }
             skuInfoMap.put(orderItemVo.getSkuId(), skuInfo);
         }
@@ -800,7 +800,7 @@ public class OrderService {
                     if (decStockRes == 1) {
                         // 库存不足
                         logger.debug("库存不足,skuId=" + item.getSkuId());
-                        return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOT_ENOUGH, "库存不足");
+                        return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOTENOUGH, "库存不足");
                     } else {
                         return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
                     }
@@ -819,7 +819,7 @@ public class OrderService {
                     addBack(succeededItemStocks);
                     if (decStockRes == 1) {
                         logger.debug("库存不足,skuId=" + item.getSkuId());
-                        return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOT_ENOUGH, "库存不足");
+                        return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOTENOUGH, "库存不足");
                     } else {
                         return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
                     }
@@ -882,7 +882,7 @@ public class OrderService {
         SkuInfo skuInfo = iShopService.getSkuInfo(theItem.getSkuId());
         if (skuInfo == null) {
             logger.debug("查无此商品, skuId=" + theItem.getSkuId()); // TODO - 数据库穿透？
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST, "商品不存在");
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "商品不存在");
         }
 
         // 查询团购、预售活动是否有效
@@ -891,14 +891,14 @@ public class OrderService {
             GrouponActivityInfo gai = iGrouponService.getSkuGrouponActivity(theItem.getSkuId());
             if (gai == null || !gai.getId().equals(orderNewVo.getGrouponId())) {
                 // 团购活动无效
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "团购活动无效");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "团购活动无效");
             }
         } else {
             // 查询预售活动
             PreSaleActivityInfo psai = iPreSaleService.getSkuPreSaleActivity(theItem.getSkuId());
             if (psai == null || !psai.getId().equals(orderNewVo.getGrouponId())) {
                 // 预售活动无效
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_NOT_EXIST, "预售活动无效");
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "预售活动无效");
             }
         }
 
@@ -921,7 +921,7 @@ public class OrderService {
         decStockRes = decreaseStock(theItem.getSkuId(), theItem.getQuantity());
         if (decStockRes != 0) {
             // 下单失败
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOT_ENOUGH);
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.SKU_NOTENOUGH);
         }
         long totalPrice = theItem.getPrice() * theItem.getQuantity();
 
