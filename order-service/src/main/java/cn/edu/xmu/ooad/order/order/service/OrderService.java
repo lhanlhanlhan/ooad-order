@@ -701,7 +701,7 @@ public class OrderService {
         ConcurrentMap<Long, CouponActivityInfo> allCouponActs = new ConcurrentHashMap<>();
         orderItems.stream().forEach(orderItem -> {
             // 商品模块获取 SkuInfo
-            SkuInfo skuInfo = iShopService.getSkuInfo(orderItem.getSkuId());
+            SkuInfo skuInfo = skuInfoMap.get(orderItem.getId());
             orderItem.setName(skuInfo.getName());
             orderItem.setPrice(skuInfo.getPrice());
             orderItem.setDiscount(0L); // 为计算优惠作准备
@@ -788,9 +788,13 @@ public class OrderService {
                 .stream()
                 .map(OrderItem::toCalcItem)
                 .collect(Collectors.toList()), skuInfoMap);
-        if (totalFreight < 0) {
+        if (totalFreight == -1) {
             logger.error("运费无法计算，orderSn=" + sn);
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        } else if (totalFreight == -2) { // id 不存在
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.MODEL_ID_NOTEXIST);
+        } else if (totalFreight == -3) { // 禁忌物品
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.REGION_NOT_REACH);
         }
 
         /* *** 库存部分 *** */
