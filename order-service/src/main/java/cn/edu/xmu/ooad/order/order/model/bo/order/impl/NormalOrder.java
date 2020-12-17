@@ -143,12 +143,11 @@ public class NormalOrder extends Order {
         // 获取已支付之金额
         PaymentDao paymentDao = SpringUtils.getBean(PaymentDao.class);
         // 获取该订单上的所有支付单
-        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(this.getId());
-        if (poListObj.getCode() != ResponseCode.OK) {
+        List<PaymentPo> poList = paymentDao.getPaymentByOrderId(this.getId());
+        if (poList == null) {
             // 数据库错误
             return -1L;
         }
-        List<PaymentPo> poList = poListObj.getData();
         // 获取已支付之金额
         long paidPrice = poList
                 .stream()
@@ -227,12 +226,11 @@ public class NormalOrder extends Order {
         // 根据订单的付款单创建退款单
         PaymentDao paymentDao = SpringUtils.getBean(PaymentDao.class);
         // 获取该订单上的所有支付单
-        APIReturnObject<List<PaymentPo>> poListObj = paymentDao.getPaymentOrderByOrderId(this.getId());
-        if (poListObj.getCode() != ResponseCode.OK) { // 数据库错误
-            System.err.println("取消订单：数据库错误 orderId=" + this.getId());
-            return 1;
+        List<PaymentPo> poList = paymentDao.getPaymentByOrderId(this.getId());
+        if (poList == null) {
+            // 数据库错误
+            return -1;
         }
-        List<PaymentPo> poList = poListObj.getData();
         // 依次创建退款单
         for (PaymentPo paymentPo : poList) {
             // 获取售后单ID

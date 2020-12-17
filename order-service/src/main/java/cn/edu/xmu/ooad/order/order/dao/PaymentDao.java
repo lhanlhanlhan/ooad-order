@@ -43,7 +43,7 @@ public class PaymentDao {
      * @param po 支付单对象 po
      * @return
      */
-    public int addPaymentOrder(PaymentPo po) {
+    public int addPayment(PaymentPo po) {
         return paymentPoMapper.insert(po);
     }
 
@@ -53,20 +53,20 @@ public class PaymentDao {
      * @param paymentId 支付单ID
      * @return PaymentPo 支付单PO对象
      */
-    public APIReturnObject<PaymentPo> getPaymentOrderByPaymentId(Long paymentId) {
+    public PaymentPo getPayment(Long paymentId) {
         PaymentPo paymentPo;
         try {
             paymentPo = paymentPoMapper.selectByPrimaryKey(paymentId);
         } catch (Exception e) {
             // 数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
         if (paymentPo == null) {
             // 未能查到
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            return null;
         }
-        return new APIReturnObject<>(paymentPo);
+        return paymentPo;
     }
 
     /**
@@ -75,7 +75,7 @@ public class PaymentDao {
      * @param orderId 订单号
      * @return APIReturnObject<PaymentPo> PO List
      */
-    public APIReturnObject<List<PaymentPo>> getPaymentOrderByOrderId(Long orderId) {
+    public List<PaymentPo> getPaymentByOrderId(Long orderId) {
         // 创建PoExample对象，以实现根据订单号orderId查询支付单
         PaymentPoExample example = new PaymentPoExample();
         PaymentPoExample.Criteria criteria = example.createCriteria();
@@ -89,24 +89,24 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
 
-        return new APIReturnObject<>(paymentSimplePoList);
+        return paymentSimplePoList;
     }
 
     /**
      * 根据售后单号查询支付单【可能有多个，API接受多个】
      *
-     * @param aftersaleId 订单号
+     * @param afterSaleId 订单号
      * @return APIReturnObject<PaymentPo> PO List
      */
-    public APIReturnObject<List<PaymentPo>> getPaymentOrderByAftersaleId(Long aftersaleId) {
+    public List<PaymentPo> getPaymentByAfterSaleId(Long afterSaleId) {
         //创建PoExample对象，以实现根据订单号orderId查询支付单
         PaymentPoExample example = new PaymentPoExample();
         PaymentPoExample.Criteria criteria = example.createCriteria();
-        if (aftersaleId != null) {
-            criteria.andAftersaleIdEqualTo(aftersaleId);
+        if (afterSaleId != null) {
+            criteria.andAftersaleIdEqualTo(afterSaleId);
         }
         //执行查询
         List<PaymentPo> paymentSimplePoList;
@@ -115,9 +115,9 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
-        return new APIReturnObject<>(paymentSimplePoList);
+        return paymentSimplePoList;
     }
 
     /* 退款单部分 */
@@ -135,7 +135,7 @@ public class PaymentDao {
     /**
      * 根据订单号查询退款单【可能有多个，但API只要1个】
      */
-    public APIReturnObject<RefundPo> getRefundByOrderId(Long orderId) {
+    public RefundPo getRefundByOrderId(Long orderId) {
         RefundPoExample example = new RefundPoExample();
         RefundPoExample.Criteria criteria = example.createCriteria();
         criteria.andOrderIdEqualTo(orderId);
@@ -146,24 +146,23 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
         // 订单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {
             logger.info("发现多于1张退款单绑定在该【订单】上, API只能返回一个！ orderId=" + orderId);
         } else if (refundPoList.size() == 0) {
             // 返回 0 张
-            return new APIReturnObject<>();
+            return null;
         }
         // 其他情况返回第一张
-        RefundPo refundPo = refundPoList.get(0);
-        return new APIReturnObject<>(refundPo);
+        return refundPoList.get(0);
     }
 
     /**
      * 根据售后单号查询退款单 根据支付单号查询退款单 【可能有多个，但API只要1个】
      */
-    public APIReturnObject<RefundPo> getRefundByAfterSaleId(Long afterSaleId) {
+    public RefundPo getRefundByAfterSaleId(Long afterSaleId) {
         RefundPoExample example = new RefundPoExample();
         RefundPoExample.Criteria criteria = example.createCriteria();
         criteria.andAftersaleIdEqualTo(afterSaleId);
@@ -174,17 +173,16 @@ public class PaymentDao {
         } catch (Exception e) {
             //数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
         // 售后单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
         if (refundPoList.size() > 1) {
             logger.info("发现多于1张退款单绑定在该【售后单】上, API只能返回一个！ afterSaleId=" + afterSaleId);
         } else if (refundPoList.size() == 0) {
             // 返回 0 张
-            return new APIReturnObject<>();
+            return null;
         }
         // 其他情况返回第一张
-        RefundPo refundPo = refundPoList.get(0);
-        return new APIReturnObject<>(refundPo);
+        return refundPoList.get(0);
     }
 }
