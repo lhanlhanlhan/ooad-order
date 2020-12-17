@@ -13,15 +13,9 @@ import javax.validation.constraints.Positive;
  * Modified by Han Li at 2020/11/28 15:48
  **/
 @Data
-@ApiModel("买家更新订单信息传值对象")
-public class OrderEditVo {
+@ApiModel("卖家更新订单信息传值对象")
+public class OrderShopEditVo {
 
-    private String consignee;
-    @Positive(message = "地区 id 必须为正数")
-    private Long regionId;
-    private String address;
-    private String mobile;
     private String message;
-    private Boolean beDeleted;
 
 }

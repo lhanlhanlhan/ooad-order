@@ -37,7 +37,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -189,32 +188,28 @@ public class OrderService {
      *
      * @param id          订单号
      * @param customerId  消费者号
-     * @param orderEditVo 修改信息对象
+     * @param orderBuyerEditVo 修改信息对象
      * @return cn.edu.xmu.ooad.order.centre.utils.APIReturnObject<?>
      * @author Han Li
      * Created at 28/11/2020 15:13
      * Created by Han Li at 28/11/2020 15:13
      */
     @Transactional // 涉及到写操作的是一个事务
-    public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderEditVo orderEditVo) {
+    public APIReturnObject<?> buyerModifyOrder(Long id, Long customerId, OrderBuyerEditVo orderBuyerEditVo) {
         // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 捕獲到錯誤
-            return returnObject;
+        Order order = orderDao.getSimpleOrder(id, false);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本人的
+        if (!customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 检查是否修改过 [29/11/2020 - 邱明：这个规定取消]
-        // TODO - 检查本来地址、新地址的地区一致性？是这么检查的马
-        Long newRegionId = orderEditVo.getRegionId();
-        Long oldRegionId = orderEditVo.getRegionId();
-        if (newRegionId != null && oldRegionId != null && !newRegionId.equals(oldRegionId)) {
-            // TODO - 地区码不一致错误码？
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.REGION_NOT_REACH);
-        }
+        // 校验目的地地区是否一致？TODO - 我不会
 
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
@@ -223,10 +218,10 @@ public class OrderService {
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setAddress(orderEditVo.getAddress());
-        po.setConsignee(orderEditVo.getConsignee());
-        po.setMobile(orderEditVo.getMobile());
-        po.setRegionId(orderEditVo.getRegionId());
+        po.setAddress(orderBuyerEditVo.getAddress());
+        po.setConsignee(orderBuyerEditVo.getConsignee());
+        po.setMobile(orderBuyerEditVo.getMobile());
+        po.setRegionId(orderBuyerEditVo.getRegionId());
 
         return orderDao.modifyOrder(po);
     }
@@ -243,15 +238,17 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerDelOrCancelOrder(Long id, Long customerId) {
-        // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return returnObject;
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        Order order = orderDao.getSimpleOrder(id, false);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本人的
+        if (!customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         boolean deletable = order.canDelete();
         boolean cancelable = order.canCustomerCancel();
 
@@ -290,15 +287,17 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerConfirm(Long id, Long customerId) {
-        // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return returnObject;
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        Order order = orderDao.getSimpleOrder(id, false);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本人的
+        if (!customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         if (!order.canSign()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
@@ -325,15 +324,17 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerChangeGroupon(Long id, Long customerId) {
-        // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return returnObject;
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        Order order = orderDao.getSimpleOrder(id, false);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本人的
+        if (!customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         if (!(order instanceof GrouponOrder)) {
             // TODO - 订单种类不被允许【403 返回】错误码？
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
@@ -416,15 +417,18 @@ public class OrderService {
      * Created by Han Li at 28/11/2020 15:13
      */
     @Transactional // 涉及到写操作的是一个事务
-    public APIReturnObject<?> shopModifyOrder(Long id, Long shopId, OrderEditVo orderEditVo) {
+    public APIReturnObject<?> shopModifyOrder(Long id, Long shopId, OrderShopEditVo orderShopEditVo) {
         // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于店铺【404 返回】
-            return returnObject;
+        Order order = orderDao.getSimpleOrder(id, true);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        // 检查是不是本店的
+        if (order.getShopId() != null && !order.getShopId().equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
         // 检查订单状态是否允许修改
-        Order order = returnObject.getData();
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
@@ -432,7 +436,7 @@ public class OrderService {
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
-        po.setMessage(orderEditVo.getMessage());
+        po.setMessage(orderShopEditVo.getMessage());
 
         return orderDao.modifyOrder(po);
     }
@@ -479,17 +483,19 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> shopCancelOrder(Long id, Long shopId) {
-        // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于 shop【404 返回】
-            return returnObject;
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        Order order = orderDao.getSimpleOrder(id, true);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本店的
+        if (order.getShopId() != null && !order.getShopId().equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 创造更改体
         OrderEditPo delPo;
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         if (!order.canShopCancel()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
@@ -512,17 +518,19 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> shopDeliverOrder(Long id, Long shopId, String deliverSn) {
-        // 查询订单，检查所有者
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(id, null, shopId, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于 shop【404 返回】
-            return returnObject;
+        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        Order order = orderDao.getSimpleOrder(id, true);
+        if (order == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是本店的
+        if (order.getShopId() != null && !order.getShopId().equals(shopId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 创造更改体
         OrderEditPo delPo;
         // 检查订单状态是否允许
-        Order order = returnObject.getData();
         if (!order.canDeliver()) {
             // 方法不被允许【403 返回】
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);

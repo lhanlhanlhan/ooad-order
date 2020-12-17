@@ -7,8 +7,9 @@ import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
-import cn.edu.xmu.ooad.order.order.model.vo.OrderEditVo;
+import cn.edu.xmu.ooad.order.order.model.vo.OrderBuyerEditVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
+import cn.edu.xmu.ooad.order.order.model.vo.OrderShopEditVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderStatusVo;
 import cn.edu.xmu.ooad.order.order.service.OrderService;
 import cn.edu.xmu.ooad.order.require.IOtherService;
@@ -213,13 +214,13 @@ public class OrderController {
     @Audit // 需要登入
     @PutMapping("orders/{id}")
     public Object modifyOrder(@PathVariable Long id,
-                              @RequestBody OrderEditVo orderEditVo,
+                              @RequestBody OrderBuyerEditVo orderBuyerEditVo,
                               @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("put orders/{id}; id=" + id + " vo=" + orderEditVo);
+            logger.debug("put orders/{id}; id=" + id + " vo=" + orderBuyerEditVo);
         }
         // 调用服务层
-        return ResponseUtils.make(orderService.buyerModifyOrder(id, customerId, orderEditVo));
+        return ResponseUtils.make(orderService.buyerModifyOrder(id, customerId, orderBuyerEditVo));
     }
 
     /**
@@ -385,17 +386,17 @@ public class OrderController {
     @PutMapping("shops/{shopId}/orders/{id}")
     public Object shopModifyOrder(@PathVariable Long id,
                                   @PathVariable Long shopId,
-                                  @RequestBody OrderEditVo orderEditVo,
+                                  @RequestBody OrderShopEditVo orderShopEditVo,
                                   @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id + " vo=" + orderEditVo);
+            logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id + " vo=" + orderShopEditVo);
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
         if (adminShopId != 0 && !adminShopId.equals(shopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 调用服务层
-        return ResponseUtils.make(orderService.shopModifyOrder(id, shopId, orderEditVo));
+        return ResponseUtils.make(orderService.shopModifyOrder(id, shopId, orderShopEditVo));
     }
 
     /**

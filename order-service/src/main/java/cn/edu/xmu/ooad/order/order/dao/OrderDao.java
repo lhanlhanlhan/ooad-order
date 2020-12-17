@@ -189,36 +189,27 @@ public class OrderDao {
 
 
     /**
-     * 获取订单信息 (不含 Item、Customer、Shop)
+     * 获取 (概要) 订单信息 (不含 Item、Customer、Shop)
      *
      * @param orderId    订单 id
-     * @param customerId 客户 id
      * @return 订单
      */
-    public APIReturnObject<Order> getSimpleOrder(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
+    public Order getSimpleOrder(Long orderId, boolean includeDeleted) {
         // 调用 Mapper 查询 OrderPo
         OrderPo orderPo;
         try {
             orderPo = orderMapper.findOrder(orderId, includeDeleted);
         } catch (Exception e) {
             // 严重数据库错误
-            logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            logger.error("数据库错误：" + e.getMessage());
+            return null;
         }
 
         // 不获取已被逻辑删除及根本不存在的订单
         if (!includeDeleted) {
             if (orderPo == null || (orderPo.getBeDeleted() != null) && (orderPo.getBeDeleted() == 1)) {
-                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+                return null;
             }
-        }
-
-        // 查看所属
-        if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
-        if (shopId != null && shopId.equals(orderPo.getShopId())) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 创建订单业务对象
@@ -226,11 +217,12 @@ public class OrderDao {
         try {
             order = OrderFactory.makeOrder(orderPo);
         } catch (Exception e) {
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            logger.error("订单格式错误：orderId=" + orderId);
+            return null;
         }
 
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
-        return new APIReturnObject<>(order);
+        return order;
     }
 
     /**
