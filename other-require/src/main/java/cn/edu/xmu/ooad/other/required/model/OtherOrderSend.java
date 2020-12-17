@@ -13,4 +13,5 @@ public class OtherOrderSend {
 	Integer quantity;
 	String address;
 	String mobile;
+	Long customerId;
 }
