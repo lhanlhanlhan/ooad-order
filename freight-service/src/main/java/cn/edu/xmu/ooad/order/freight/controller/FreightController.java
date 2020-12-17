@@ -325,7 +325,7 @@ public class FreightController {
             @ApiResponse(code = 0, message = "成功")
     })
     @Audit //登录
-    @PostMapping("shops/{shopId}/freight_models/{id}/default")
+    @PostMapping("shops/{shopId}/freightmodels/{id}/default")
     public Object defineDefaultFreightModel(@PathVariable Long shopId,
                                             @PathVariable Long id,
                                             @LoginUser Long adminId,
