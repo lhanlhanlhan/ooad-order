@@ -158,8 +158,8 @@ public class FreightController {
     @GetMapping("shops/{id}/freightmodels")
     public Object getFreightModel(@PathVariable Long id,                     //店铺id
                                   @RequestParam(required = false) String name,
-                                  @RequestParam(required = false) Integer page,
-                                  @RequestParam(required = false) Integer pageSize,
+                                  @RequestParam(required = false, defaultValue = "1") Integer page,
+                                  @RequestParam(required = false, defaultValue = "10") Integer pageSize,
                                   @LoginUser Long adminId,
                                   @Depart Long adminShopId) {
 

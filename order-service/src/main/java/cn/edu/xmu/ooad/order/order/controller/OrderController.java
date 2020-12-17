@@ -107,8 +107,8 @@ public class OrderController {
                                @RequestParam(required = false) Byte type, // API 没有但以备不时之需
                                @RequestParam(required = false) String beginTime,
                                @RequestParam(required = false) String endTime,
-                               @RequestParam(required = false) Integer page,
-                               @RequestParam(required = false) Integer pageSize,
+                               @RequestParam(required = false, defaultValue = "1") Integer page,
+                               @RequestParam(required = false, defaultValue = "10") Integer pageSize,
                                @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: orderSn=" + orderSn +
@@ -334,8 +334,8 @@ public class OrderController {
                                         @RequestParam(required = false) Byte type, // API 没有但以备不时之需
                                         @RequestParam(required = false) String beginTime,
                                         @RequestParam(required = false) String endTime,
-                                        @RequestParam(required = false) Integer page,
-                                        @RequestParam(required = false) Integer pageSize,
+                                        @RequestParam(required = false, defaultValue = "1") Integer page,
+                                        @RequestParam(required = false, defaultValue = "10") Integer pageSize,
                                         @LoginUser Long adminId,
                                         @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {

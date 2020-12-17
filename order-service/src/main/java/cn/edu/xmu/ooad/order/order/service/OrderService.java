@@ -116,43 +116,22 @@ public class OrderService {
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
         // 需要分页
-        if (page != null && pageSize != null) {
-            PageHelper.startPage(page, pageSize);
-            // 调用 Dao 层
-            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null, false);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
-            // 转为业务对象列表
-            orders = orderSimplePos.getList().stream()
-                    .map(OrderSimpleVo::new)
-                    .collect(Collectors.toList());
-            // 用 Map 封装
-            returnObj.put("page", orderSimplePos.getPageNum());
-            returnObj.put("pageSize", orderSimplePos.getPageSize());
-            returnObj.put("total", orderSimplePos.getTotal());
-            returnObj.put("pages", orderSimplePos.getPages());
+        PageHelper.startPage(page, pageSize);
+        // 调用 Dao 层
+        APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null, false);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            return returnObject;
         }
-        // 不必分页
-        else {
-            // 调用 Dao 层
-            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, null, false);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            List<OrderSimplePo> orderSimplePos = returnObject.getData();
-            // 转为业务对象列表
-            orders = orderSimplePos.stream()
-                    .map(OrderSimpleVo::new)
-                    .collect(Collectors.toList());
-            // 用 Map 封装
-            returnObj.put("page", 1);
-            returnObj.put("pageSize", orders.size());
-            returnObj.put("total", orders.size());
-            returnObj.put("pages", 1);
-        }
-        // 返回【标准返回】
+        PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
+        // 转为业务对象列表
+        orders = orderSimplePos.getList().stream()
+                .map(OrderSimpleVo::new)
+                .collect(Collectors.toList());
+        // 用 Map 封装
+        returnObj.put("page", orderSimplePos.getPageNum());
+        returnObj.put("pageSize", orderSimplePos.getPageSize());
+        returnObj.put("total", orderSimplePos.getTotal());
+        returnObj.put("pages", orderSimplePos.getPages());
         returnObj.put("list", orders);
         return new APIReturnObject<>(returnObj);
     }
@@ -467,43 +446,22 @@ public class OrderService {
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
         // 需要分页
-        if (page != null && pageSize != null) {
-            PageHelper.startPage(page, pageSize);
-            // 调用 Dao 层
-            APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId, true);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
-            // 转为业务对象列表
-            orders = orderSimplePos.getList().stream()
-                    .map(OrderSimpleVo::new)
-                    .collect(Collectors.toList());
-            // 用 Map 封装
-            returnObj.put("page", orderSimplePos.getPageNum());
-            returnObj.put("pageSize", orderSimplePos.getPageSize());
-            returnObj.put("total", orderSimplePos.getTotal());
-            returnObj.put("pages", orderSimplePos.getPages());
+        PageHelper.startPage(page, pageSize);
+        // 调用 Dao 层
+        APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId, true);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            return returnObject;
         }
-        // 不必分页
-        else {
-            // 调用 Dao 层
-            APIReturnObject<List<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId, true);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            List<OrderSimplePo> orderSimplePos = returnObject.getData();
-            // 转为业务对象列表
-            orders = orderSimplePos.stream()
-                    .map(OrderSimpleVo::new)
-                    .collect(Collectors.toList());
-            // 用 Map 封装
-            returnObj.put("page", 1);
-            returnObj.put("pageSize", orders.size());
-            returnObj.put("total", orders.size());
-            returnObj.put("pages", 1);
-        }
-        // 返回【标准返回】
+        PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
+        // 转为业务对象列表
+        orders = orderSimplePos.getList().stream()
+                .map(OrderSimpleVo::new)
+                .collect(Collectors.toList());
+        // 用 Map 封装
+        returnObj.put("page", orderSimplePos.getPageNum());
+        returnObj.put("pageSize", orderSimplePos.getPageSize());
+        returnObj.put("total", orderSimplePos.getTotal());
+        returnObj.put("pages", orderSimplePos.getPages());
         returnObj.put("list", orders);
         return new APIReturnObject<>(returnObj);
     }

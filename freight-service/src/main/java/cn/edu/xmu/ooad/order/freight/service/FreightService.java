@@ -150,35 +150,19 @@ public class FreightService {
     public APIReturnObject<?> getShopGoodsFreightModel(Long shopId, String name, Integer page, Integer pageSize) {
         List<FreightModelSimpleVo> freightModelSampleVos;
         Map<String, Object> returnObj = new HashMap<>();
-        if (page != null && pageSize != null) {
-            PageHelper.startPage(page, pageSize);
-            APIReturnObject<PageInfo<FreightModelPo>> returnObject = freightDao.getFreightModel(name, page, pageSize, shopId);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            PageInfo<FreightModelPo> freightModelPoPageInfo = returnObject.getData();
-            freightModelSampleVos = freightModelPoPageInfo.getList().stream()
-                    .map(FreightModelSimpleVo::new)
-                    .collect(Collectors.toList());
-            returnObj.put("page", freightModelPoPageInfo.getPageNum());
-            returnObj.put("pageSize", freightModelPoPageInfo.getPageSize());
-            returnObj.put("total", freightModelPoPageInfo.getTotal());
-            returnObj.put("pages", freightModelPoPageInfo.getPages());
-        } else {
-            APIReturnObject<List<FreightModelPo>> returnObject = freightDao.getFreightModel(null, name, shopId);
-            if (returnObject.getCode() != ResponseCode.OK) {
-                return returnObject;
-            }
-            List<FreightModelPo> freightModelPoPageInfo = returnObject.getData();
-            freightModelSampleVos = freightModelPoPageInfo.stream()
-                    .map(FreightModelSimpleVo::new)
-                    .collect(Collectors.toList());
-            returnObj.put("page", 1);
-            returnObj.put("pageSize", freightModelSampleVos.size());
-            returnObj.put("total", freightModelSampleVos.size());
-            returnObj.put("pages", 1);
+        PageHelper.startPage(page, pageSize);
+        APIReturnObject<PageInfo<FreightModelPo>> returnObject = freightDao.getFreightModel(name, page, pageSize, shopId);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            return returnObject;
         }
-
+        PageInfo<FreightModelPo> freightModelPoPageInfo = returnObject.getData();
+        freightModelSampleVos = freightModelPoPageInfo.getList().stream()
+                .map(FreightModelSimpleVo::new)
+                .collect(Collectors.toList());
+        returnObj.put("page", freightModelPoPageInfo.getPageNum());
+        returnObj.put("pageSize", freightModelPoPageInfo.getPageSize());
+        returnObj.put("total", freightModelPoPageInfo.getTotal());
+        returnObj.put("pages", freightModelPoPageInfo.getPages());
         returnObj.put("list", freightModelSampleVos);
         return new APIReturnObject<>(returnObj);
     }
