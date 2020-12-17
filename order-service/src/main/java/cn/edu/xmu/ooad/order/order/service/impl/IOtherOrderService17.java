@@ -74,8 +74,8 @@ public class IOtherOrderService17 implements IOtherOrderService {
             return null;
         }
         // 查找 order
-        APIReturnObject<Order> order = orderDao.getSimpleOrder(orderItem.getOrderId(), null, null, true);
-        if (order.getData() == null) {
+        Order order = orderDao.getSimpleOrder(orderItem.getOrderId(), true);
+        if (order == null) {
             return null;
         }
         OtherOrderItemComplex orderItemComplex = new OtherOrderItemComplex();
@@ -86,9 +86,8 @@ public class IOtherOrderService17 implements IOtherOrderService {
         orderItemComplex.setSkuId(orderItem.getSkuId());
         orderItemComplex.setSkuName(orderItem.getName());
 
-        Order trueOrder = order.getData();
-        orderItemComplex.setOrderSn(trueOrder.getOrderSn());
-        orderItemComplex.setShopId(trueOrder.getShopId());
+        orderItemComplex.setOrderSn(order.getOrderSn());
+        orderItemComplex.setShopId(order.getShopId());
         return orderItemComplex;
     }
 
@@ -106,12 +105,10 @@ public class IOtherOrderService17 implements IOtherOrderService {
             return null;
         }
         // 查找 order
-        APIReturnObject<Order> orderObj = orderDao.getOrder(orderItem.getOrderId(), null, null, true);
-        if (orderObj.getData() == null) {
+        Order order = orderDao.getOrder(orderItem.getOrderId(), true);
+        if (order == null) {
             return null;
         }
-
-        Order order = orderObj.getData();
 
         OtherOrderSimple orderSimple = new OtherOrderSimple();
         List<OtherOrderItemSimple> orderItemSimpleList = order.getOrderItemList()

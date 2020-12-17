@@ -26,11 +26,10 @@ public class ICommentService36 implements ICommentService {
             return null;
         }
         // 拿 order
-        APIReturnObject<Order> orderRetObj = orderDao.getSimpleOrder(itemPo.getOrderId(), null, null, false);
-        if (orderRetObj.getCode() != ResponseCode.OK) {
+        Order order = orderDao.getSimpleOrder(itemPo.getOrderId(), false);
+        if (order == null) {
             return null;
         }
-        Order order = orderRetObj.getData();
         // 转对象
         return new OrderSimple(order.getCustomerId(), itemPo.getGoodsSkuId());
     }

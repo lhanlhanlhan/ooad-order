@@ -161,13 +161,21 @@ public class OrderService {
      * Created by Han Li at 26/11/2020 11:15
      */
     public APIReturnObject<?> getOrder(Long id, Long customerId) {
-        // 獲取所請求之訂單的 Bo、Vo
-        APIReturnObject<Order> returnObject = orderDao.getOrder(id, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 捕獲到錯誤
-            return returnObject;
+        // 先获取订单概要，看看是不是用户本人的
+        Order simpOrder = orderDao.getSimpleOrder(id, false);
+        if (simpOrder == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        Order order = returnObject.getData();
+        if (simpOrder.getCustomerId() == null || !customerId.equals(simpOrder.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+        // 獲取所請求之訂單的 Bo、Vo
+        Order order = orderDao.getOrder(id, false);
+        if (order == null) {
+            // 捕獲到錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
@@ -207,7 +215,7 @@ public class OrderService {
         }
 
         // 检查是否修改过 [29/11/2020 - 邱明：这个规定取消]
-        // 校验目的地地区是否一致？TODO - 我不会
+        // 校验目的地地区是否一致？TODO
 
         // 检查订单状态是否允许
         if (!order.canModify()) {
@@ -227,7 +235,7 @@ public class OrderService {
     }
 
     /**
-     * 服务 o4：买家删掉 / 取消订单订单
+     * 服务 o4：买家删掉 / 取消订单
      *
      * @param id         订单号
      * @param customerId 消费者号
@@ -238,7 +246,7 @@ public class OrderService {
      */
     @Transactional // 涉及到写操作的是一个事务
     public APIReturnObject<?> buyerDelOrCancelOrder(Long id, Long customerId) {
-        // 查询订单，检查所有者、是否修改过、本来地址是否与新地址的地区一致
+        // 查询订单，检查所有者
         Order order = orderDao.getSimpleOrder(id, false);
         if (order == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
@@ -452,13 +460,21 @@ public class OrderService {
      * Created by Han Li at 26/11/2020 11:15
      */
     public APIReturnObject<?> getShopOrder(Long id, Long shopId) {
-        // 获取订单 Bo、Vo
-        APIReturnObject<Order> returnObject = orderDao.getOrder(id, null, shopId, true);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于店铺【404 返回】
-            return returnObject;
+        // 先获取订单概要，看看是不是用户本人的
+        Order simpOrder = orderDao.getSimpleOrder(id, false);
+        if (simpOrder == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        Order order = returnObject.getData();
+        if (simpOrder.getShopId() == null || !shopId.equals(simpOrder.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+        // 獲取所請求之訂單的 Bo、Vo
+        Order order = orderDao.getOrder(id, false);
+        if (order == null) {
+            // 捕獲到錯誤
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块

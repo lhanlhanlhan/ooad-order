@@ -52,27 +52,6 @@ public class OrderDao {
     private OrderItemPoMapper orderItemPoMapper;
 
     /**
-     * 工具函數：列舉滿足用戶 id、商店 id、訂單 id 的訂單數量 (可以用來鑑定權限)
-     *
-     * @param orderId
-     * @param customerId
-     * @param shopId
-     * @return -1：查詢失敗；>=0：對應數量
-     */
-    public long countOrders(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
-        // 查詢數據庫
-        long results;
-        try {
-            results = orderMapper.countOrder(orderId, customerId, shopId, includeDeleted);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            // count 失敗
-            return -1;
-        }
-        return results;
-    }
-
-    /**
      * 获取分页的订单概要列表
      *
      * @param orderSn    订单号
@@ -129,11 +108,9 @@ public class OrderDao {
     /**
      * 获取订单完整信息
      *
-     * @param orderId    订单 id
-     * @param customerId 客户 id
      * @return 订单
      */
-    public APIReturnObject<Order> getOrder(Long orderId, Long customerId, Long shopId, boolean includeDeleted) {
+    public Order getOrder(Long orderId, boolean includeDeleted) {
         // 调用 Mapper 查询经过拼接 Item 的 OrderPo
         OrderPo orderPo;
         try {
@@ -141,20 +118,12 @@ public class OrderDao {
         } catch (Exception e) {
             // 严重数据库错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            return null;
         }
 
         // 不获取已被逻辑删除及根本不存在的订单
         if (orderPo == null || (!includeDeleted && orderPo.getBeDeleted() != null && orderPo.getBeDeleted() == 1)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-
-        // 查看所属
-        if (customerId != null && customerId.equals(orderPo.getCustomerId())) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
-        if (shopId != null && shopId.equals(orderPo.getShopId())) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return null;
         }
 
         // 查询 order item
@@ -166,7 +135,7 @@ public class OrderDao {
             orderItemPos = orderItemPoMapper.selectByExample(example);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            return null;
         }
 
         // 转为业务对象
@@ -181,15 +150,15 @@ public class OrderDao {
             order = OrderFactory.makeOrder(orderPo);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
+            return null;
         }
         order.setOrderItemList(orderItems);
-        return new APIReturnObject<>(order);
+        return order;
     }
 
 
     /**
-     * 获取 (概要) 订单信息 (不含 Item、Customer、Shop)
+     * 获取 (概要) 订单信息 (不含 Item、Customer、Shop，无条件获得)
      *
      * @param orderId    订单 id
      * @return 订单
@@ -224,6 +193,7 @@ public class OrderDao {
         // 把 orderPo 转换成 bo 对象，再转为 Po 对象
         return order;
     }
+
 
     /**
      * 无条件修改订单信息

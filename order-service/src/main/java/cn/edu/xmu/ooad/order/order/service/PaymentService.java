@@ -64,12 +64,14 @@ public class PaymentService {
     @Transactional
     public APIReturnObject<?> createPayment(Long orderId, Long customerId, PaymentNewVo paymentNewVo) {
         // 校验订单 id 是否存在 / 属于用户？
-        APIReturnObject<Order> returnObject = orderDao.getSimpleOrder(orderId, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            // 不存在、已删除、不属于用户【404 返回】
-            return returnObject;
+        Order simpleOrder = orderDao.getSimpleOrder(orderId, true);
+        if (simpleOrder == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        Order simpleOrder = returnObject.getData();
+        // 检查是不是本人的订单
+        if (simpleOrder.getShopId() != null && !simpleOrder.getShopId().equals(customerId)) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
 
         // 看看现在的状态能不能支付及需要支付多少
         long shallPayPrice = simpleOrder.shallPayPrice();
@@ -136,15 +138,14 @@ public class PaymentService {
             }
             // 2. 分单 TODO - 优化分单过程
             // 查询夫订单
-            APIReturnObject<Order> fullOrder = orderDao.getOrder(orderId, customerId, null, false);
-            if (fullOrder.getCode() != ResponseCode.OK) {
+            Order order = orderDao.getOrder(orderId, false);
+            if (order == null) {
                 // 分单时查询订单失败，回滚
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 logger.error("分单时查询订单失败! orderId=" + orderId);
-                return fullOrder;
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
             // 拆分订单
-            Order order = fullOrder.getData();
             List<Order> rippedOrder = order.splitToOrders();
             if (rippedOrder == null) {
                 // 无需分单，直接写入 shopId
@@ -197,11 +198,12 @@ public class PaymentService {
      */
     public APIReturnObject<?> getPaymentByOrderId(Long customerId, Long orderId) {
         // 校验订单 id 是否存在 / 属于用户？
-        long countRes = orderDao.countOrders(orderId, customerId, null, false);
-        if (countRes == 0) { // 查無此單
+        Order order = orderDao.getSimpleOrder(orderId, true);
+        if (order == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (countRes == -1) { // 數據庫錯誤
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        if (order.getCustomerId() == null || !customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 获取支付单列表
@@ -230,15 +232,11 @@ public class PaymentService {
      * Created by 苗新宇 at 05/12/2020 17:29
      */
     public APIReturnObject<?> getOrderPaymentInfo(Long shopId, Long orderId) {
-        APIReturnObject<Order> order = orderDao.getSimpleOrder(orderId, null, null, true);
-        if (order.getCode() != ResponseCode.OK) {
-            return order;
-        }
-        Order trueOrder = order.getData();
+        Order trueOrder = orderDao.getSimpleOrder(orderId, true);
         if (trueOrder == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        if (trueOrder.getShopId() == null || !trueOrder.getShopId().equals(shopId)) {
+        if (trueOrder.getShopId() == null || !shopId.equals(trueOrder.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         //根据订单ID查询支付单信息,一个订单ID可能对应多个支付单
@@ -256,6 +254,8 @@ public class PaymentService {
      * 服务 6: 买家为售后单创建支付单
      */
     public APIReturnObject<?> createPaymentForAftersaleOrder(Long aftersaleId, Long price) {
+        // AFTERSALE_ID
+
         // 创建支付单Po对象
         PaymentPo paymentPo = new PaymentPo();
         // 钱
@@ -365,10 +365,12 @@ public class PaymentService {
         Long aftersaleId = paymentPo.getAftersaleId();
         if (orderId != null) {
             // 根据店铺ID和订单ID查询订单, 未查到则说明该订单ID不属于该店铺，返回404
-            APIReturnObject<Order> orders = orderDao.getSimpleOrder(orderId, null, shopId, true);
-            if (orders.getCode() != ResponseCode.OK) {
-                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【订单】号不属于此商铺, paymentId=" + paymentId);
-                return orders;
+            Order order = orderDao.getSimpleOrder(orderId, true);
+            if (order == null) {
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            }
+            if (order.getShopId() == null || !shopId.equals(order.getShopId())) {
+                return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
             }
         } else if (aftersaleId != null) {
             // 查询售后 id 对应之售后单的信息是否是此商铺的
@@ -417,12 +419,13 @@ public class PaymentService {
      * @return APIReturnObject<List < RefundVo>>
      */
     public APIReturnObject<?> getRefundByOrderId(Long shopId, Long orderId) {
-        // 校验订单 id 是否存在 / 属于店鋪？
-        long countRes = orderDao.countOrders(orderId, null, shopId, true);
-        if (countRes == 0) { // 查無此單
+        // 校验订单 id 是否存在 / 属于用户？
+        Order order = orderDao.getSimpleOrder(orderId, true);
+        if (order == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (countRes == -1) { // 數據庫錯誤
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        if (order.getShopId() == null || !shopId.equals(order.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据订单号、商铺号查询退款单
         APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
@@ -470,11 +473,12 @@ public class PaymentService {
      */
     public APIReturnObject<?> getCustomerRefundByOrderId(Long customerId, Long orderId) {
         // 校验订单 id 是否存在 / 属于用户？
-        long countRes = orderDao.countOrders(orderId, customerId, null, false);
-        if (countRes == 0) { // 查無此單
+        Order order = orderDao.getSimpleOrder(orderId, true);
+        if (order == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (countRes == -1) { // 數據庫錯誤
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        if (order.getCustomerId() == null || !customerId.equals(order.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据订单号查询退款单
         APIReturnObject<RefundPo> refundPo = paymentDao.getRefundByOrderId(orderId);
