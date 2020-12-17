@@ -27,7 +27,10 @@ public class OrderSimpleVo {
     private Long originPrice;
     private Byte state;
     private Byte substate;
-    private LocalDateTime gmtCreated;
+    private LocalDateTime gmtCreate;
+    private Long grouponId;
+    private Long presaleId;
+    private String shipmentSn;
 
     /**
      * 从 Order Bo 中提取所需信息，创建 概要 Vo
@@ -47,7 +50,11 @@ public class OrderSimpleVo {
         OrderChildStatus subState = order.getSubstate();
         this.state = state == null ? null : state.getCode();
         this.substate = subState == null ? null : subState.getCode();
-        this.gmtCreated = order.getGmtCreated();
+        this.gmtCreate = order.getGmtCreated();
+
+        this.grouponId = order.getGrouponId();
+        this.presaleId = order.getPresaleId();
+        this.shipmentSn = order.getShipmentSn();
     }
 
     /**
@@ -66,6 +73,10 @@ public class OrderSimpleVo {
         this.originPrice = order.getOriginPrice();
         this.state = order.getState();
         this.substate = order.getSubstate();
-        this.gmtCreated = order.getGmtCreate();
+        this.gmtCreate = order.getGmtCreate();
+
+        this.grouponId = order.getGrouponId();
+        this.presaleId = order.getPresaleId();
+        this.shipmentSn = order.getShipmentSn();
     }
 }

@@ -1,6 +1,7 @@
 package cn.edu.xmu.ooad.order.order.model.vo;
 
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
+import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import lombok.Data;
 
 /**
@@ -16,6 +17,11 @@ public class OrderStatusVo {
     private String name;
 
     public OrderStatusVo(OrderChildStatus os) {
+        this.code = os.getCode();
+        this.name = os.getName();
+    }
+
+    public OrderStatusVo(OrderStatus os) {
         this.code = os.getCode();
         this.name = os.getName();
     }

@@ -84,6 +84,10 @@
                 <except column="discount_price"/>
                 <except column="freight_price"/>
                 <except column="be_deleted"/>
+                <except column="groupon_id"/>
+                <except column="be_deleted"/>
+                <except column="presale_id"/>
+                <except column="shipment_sn"/>
             </ignoreColumnsByRegex>
         </table>
 

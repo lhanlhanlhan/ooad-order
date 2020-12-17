@@ -6,6 +6,7 @@ import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
+import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderEditVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderNewVo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderStatusVo;
@@ -71,6 +72,9 @@ public class OrderController {
         // 创造对应枚举数组
         List<OrderStatusVo> orderStatusVos = new ArrayList<>();
         for (OrderChildStatus os : OrderChildStatus.values()) {
+            orderStatusVos.add(new OrderStatusVo((os)));
+        }
+        for (OrderStatus os : OrderStatus.values()) {
             orderStatusVos.add(new OrderStatusVo((os)));
         }
         // 返回
@@ -354,39 +358,11 @@ public class OrderController {
         ));
     }
 
-//    /**
-//     * o10: 管理员建立售后订单 [改为内部 API：12/12/2020]
-//     *
-//     * @param orderVo 订单详情
-//     * @return java.lang.Object
-//     * @author Han Li
-//     * Created at 29/11/2020 13:24
-//     * Created by Han Li at 29/11/2020 13:24
-//     */
-//    @ApiOperation(value = "管理员建立售后订单")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header")
-//    })
-//    @ApiResponses({
-//            @ApiResponse(code = 800, message = "商品库存不足"),
-//            @ApiResponse(code = 0, message = "成功"),
-//    })
-//    @Audit // 管理员登入
-////    @PostMapping("shops/{shopId}/orders")
-//    @Deprecated
-//    public Object createAfterSaleOrder(@RequestBody AfterSaleOrderVo orderVo,
-//                                       @PathVariable Long shopId,
-//                                       @LoginUser Long adminId,
-//                                       @Depart Long adminShopId) {
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("post orders; vo=" + orderVo);
-//        }
-//        // 检查是否具有创建对应店铺订单的权限，若没有返回 404
-//        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-//            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_NOT_EXIST));
-//        }
-//        return ResponseUtils.make(orderService.createAfterSaleOrder(adminShopId, orderVo));
-//    }
+
+    /*
+    o10: 管理员建立售后订单 [改为内部 API：12/12/2020]
+     */
+
 
     /**
      * o11: 店家修改订单 (留言) [DONE]

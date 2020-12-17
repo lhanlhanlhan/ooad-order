@@ -10,6 +10,7 @@ import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderSimplePo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public abstract class Order {
 
+    @Setter
     protected List<OrderItem> orderItemList;
 
     // 概要业务对象 【代理】
@@ -237,8 +239,15 @@ public abstract class Order {
         if (state == null) {
             return null;
         }
-        // 订单状态非法，不给修改
         return OrderStatus.getByCode(state);
+    }
+
+    public void setState(OrderStatus state) {
+        if (orderPo == null) {
+            orderSimplePo.setState(state.getCode());
+        } else {
+            orderPo.setState(state.getCode());
+        }
     }
 
     public OrderChildStatus getSubstate() {
@@ -248,6 +257,14 @@ public abstract class Order {
         }
         // 订单状态非法，不给修改
         return OrderChildStatus.getByCode(state);
+    }
+
+    public void setSubstate(OrderChildStatus state) {
+        if (orderPo == null) {
+            orderSimplePo.setSubstate(state.getCode());
+        } else {
+            orderPo.setSubstate(state.getCode());
+        }
     }
 
     public Byte getBeDeleted() {

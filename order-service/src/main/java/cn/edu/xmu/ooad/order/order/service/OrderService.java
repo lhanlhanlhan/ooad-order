@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -113,16 +114,29 @@ public class OrderService {
                                                 String beginTime, String endTime,
                                                 Integer page, Integer pageSize,
                                                 Long customerId) {
+        // parse datetime
+        LocalDateTime start = null, end = null;
+        try {
+            if (beginTime != null) {
+                start = LocalDateTime.parse(beginTime);
+            }
+            if (endTime != null) {
+                end = LocalDateTime.parse(endTime);
+            }
+        } catch (Exception e) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始/结束日期时间格式错误");
+        }
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
         // 需要分页
         PageHelper.startPage(page, pageSize);
         // 调用 Dao 层
-        APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, null, false);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            return returnObject;
+        PageInfo<OrderSimplePo> orderSimplePos = orderDao.getSimpleOrders(
+                orderSn, state, start, end, customerId, null, false
+        );
+        if (orderSimplePos == null) {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
         // 转为业务对象列表
         orders = orderSimplePos.getList().stream()
                 .map(OrderSimpleVo::new)
@@ -135,7 +149,7 @@ public class OrderService {
         returnObj.put("list", orders);
         return new APIReturnObject<>(returnObj);
     }
-    
+
 
     /**
      * 服务 o2：获取用户名下订单完整信息
@@ -358,16 +372,28 @@ public class OrderService {
                                             String orderSn, Byte state,
                                             String beginTime, String endTime,
                                             Integer page, Integer pageSize) {
+        // parse datetime
+        LocalDateTime start = null, end = null;
+        try {
+            if (beginTime != null) {
+                start = LocalDateTime.parse(beginTime);
+            }
+            if (endTime != null) {
+                end = LocalDateTime.parse(endTime);
+            }
+        } catch (Exception e) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始/结束日期时间格式错误");
+        }
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
         // 需要分页
         PageHelper.startPage(page, pageSize);
         // 调用 Dao 层
-        APIReturnObject<PageInfo<OrderSimplePo>> returnObject = orderDao.getSimpleOrders(orderSn, state, beginTime, endTime, page, pageSize, customerId, shopId, true);
-        if (returnObject.getCode() != ResponseCode.OK) {
-            return returnObject;
+        PageInfo<OrderSimplePo> orderSimplePos = orderDao.getSimpleOrders(
+                orderSn, state, start, end, customerId, shopId, true);
+        if (orderSimplePos == null) {
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
-        PageInfo<OrderSimplePo> orderSimplePos = returnObject.getData();
         // 转为业务对象列表
         orders = orderSimplePos.getList().stream()
                 .map(OrderSimpleVo::new)

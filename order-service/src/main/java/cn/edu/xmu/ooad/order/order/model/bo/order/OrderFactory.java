@@ -10,7 +10,7 @@ public class OrderFactory {
 
     public static Order makeOrder(OrderPo orderPo) throws NoSuchOrderTypeException {
         if (orderPo.getOrderType() == null) {
-            return null;
+            throw new NoSuchOrderTypeException();
         }
         switch (orderPo.getOrderType()) {
             case 0: // 普通订单

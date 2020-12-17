@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,39 +79,14 @@ public class OrderDao {
      * @param state      订单状态
      * @param beginTime  开始时间 yyyy-M-d
      * @param endTime    结束时间 yyyy-M-d
-     * @param page       第几页
-     * @param pageSize   每页记录数
      * @param customerId 用户号
      * @return 分页的订单概要
      */
-    public APIReturnObject<PageInfo<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
-                                                                    String beginTime, String endTime,
-                                                                    int page, int pageSize,
+    public PageInfo<OrderSimplePo> getSimpleOrders(String orderSn, Byte state,
+                                                                    LocalDateTime beginTime, LocalDateTime endTime,
                                                                     Long customerId,
                                                                     Long shopId,
                                                                     boolean includeDeleted) {
-        APIReturnObject<List<OrderSimplePo>> orderSimplePos = getSimpleOrders(orderSn, state, beginTime, endTime, customerId, shopId, includeDeleted);
-        if (orderSimplePos.getCode() != ResponseCode.OK) {
-            return new APIReturnObject<>(orderSimplePos.getCode(), orderSimplePos.getErrMsg());
-        }
-        // 装入 PageInfo 后返回
-        return new APIReturnObject<>(new PageInfo<>(orderSimplePos.getData()));
-    }
-
-    /**
-     * 获取不分页的订单概要列表
-     *
-     * @param orderSn    订单号
-     * @param state      订单状态
-     * @param beginTime  开始时间 yyyy-M-d
-     * @param endTime    结束时间 yyyy-M-d
-     * @param customerId 用户号
-     * @return 不分页的订单概要
-     */
-    public APIReturnObject<List<OrderSimplePo>> getSimpleOrders(String orderSn, Byte state,
-                                                                String beginTime, String endTime,
-                                                                Long customerId, Long shopId,
-                                                                boolean includeDeleted) {
         // 创建 PoExample 对象，以实现多参数查询
         OrderSimplePoExample example = new OrderSimplePoExample();
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
@@ -122,28 +98,10 @@ public class OrderDao {
             criteria.andStateEqualTo(state);
         }
         if (beginTime != null) {
-            try {
-                LocalDate time = LocalDate.parse(beginTime, dateFormatter);
-                criteria.andGmtCreateGreaterThanOrEqualTo(time.atStartOfDay());
-            } catch (Exception e) {
-                // 日期 parse 错误
-                if (logger.isInfoEnabled()) {
-                    logger.info(e.getMessage());
-                }
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始日期格式错误");
-            }
+            criteria.andGmtCreateGreaterThanOrEqualTo(beginTime);
         }
         if (endTime != null) {
-            try {
-                LocalDate time = LocalDate.parse(endTime, dateFormatter);
-                criteria.andGmtCreateLessThanOrEqualTo(time.plusDays(1).atStartOfDay());
-            } catch (Exception e) {
-                // 日期 parse 错误
-                if (logger.isInfoEnabled()) {
-                    logger.info(e.getMessage());
-                }
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "结束日期格式错误");
-            }
+            criteria.andGmtCreateGreaterThanOrEqualTo(endTime);
         }
         if (shopId != null) {
             criteria.andShopIdEqualTo(shopId);
@@ -151,8 +109,8 @@ public class OrderDao {
         if (customerId != null) {
             criteria.andCustomerIdEqualTo(customerId);
         }
-        if (!includeDeleted) {
-            criteria.andBeDeletedIsNull();
+        if (!includeDeleted) { // 要求不被删除的才被返回
+            criteria.andBeDeletedEqualTo((byte) 0);
         }
         // 执行查询
         List<OrderSimplePo> orderSimplePoList;
@@ -161,10 +119,12 @@ public class OrderDao {
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
-        return new APIReturnObject<>(orderSimplePoList);
+        // 装入 PageInfo 后返回
+        return new PageInfo<>(orderSimplePoList);
     }
+
 
     /**
      * 获取订单完整信息
@@ -224,7 +184,6 @@ public class OrderDao {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "数据库错误");
         }
         order.setOrderItemList(orderItems);
-
         return new APIReturnObject<>(order);
     }
 
