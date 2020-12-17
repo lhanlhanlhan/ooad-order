@@ -65,12 +65,12 @@ public class FreightDao {
      * @param pageSize 页大小
      * @return 分页的运费模板概要列表
      */
-    public APIReturnObject<PageInfo<FreightModelPo>> getFreightModel(String name, int page, int pageSize, Long shopId) {
-        APIReturnObject<List<FreightModelPo>> freightModelPos = getFreightModel(null, name, shopId);
-        if (freightModelPos.getCode() != ResponseCode.OK) {
-            return new APIReturnObject<>(freightModelPos.getCode(), freightModelPos.getErrMsg());
+    public PageInfo<FreightModelPo> getFreightModel(String name, int page, int pageSize, Long shopId) {
+        List<FreightModelPo> freightModelPos = getFreightModel(null, name, shopId);
+        if (freightModelPos == null) {
+            return null;
         }
-        return new APIReturnObject<>(new PageInfo<>(freightModelPos.getData()));
+        return new PageInfo<>(freightModelPos);
     }
 
     /**
@@ -79,7 +79,7 @@ public class FreightDao {
      * @param name 模板名称
      * @return 不分页的运费模板概要列表
      */
-    public APIReturnObject<List<FreightModelPo>> getFreightModel(Long id, String name, Long shopId) {
+    public List<FreightModelPo> getFreightModel(Long id, String name, Long shopId) {
         // 创建 PoExample 对象，以实现多参数查询
         FreightModelPoExample freightModelPoExample = new FreightModelPoExample();
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
@@ -99,9 +99,9 @@ public class FreightDao {
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
         }
-        return new APIReturnObject<>(freightModelPoList);
+        return freightModelPoList;
     }
 
     /**
@@ -177,44 +177,52 @@ public class FreightDao {
     /**
      * 根据模板ID/明细ID返回重量模板明细
      */
-    public APIReturnObject<List<WeightFreightModelPo>> getWeightFreightModels(Long fId, Long id) {
+    public List<WeightFreightModelPo> getWeightFreightModels(Long fId) {
         WeightFreightModelPoExample example = new WeightFreightModelPoExample();
         WeightFreightModelPoExample.Criteria criteria = example.createCriteria();
-        if (id != null) {
-            criteria.andIdEqualTo(id);
-        }
-        if (fId != null) {
-            criteria.andFreightModelIdEqualTo(fId);
-        }
+        criteria.andFreightModelIdEqualTo(fId);
         try {
-            List<WeightFreightModelPo> poList = weightFreightModelPoMapper.selectByExample(example);
-            return new APIReturnObject<>(poList);
+            return weightFreightModelPoMapper.selectByExample(example);
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
+        }
+    }
+
+    public WeightFreightModelPo getWeightFreightModelById(Long id) {
+        try {
+            return weightFreightModelPoMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
+            // 数据库 错误
+            logger.error(e.getMessage());
+            return null;
         }
     }
 
     /**
      * 根据模板ID/明细ID返回重量模板明细
      */
-    public APIReturnObject<List<PieceFreightModelPo>> getPieceFreightModels(Long fId, Long id) {
+    public List<PieceFreightModelPo> getPieceFreightModels(Long fId) {
         PieceFreightModelPoExample example = new PieceFreightModelPoExample();
         PieceFreightModelPoExample.Criteria criteria = example.createCriteria();
-        if (id != null) {
-            criteria.andIdEqualTo(id);
-        }
-        if (fId != null) {
-            criteria.andFreightModelIdEqualTo(fId);
-        }
+        criteria.andFreightModelIdEqualTo(fId);
         try {
-            List<PieceFreightModelPo> poList = pieceFreightModelPoMapper.selectByExample(example);
-            return new APIReturnObject<>(poList);
+            return pieceFreightModelPoMapper.selectByExample(example);
         } catch (Exception e) {
             // 数据库 错误
             logger.error(e.getMessage());
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return null;
+        }
+    }
+
+    public PieceFreightModelPo getPieceFreightModelById(Long id) {
+        try {
+            return pieceFreightModelPoMapper.selectByPrimaryKey(id);
+        } catch (Exception e) {
+            // 数据库 错误
+            logger.error(e.getMessage());
+            return null;
         }
     }
 
@@ -469,40 +477,6 @@ public class FreightDao {
             redisUtils.set(key, null, addRandomTime(freightModelRedisTimeout));
             return null;
         }
-    }
-
-    /**
-     * 工具函數：列舉滿足商店 id、運費模板 id 的運費模板數量 (可以用來鑑定權限)
-     *
-     * @param modelId
-     * @param shopId
-     * @return -1：查詢失敗；>=0：對應數量
-     */
-    public long countFreightModel(Long modelId, Long shopId, Byte type) {
-        FreightModelPoExample example = new FreightModelPoExample();
-        FreightModelPoExample.Criteria criteria = example.createCriteria();
-        if (modelId == null && shopId == null) {
-            return -1;
-        }
-        if (modelId != null) {
-            criteria.andIdEqualTo(modelId);
-        }
-        if (shopId != null) {
-            criteria.andShopIdEqualTo(shopId);
-        }
-        if (type != null) {
-            criteria.andTypeEqualTo(type);
-        }
-        // 查詢數據庫
-        long results;
-        try {
-            results = freightModelPoMapper.countByExample(example);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            // count 失敗
-            return -1;
-        }
-        return results;
     }
 
     /**
