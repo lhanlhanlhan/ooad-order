@@ -39,18 +39,19 @@ public class PieceFreightModelRule extends FreightModelRule {
                 .stream()
                 .mapToLong(FreightCalcItem::getCount)
                 .sum();
-        long totalCountUnit = (long) Math.ceil(totalCount / unit.doubleValue());   // 归一化计件单位 9/12/2020
+        long realFirstItems = this.firstItems * unit; // 按“个”算的首件数 (17/12/2020)
         // 3. 查找总件数所在之区间
         // 3.1 是否满足首件数
-        if (totalCountUnit <= firstItems) {
+        if (totalCount <= firstItems) { // 没到首重
             return firstItemsPrice;
         }
         // 3.2 不是首件数，查看各续件数门槛是否满足
         freight += firstItemsPrice;
         // 3.2.1 计算超出首件数部分件数
-        long deltaItemsUnit = totalCountUnit - firstItems;
+        long deltaItems = totalCount - realFirstItems;
+        long realAddiItems = this.additionalItems * unit; // 按“个”算的续件数 (17/12/2020)
         // 3.2.2 计算超出部分超出了几个续件数
-        long deltaItemsParts = (long) Math.ceil((double) deltaItemsUnit / additionalItems);
+        long deltaItemsParts = (long) Math.ceil((double) deltaItems / additionalItems);
         // 3.2.3 计算续费
         freight += deltaItemsParts * additionalItemsPrice;
         return freight;

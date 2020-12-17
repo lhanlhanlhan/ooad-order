@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
  * Created at 25/11/2020 4:44 下午
  * Modified by Han Li at 25/11/2020 4:44 下午
  */
-@Data
 @NoArgsConstructor
 public abstract class Order {
 
@@ -32,60 +31,6 @@ public abstract class Order {
     private OrderSimplePo orderSimplePo = null;
     // 完整业务对象 【代理】
     private OrderPo orderPo = null;
-
-    private Long id;
-
-    private Long customerId;
-
-    private Long shopId;
-
-    private String orderSn;
-
-    private Long pid;
-
-    private String consignee;
-
-    private Long regionId;
-
-    private String address;
-
-    private String mobile;
-
-    private String message;
-
-    private Byte orderType;
-
-    private Long freightPrice;
-
-    private Long couponId;
-
-    private Long couponActivityId;
-
-    private Long discountPrice;
-
-    private Long originPrice;
-
-    private Long presaleId;
-
-    private Long grouponId;
-
-    private Long grouponDiscount;
-
-    private Integer rebateNum;
-
-    private LocalDateTime confirmTime;
-
-    private String shipmentSn;
-
-    private OrderStatus state;
-
-    private OrderChildStatus substate;
-
-    private Byte beDeleted;
-
-    private LocalDateTime gmtCreate;
-
-    private LocalDateTime gmtModified;
 
     /**
      * 创建概要业务对象
