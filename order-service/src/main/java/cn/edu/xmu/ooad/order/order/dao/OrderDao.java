@@ -17,10 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -147,7 +145,7 @@ public class OrderDao {
         // 创建订单业务对象
         Order order;
         try {
-            order = OrderFactory.makeOrder(orderPo);
+            order = OrderFactory.make(orderPo);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return null;
@@ -184,7 +182,7 @@ public class OrderDao {
         // 创建订单业务对象
         Order order;
         try {
-            order = OrderFactory.makeOrder(orderPo);
+            order = OrderFactory.make(orderPo);
         } catch (Exception e) {
             logger.error("订单格式错误：orderId=" + orderId);
             return null;

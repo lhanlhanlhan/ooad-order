@@ -7,6 +7,7 @@ import cn.edu.xmu.ooad.order.freight.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.mapper.PieceFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.mapper.WeightFreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.FreightModel;
+import cn.edu.xmu.ooad.order.freight.model.bo.freight.FreightModelFactory;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.impl.PieceFreightModelRule;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.impl.WeightFreightModelRule;
 import cn.edu.xmu.ooad.order.freight.model.po.*;
@@ -127,7 +128,7 @@ public class FreightDao {
         }
         // 取出来的值存入 Redis，空值也存，防止击穿
         if (fmPo != null) {
-            FreightModel fm = FreightModel.create(fmPo);
+            FreightModel fm = FreightModelFactory.make(fmPo);
             redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
             return fm;
         } else {
@@ -165,7 +166,7 @@ public class FreightDao {
         }
         // 取出来的值存入 Redis，空值也存，防止击穿
         if (fmPos.size() > 0) {
-            FreightModel fm = FreightModel.create(fmPos.get(0));
+            FreightModel fm = FreightModelFactory.make(fmPos.get(0));
             redisUtils.set(key, fm, addRandomTime(freightModelRedisTimeout));
             return fm;
         } else {

@@ -48,17 +48,6 @@ public abstract class FreightModel implements Serializable {
         this.shopId = freightModelPo.getShopId();
     }
 
-    public static FreightModel create(FreightModelPo freightModelPo) {
-        switch (freightModelPo.getType()) {
-            case 0: // 重量模板
-                return new WeightFreightModel(freightModelPo);
-            case 1: // 件数模板
-                return new PieceFreightModel(freightModelPo);
-            default:
-                return null;
-        }
-    }
-
     /**
      * 创建 Po 对象
      *

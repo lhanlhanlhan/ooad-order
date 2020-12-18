@@ -62,19 +62,6 @@ public abstract class Order {
         }
     }
 
-    public static Order createSimpleOrder(OrderSimplePo orderSimplePo) {
-        switch (orderSimplePo.getOrderType()) {
-            case 0: // 普通订单
-                return new NormalOrder(orderSimplePo);
-            case 1: // 团购
-                return new GrouponOrder(orderSimplePo);
-            case 2: // 预售
-                return new PreSaleOrder(orderSimplePo);
-            default:
-                return null;
-        }
-    }
-
     /**
      * 支付成功后调用分单，分成若干个完整订单【每个订单内含 orderItemList，可以直接插入】
      *
