@@ -129,7 +129,7 @@ public class FreightService {
         int res = insertFreightModelPo(freightModelPo);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.FREIGHTNAME_SAME);
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
@@ -181,6 +181,9 @@ public class FreightService {
         FreightModel mainTable = freightDao.getFreightModel(id);
         if (mainTable == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        if (!shopId.equals(mainTable.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         LocalDateTime nowTime = LocalDateTime.now();
@@ -363,11 +366,11 @@ public class FreightService {
         // 返回
         if (response >= 0) {
             // 同步删除商品模块那边的
-            if (0 != iShopService.deleteFreightModel(id, shopId)) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                logger.error("商品模块那边删除运费模板失败！modelId=" + id);
-                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
-            }
+//            if (0 != iShopService.deleteFreightModel(id, shopId)) {
+//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//                logger.error("商品模块那边删除运费模板失败！modelId=" + id);
+//                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+//            }
             return new APIReturnObject<>();
         } else {
             logger.error("删除运费模板失败！modelId=" + id);
@@ -466,7 +469,7 @@ public class FreightService {
             response = freightDao.addWeightFreightModel(weightFreightModelPo);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
             } else {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
@@ -564,7 +567,7 @@ public class FreightService {
             response = freightDao.addPieceFreightModel(pieceFreightModelPo);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.CONFLICT, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
             } else {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }

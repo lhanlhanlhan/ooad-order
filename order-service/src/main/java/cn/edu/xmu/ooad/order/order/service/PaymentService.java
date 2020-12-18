@@ -64,12 +64,12 @@ public class PaymentService {
     @Transactional
     public APIReturnObject<?> createPayment(Long orderId, Long customerId, PaymentNewVo paymentNewVo) {
         // 校验订单 id 是否存在 / 属于用户？
-        Order simpleOrder = orderDao.getSimpleOrder(orderId, true);
+        Order simpleOrder = orderDao.getSimpleOrder(orderId, false);
         if (simpleOrder == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 检查是不是本人的订单
-        if (simpleOrder.getShopId() != null && !simpleOrder.getShopId().equals(customerId)) {
+        if (simpleOrder.getCustomerId() != null && !simpleOrder.getCustomerId().equals(customerId)) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
@@ -134,7 +134,7 @@ public class PaymentService {
                 editPo.setState(simpleOrder.getState().getCode());
             }
             if (simpleOrder.getSubstate() != null) {
-                editPo.setSubState(simpleOrder.getSubstate().getCode());
+                editPo.setSubstate(simpleOrder.getSubstate().getCode());
             }
             // 2. 分单 TODO - 优化分单过程
             // 查询夫订单
@@ -185,7 +185,7 @@ public class PaymentService {
 
         // 创建及返回支付单Vo对象
         PaymentVo paymentVo = new PaymentVo(paymentPo);
-        return new APIReturnObject<>(paymentVo);
+        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, paymentVo);
     }
 
     /**

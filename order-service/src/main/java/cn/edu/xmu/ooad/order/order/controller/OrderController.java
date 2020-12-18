@@ -386,13 +386,13 @@ public class OrderController {
     @PutMapping("shops/{shopId}/orders/{id}")
     public Object shopModifyOrder(@PathVariable Long id,
                                   @PathVariable Long shopId,
-                                  @RequestBody OrderShopEditVo orderShopEditVo,
+                                  @Validated @RequestBody OrderShopEditVo orderShopEditVo,
                                   @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("shops/{shopId}/orders/{id}; shopId=" + shopId + " id=" + id + " vo=" + orderShopEditVo);
         }
         // 检查是否具有创建对应店铺订单的权限，若没有返回 404
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+        if (adminShopId == null || (adminShopId != 0 && !adminShopId.equals(shopId))) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 调用服务层

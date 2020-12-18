@@ -167,7 +167,8 @@ public class NormalOrder extends Order {
     @Override
     public boolean canModify() {
         // 只有「未发货」才能让客户修改
-        return this.getSubstate() == OrderChildStatus.PAID;
+        OrderChildStatus subState = this.getSubstate();
+        return subState == OrderChildStatus.PAID;
     }
 
     /**

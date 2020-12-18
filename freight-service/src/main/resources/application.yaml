@@ -63,7 +63,7 @@ dubbo:
   registry:
     address: nacos://${lh-server.2f-ip}:8848
   protocol:
-    port: 20881
+    port: 45011
     name: dubbo
 
 mybatis:

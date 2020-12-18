@@ -24,7 +24,7 @@ public class OrderEditPo {
     private String message;
     private Boolean beDeleted;
     private Byte state;
-    private Byte subState;
+    private Byte substate;
 
     private String shipmentSn; // 發貨單號。。。
     private Long shopId;       // 分单后，要改主订单的shopId

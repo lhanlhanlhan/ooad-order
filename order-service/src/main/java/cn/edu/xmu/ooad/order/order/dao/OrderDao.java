@@ -210,6 +210,7 @@ public class OrderDao {
         }
         // 检查修改结果
         if (affected <= 0) {
+            logger.error("为啥没插进去？modifyOrder po=" + po);
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         return new APIReturnObject<>();

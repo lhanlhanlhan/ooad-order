@@ -223,12 +223,16 @@ public class FreightController {
             @ApiResponse(code = 0, message = "成功")
     })
     @Audit //登录
-    @GetMapping("freightmodels/{id}")
+    @GetMapping("shops/{shopId}/freightmodels/{id}")
     public Object getFreightModelSimple(@PathVariable Long id,
+                                        @PathVariable Long shopId,
                                         @LoginUser Long adminId,
                                         @Depart Long adminShopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("get freightmodels/{id};id = " + id + " adminId = " + adminId);
+        }
+        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(freightService.getFreightModelSimple(id, adminShopId));
     }

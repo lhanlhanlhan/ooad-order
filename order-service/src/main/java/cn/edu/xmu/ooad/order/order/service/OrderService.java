@@ -269,7 +269,7 @@ public class OrderService {
         } else if (cancelable) {
             delPo = new OrderEditPo();
             delPo.setState(OrderStatus.CANCELLED.getCode());
-            delPo.setSubState((byte) -1); // sub state 置为空
+            delPo.setSubstate((byte) -1); // sub state 置为空
             // 触发取消订单 (退款)
             if (order.triggerCancelled() != 0) {
                 logger.error("订单取消失败, orderId=" + order.getId());
@@ -315,7 +315,7 @@ public class OrderService {
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
         po.setState(OrderStatus.DONE.getCode());
-        po.setSubState((byte) -1); // sub state 置为空
+        po.setSubstate((byte) -1); // sub state 置为空
 
         return orderDao.modifyOrder(po);
     }
@@ -357,7 +357,7 @@ public class OrderService {
         po.setId(id);
         po.setOrderType(OrderType.NORMAL.getCode()); // 普通订单
         po.setState(OrderStatus.PENDING_RECEIVE.getCode()); // 状态改为待发货
-        po.setSubState(OrderChildStatus.PAID.getCode()); // 状态改为已支付
+        po.setSubstate(OrderChildStatus.PAID.getCode()); // 状态改为已支付
 
         return orderDao.modifyOrder(po);
     }
@@ -465,7 +465,7 @@ public class OrderService {
         if (simpOrder == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        if (simpOrder.getShopId() == null || !shopId.equals(simpOrder.getShopId())) {
+        if (shopId != 0 && (simpOrder.getShopId() == null || !shopId.equals(simpOrder.getShopId()))) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
@@ -478,12 +478,12 @@ public class OrderService {
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
-        vo.setCustomer(customer);
+//        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
+//        vo.setCustomer(customer);
 
-        // 补充 Vo 的 Shop 信息：联系商品模块
-        ShopInfo shop = iShopService.getShopInfo(shopId);
-        vo.setShop(shop);
+//        // 补充 Vo 的 Shop 信息：联系商品模块
+//        ShopInfo shop = iShopService.getShopInfo(shopId);
+//        vo.setShop(shop);
 
         // 封装并返回【标准返回】
         return new APIReturnObject<>(vo);
@@ -505,7 +505,7 @@ public class OrderService {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 检查是不是本店的
-        if (order.getShopId() != null && !order.getShopId().equals(shopId)) {
+        if (shopId != 0 && (order.getShopId() == null || !shopId.equals(order.getShopId()))) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
@@ -518,7 +518,7 @@ public class OrderService {
         }
         delPo = new OrderEditPo();
         delPo.setState(OrderStatus.CANCELLED.getCode());
-        delPo.setSubState((byte) -1); // sub state 置为空
+        delPo.setSubstate((byte) -1); // sub state 置为空
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);
@@ -540,7 +540,7 @@ public class OrderService {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 检查是不是本店的
-        if (order.getShopId() != null && !order.getShopId().equals(shopId)) {
+        if (shopId != 0 && (order.getShopId() == null || !shopId.equals(order.getShopId()))) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
@@ -554,7 +554,7 @@ public class OrderService {
         delPo = new OrderEditPo();
         delPo.setShipmentSn(deliverSn);
         delPo.setState(OrderStatus.PENDING_RECEIVE.getCode());
-        delPo.setSubState(OrderChildStatus.SHIPPED.getCode());
+        delPo.setSubstate(OrderChildStatus.SHIPPED.getCode());
         delPo.setId(id);
 
         return orderDao.modifyOrder(delPo);

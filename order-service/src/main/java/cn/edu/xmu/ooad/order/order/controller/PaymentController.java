@@ -127,7 +127,7 @@ public class PaymentController {
                                     @PathVariable Long id,
                                     @LoginUser Long customerId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("get orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentNewVo);
+            logger.debug("post orders/{id}/payments; orderid=" + id + ";customerId " + customerId + " vo=" + paymentNewVo);
         }
         return ResponseUtils.make(paymentService.createPayment(id, customerId, paymentNewVo));
     }

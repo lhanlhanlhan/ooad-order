@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.order.model.vo;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
 /**
@@ -16,6 +17,7 @@ import javax.validation.constraints.Positive;
 @ApiModel("卖家更新订单信息传值对象")
 public class OrderShopEditVo {
 
+    @NotBlank
     private String message;
 
 }

@@ -31,10 +31,12 @@ public enum OrderChildStatus {
     public static OrderChildStatus getByCode(int code) {
         byte b = (byte) code;
         OrderChildStatus[] statuses = OrderChildStatus.values();
-        if (b > statuses.length) {
-            return null;
+        for (OrderChildStatus ocs : statuses) {
+            if (ocs.getCode() == code) {
+                return ocs;
+            }
         }
-        return statuses[b];
+        return null;
     }
 
     public OrderStatus getParentStatus() {
