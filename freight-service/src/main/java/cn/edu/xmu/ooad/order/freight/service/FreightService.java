@@ -712,10 +712,13 @@ public class FreightService {
         int belongs = pieceModelItemBelongs(shopId, detailId);
         switch (belongs) {
             case 1:
+                logger.debug("不存在该pieceItem: " + detailId);
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
             case 2:
+                logger.debug("该pieceItem不属于商铺: " + detailId);
                 return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
             case 3:
+                logger.debug("这模板并非件数模板: " + detailId);
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "这模板并非件数模板");
         }
 
@@ -833,7 +836,7 @@ public class FreightService {
         if (!(fmPo instanceof PieceFreightModel)) {
             return 3;
         }
-        return 1;
+        return 0;
     }
 
 

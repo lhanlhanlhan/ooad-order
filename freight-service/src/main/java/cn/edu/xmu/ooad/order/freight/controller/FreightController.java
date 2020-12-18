@@ -99,7 +99,7 @@ public class FreightController {
             case -1: // 失败
                 return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "计算运费不成功"));
             default: // OK
-                return ResponseUtils.make(new APIReturnObject<>(freight));
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, freight));
         }
     }
 

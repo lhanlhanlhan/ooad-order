@@ -133,9 +133,9 @@ public class PaymentDao {
     }
 
     /**
-     * 根据订单号查询退款单【可能有多个，但API只要1个】
+     * 根据订单号查询退款单【可能有多个】
      */
-    public RefundPo getRefundByOrderId(Long orderId) {
+    public List<RefundPo> getRefundByOrderId(Long orderId) {
         RefundPoExample example = new RefundPoExample();
         RefundPoExample.Criteria criteria = example.createCriteria();
         criteria.andOrderIdEqualTo(orderId);
@@ -149,14 +149,9 @@ public class PaymentDao {
             return null;
         }
         // 订单的退款单只能有0个/1个吗？就不能有多张吗？ 【邱明说只返回第一张 6/12/2020 11:27】
-        if (refundPoList.size() > 1) {
-            logger.info("发现多于1张退款单绑定在该【订单】上, API只能返回一个！ orderId=" + orderId);
-        } else if (refundPoList.size() == 0) {
-            // 返回 0 张
-            return null;
-        }
+        // 邱明又改需求了，全数返回【18/12/2020 10:28】
         // 其他情况返回第一张
-        return refundPoList.get(0);
+        return refundPoList;
     }
 
     /**
@@ -179,6 +174,7 @@ public class PaymentDao {
         if (refundPoList.size() > 1) {
             logger.info("发现多于1张退款单绑定在该【售后单】上, API只能返回一个！ afterSaleId=" + afterSaleId);
         } else if (refundPoList.size() == 0) {
+            logger.debug("售后单的退款单为空：asId" + afterSaleId);
             // 返回 0 张
             return null;
         }

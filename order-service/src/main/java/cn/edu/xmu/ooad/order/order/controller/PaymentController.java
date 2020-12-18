@@ -10,6 +10,7 @@ import cn.edu.xmu.ooad.order.order.enums.PaymentStatus;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentPatternVo;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentStatusVo;
+import cn.edu.xmu.ooad.order.order.model.vo.RefundVo;
 import cn.edu.xmu.ooad.order.order.service.PaymentService;
 import cn.edu.xmu.ooad.order.require.IAfterSaleService;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -315,7 +316,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
     @Audit
-    @PostMapping("shops/{shopId}/payments/{id}/refund")
+    @PostMapping("shops/{shopId}/payments/{id}/refunds")
     public Object createRefund(@PathVariable Long shopId,
                                @PathVariable Long id,
                                @RequestBody Map<String, Long> refundAmountVo,
@@ -356,7 +357,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
     @Audit
-    @GetMapping("shops/{shopId}/orders/{id}/refund")
+    @GetMapping("shops/{shopId}/orders/{id}/refunds")
     public Object adminGetRefundInfoByOrderId(@PathVariable Long shopId,
                                               @PathVariable Long id,
                                               @LoginUser Long adminId,
@@ -384,7 +385,7 @@ public class PaymentController {
             @ApiImplicitParam(name = "id", required = true, dataType = "Long", paramType = "path")
     })
     @Audit
-    @GetMapping("shops/{shopId}/aftersales/{id}/refund")
+    @GetMapping("shops/{shopId}/aftersales/{id}/refunds")
     public Object adminGetRefundInfoByAftersaleId(@PathVariable Long shopId,
                                                   @PathVariable Long id,
                                                   @LoginUser Long adminId,

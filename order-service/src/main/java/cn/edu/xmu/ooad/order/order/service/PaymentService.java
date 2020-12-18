@@ -419,11 +419,16 @@ public class PaymentService {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据订单号 查询退款单
-        RefundPo refundPo = paymentDao.getRefundByOrderId(orderId);
-        if (refundPo == null) {
+        List<RefundPo> refundPos = paymentDao.getRefundByOrderId(orderId);
+        if (refundPos == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (refundPos.size() == 0) {
+            return new APIReturnObject<>(refundPos);
         }
-        return new APIReturnObject<>(new RefundVo(refundPo));
+        List<RefundVo> refundVos = refundPos.stream()
+                .map(RefundVo::new)
+                .collect(Collectors.toList());
+        return new APIReturnObject<>(refundVos);
     }
 
     /**
@@ -461,12 +466,17 @@ public class PaymentService {
         if (order.getCustomerId() == null || !customerId.equals(order.getCustomerId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
-        // 根据订单号查询退款单
-        RefundPo refundPo = paymentDao.getRefundByOrderId(orderId);
-        if (refundPo == null) {
+        // 根据订单号 查询退款单
+        List<RefundPo> refundPos = paymentDao.getRefundByOrderId(orderId);
+        if (refundPos == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (refundPos.size() == 0) {
+            return new APIReturnObject<>(refundPos);
         }
-        return new APIReturnObject<>(new RefundVo(refundPo));
+        List<RefundVo> refundVos = refundPos.stream()
+                .map(RefundVo::new)
+                .collect(Collectors.toList());
+        return new APIReturnObject<>(refundVos);
     }
 
     /**
@@ -477,9 +487,9 @@ public class PaymentService {
      */
     public APIReturnObject<?> getCustomerRefundByAftersaleId(Long customerId, Long aftersaleId) {
         // 其他模塊，检查售后单是否属于买家
-        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
+//        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+//            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+//        }
         // 根据售后单号查询退款单
         RefundPo refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);
         if (refundPo == null) {

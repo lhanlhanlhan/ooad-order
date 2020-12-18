@@ -19,7 +19,7 @@ public class RefundVo {
     private Long id;
     private Long paymentId;
     private Long amount;
-    private byte state;
+    private Byte state;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
     private Long orderId;
