@@ -1,7 +1,10 @@
 package cn.edu.xmu.ooad.order.freight.model.vo;
 
+import cn.edu.xmu.ooad.order.centre.utils.Constants;
 import cn.edu.xmu.ooad.order.freight.model.bo.freight.FreightModel;
 import cn.edu.xmu.ooad.order.freight.model.po.FreightModelPo;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -19,7 +22,7 @@ public class FreightModelVo {
     private String name;
     private Byte type;
     private Integer unit;
-    private Boolean beDefault;
+    private Boolean defaultModel;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
 
@@ -29,7 +32,7 @@ public class FreightModelVo {
         this.type = po.getType();
         this.unit = po.getUnit();
         Byte beDefault = po.getDefaultModel();
-        this.beDefault = beDefault != null && (beDefault == 1);
+        this.defaultModel = beDefault != null && (beDefault == 1);
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
     }
@@ -40,7 +43,7 @@ public class FreightModelVo {
         this.type = po.getType();
         this.unit = po.getUnit();
         Byte beDefault = po.getDefaultModel();
-        this.beDefault = beDefault != null && (beDefault == 1);
+        this.defaultModel = beDefault != null && (beDefault == 1);
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
     }

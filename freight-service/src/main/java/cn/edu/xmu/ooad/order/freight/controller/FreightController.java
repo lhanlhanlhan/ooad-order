@@ -93,9 +93,9 @@ public class FreightController {
         int freight = (int) freightService.calcFreight(rid, freightCalcItems, skuInfoMap);
         switch (freight) {
             case -3: // 含禁止物品
-                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_NOT_REACH));
+                return ResponseUtils.make(new APIReturnObject<>(ResponseCode.REGION_NOT_REACH));
             case -2: // 运费模板 id 未定义
-                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "未定义的运费模板 id"));
+                return ResponseUtils.make(new APIReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, "未定义的运费模板 id"));
             case -1: // 失败
                 return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "计算运费不成功"));
             default: // OK

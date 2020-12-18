@@ -115,7 +115,7 @@ public class FreightService {
     public APIReturnObject<?> createShopGoodsFreightModel(Long shopId,
                                                           FreightModelNewVo freightModelNewVo) {
         //创建运费模板
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
 
         FreightModelPo freightModelPo = new FreightModelPo();
         freightModelPo.setShopId(shopId);
@@ -129,7 +129,7 @@ public class FreightService {
         int res = insertFreightModelPo(freightModelPo);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
+                return new APIReturnObject<>(ResponseCode.FREIGHTNAME_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
@@ -186,7 +186,7 @@ public class FreightService {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         // 先克隆主表
         FreightModelPo po = mainTable.toPo();
         // 直接改 Po，再存过一遍
@@ -197,7 +197,7 @@ public class FreightService {
         int res = insertFreightModelPo(po);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
+                return new APIReturnObject<>(ResponseCode.FREIGHTNAME_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -216,7 +216,7 @@ public class FreightService {
             }
             // 如果还没定义明细，就直接返回好了
             if (pieceList.size() == 0) {
-                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
+                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new FreightModelVo(po));
             }
             // 克隆所有明细
             for (PieceFreightModelPo piecePo : pieceList) {
@@ -240,7 +240,7 @@ public class FreightService {
             }
             // 如果还没定义明细，就直接返回好了
             if (weightList.size() == 0) {
-                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
+                return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new FreightModelVo(po));
             }
             // 克隆所有明细
             for (WeightFreightModelPo weightPo : weightList) {
@@ -255,7 +255,7 @@ public class FreightService {
         }
 
         // 返回改动过的主表
-        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, po);
+        return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK, new FreightModelVo(po));
     }
 
     /**
@@ -271,6 +271,10 @@ public class FreightService {
         if (model == null) {
             // 未能找到
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 检查是不是自己的
+        if (model.getShopId() != null && !shopId.equals(model.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 构造 Vo 返回
         return new APIReturnObject<>(new FreightModelVo(model));
@@ -313,7 +317,7 @@ public class FreightService {
             response = freightDao.updateFreightModel(po);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FREIGHTNAME_SAME);
+                return new APIReturnObject<>(ResponseCode.FREIGHTNAME_SAME);
             } else {
                 logger.error(e.getMessage());
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
@@ -418,7 +422,7 @@ public class FreightService {
 
         // 返回
         if (response > 0) {
-            return new APIReturnObject<>();
+            return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK);
         } else {
             logger.error("定义默认运费模板失败！id=" + id);
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
@@ -450,7 +454,7 @@ public class FreightService {
 
         WeightFreightModelPo weightFreightModelPo = new WeightFreightModelPo();
 
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         weightFreightModelPo.setAbovePrice(weightFreightModelVo.getAbovePrice());
         weightFreightModelPo.setFiftyPrice(weightFreightModelVo.getFiftyPrice());
         weightFreightModelPo.setFirstWeight(weightFreightModelVo.getFirstWeight());
@@ -469,7 +473,7 @@ public class FreightService {
             response = freightDao.addWeightFreightModel(weightFreightModelPo);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(ResponseCode.REGION_SAME);
             } else {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
@@ -551,7 +555,7 @@ public class FreightService {
 
         PieceFreightModelPo pieceFreightModelPo = new PieceFreightModelPo();
 
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         pieceFreightModelPo.setAdditionalItems(pieceFreightModelVo.getAdditionalItems());
         pieceFreightModelPo.setAdditionalItemsPrice(pieceFreightModelVo.getAdditionalItemsPrice());
         pieceFreightModelPo.setFirstItems(pieceFreightModelVo.getAdditionalItems());
@@ -567,7 +571,7 @@ public class FreightService {
             response = freightDao.addPieceFreightModel(pieceFreightModelPo);
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(ResponseCode.REGION_SAME);
             } else {
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             }
@@ -657,7 +661,7 @@ public class FreightService {
         int res = updateWeightFreightModelPo(po);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(ResponseCode.REGION_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
@@ -733,7 +737,7 @@ public class FreightService {
         int res = updatePieceFreightModelPo(po);
         switch (res) {
             case 1:
-                return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_SAME);
+                return new APIReturnObject<>(ResponseCode.REGION_SAME);
             case 2:
                 return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
             default:
@@ -868,7 +872,7 @@ public class FreightService {
      */
     private int updatePieceFreightModelPo(PieceFreightModelPo po) {
         try {
-            po.setGmtModified(LocalDateTime.now());
+            po.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
             int response = freightDao.updatePieceFreightModel(po);
             return response > 0 ? 0 : 2;
         } catch (DataAccessException e) {

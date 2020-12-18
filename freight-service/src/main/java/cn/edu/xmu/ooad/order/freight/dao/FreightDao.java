@@ -2,6 +2,8 @@ package cn.edu.xmu.ooad.order.freight.dao;
 
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.centre.utils.Accessories;
+import cn.edu.xmu.ooad.order.centre.utils.Constants;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.freight.mapper.FreightModelPoMapper;
 import cn.edu.xmu.ooad.order.freight.mapper.PieceFreightModelPoMapper;
@@ -302,7 +304,7 @@ public class FreightDao {
      */
     @RedisOptimized
     public int updateFreightModel(FreightModelPo po) {
-        po.setGmtModified(LocalDateTime.now());
+        po.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         int res = freightModelPoMapper.updateByPrimaryKeySelective(po);
         if (res != 1) {
             return res;
@@ -338,7 +340,7 @@ public class FreightDao {
      */
     @RedisOptimized
     public int updateWeightFreightModel(WeightFreightModelPo po) {
-        po.setGmtModified(LocalDateTime.now());
+        po.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         int res = weightFreightModelPoMapper.updateByPrimaryKeySelective(po);
         if (res != 1) {
             return res;
@@ -356,7 +358,7 @@ public class FreightDao {
      */
     @RedisOptimized
     public int updatePieceFreightModel(PieceFreightModelPo po) {
-        po.setGmtModified(LocalDateTime.now());
+        po.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         int res = pieceFreightModelPoMapper.updateByPrimaryKeySelective(po);
         if (res != 1) {
             return res;
@@ -492,7 +494,8 @@ public class FreightDao {
 
         FreightModelPo fmUpdatePo = new FreightModelPo();
         fmUpdatePo.setDefaultModel((byte) 0);
+        fmUpdatePo.setGmtModified(Accessories.secondTime(Accessories.secondTime(LocalDateTime.now())));
 
-        freightModelPoMapper.updateByExample(fmUpdatePo, example);
+        freightModelPoMapper.updateByExampleSelective(fmUpdatePo, example);
     }
 }

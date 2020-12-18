@@ -1,6 +1,7 @@
 package cn.edu.xmu.ooad.order.order.model.bo.order;
 
 import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
+import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.vo.OrderItemVo;
 import lombok.Data;
@@ -69,8 +70,8 @@ public class OrderItem {
         orderItemPo.setPrice(price);
         orderItemPo.setDiscount(discount);
         orderItemPo.setName(name);
-        orderItemPo.setGmtCreate(LocalDateTime.now());
-        orderItemPo.setGmtModified(LocalDateTime.now());
+        orderItemPo.setGmtCreate(Accessories.secondTime(LocalDateTime.now()));
+        orderItemPo.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         orderItemPo.setCouponActivityId(couponActId);
         orderItemPo.setBeShareId(beSharedId);
 

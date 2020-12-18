@@ -1,6 +1,7 @@
 package cn.edu.xmu.ooad.order.order.model.bo.order.impl;
 
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.order.centre.utils.SpringUtils;
 import cn.edu.xmu.ooad.order.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
@@ -176,8 +177,8 @@ public class GrouponOrder extends Order {
             // 模拟支付环境的都是已经退款
             refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
             refundPo.setAmount(paymentPo.getAmount());
-            refundPo.setGmtCreate(LocalDateTime.now());
-            refundPo.setGmtModified(LocalDateTime.now());
+            refundPo.setGmtCreate(Accessories.secondTime(LocalDateTime.now()));
+            refundPo.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
             // TODO - 如果是返点支付，应该把返点回充至账户中
             // 将退款单Po对象插入数据库
             try {

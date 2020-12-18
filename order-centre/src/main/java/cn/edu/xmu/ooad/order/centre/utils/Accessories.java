@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.centre.utils;
 
+import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.UUID;
 
@@ -33,5 +34,9 @@ public class Accessories {
         // 增加随机数
         timeout += (long) new Random().nextDouble() * (timeout / 5 - 1);
         return timeout;
+    }
+
+    public static LocalDateTime secondTime(LocalDateTime localDateTime) {
+        return localDateTime.withNano(0);
     }
 }

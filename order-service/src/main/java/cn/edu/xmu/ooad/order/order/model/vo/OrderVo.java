@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class OrderVo {
 
     private final Long id;
+    private String orderSn;
     private CustomerInfo customer;
     private ShopInfo shop;
     private Long pid;
@@ -34,6 +35,7 @@ public class OrderVo {
     private String confirmTime;
     private Long originPrice;
     private Long discountPrice;
+    private Long rebateNum;
     private Long freightPrice;
     private String message;
     private Long regionId;
@@ -58,6 +60,7 @@ public class OrderVo {
 
         // 构造下述对象
         this.id = order.getId();
+        this.orderSn = order.getOrderSn();
         this.pid = order.getPid();
         this.orderType = order.getOrderType().getCode();
 

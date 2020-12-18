@@ -26,7 +26,7 @@ public class OrderSimpleVo {
     private Long discountPrice;
     private Long originPrice;
     private Byte state;
-    private Byte substate;
+    private Byte subState;
     private LocalDateTime gmtCreate;
     private Long grouponId;
     private Long presaleId;
@@ -49,7 +49,7 @@ public class OrderSimpleVo {
         OrderStatus state = order.getState();
         OrderChildStatus subState = order.getSubstate();
         this.state = state == null ? null : state.getCode();
-        this.substate = subState == null ? null : subState.getCode();
+        this.subState = order.getSubstate() == null ? null : order.getSubstate().getCode();
         this.gmtCreate = order.getGmtCreated();
 
         this.grouponId = order.getGrouponId();
@@ -72,7 +72,7 @@ public class OrderSimpleVo {
         this.discountPrice = order.getDiscountPrice();
         this.originPrice = order.getOriginPrice();
         this.state = order.getState();
-        this.substate = order.getSubstate();
+        this.subState = order.getSubstate();
         this.gmtCreate = order.getGmtCreate();
 
         this.grouponId = order.getGrouponId();

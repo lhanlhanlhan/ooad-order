@@ -1,7 +1,9 @@
 package cn.edu.xmu.ooad.order.order.model.vo;
 
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -15,6 +17,8 @@ import javax.validation.constraints.Positive;
  **/
 @Data
 @ApiModel("卖家更新订单信息传值对象")
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderShopEditVo {
 
     @NotBlank

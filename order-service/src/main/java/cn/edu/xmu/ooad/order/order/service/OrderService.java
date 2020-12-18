@@ -134,7 +134,7 @@ public class OrderService {
                 orderSn, state, start, end, customerId, null, false
         );
         if (orderSimplePos == null) {
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 转为业务对象列表
         orders = orderSimplePos.getList().stream()
@@ -220,7 +220,7 @@ public class OrderService {
         // 检查订单状态是否允许
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 自定义修改字段
@@ -231,7 +231,12 @@ public class OrderService {
         po.setMobile(orderBuyerEditVo.getMobile());
         po.setRegionId(orderBuyerEditVo.getRegionId());
 
-        return orderDao.modifyOrder(po);
+        boolean ok = orderDao.modifyOrder(po);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -276,11 +281,16 @@ public class OrderService {
             }
         } else {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo.setId(id);
 
-        return orderDao.modifyOrder(delPo);
+        boolean ok = orderDao.modifyOrder(delPo);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -308,7 +318,7 @@ public class OrderService {
         // 检查订单状态是否允许
         if (!order.canSign()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 买家确认收货
@@ -317,7 +327,12 @@ public class OrderService {
         po.setState(OrderStatus.DONE.getCode());
         po.setSubstate((byte) -1); // sub state 置为空
 
-        return orderDao.modifyOrder(po);
+        boolean ok = orderDao.modifyOrder(po);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -345,11 +360,11 @@ public class OrderService {
         // 检查订单状态是否允许
         if (!(order instanceof GrouponOrder)) {
             // TODO - 订单种类不被允许【403 返回】错误码？
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
         if (!((GrouponOrder) order).canChangeToNormal()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
 
         // 更改订单类型为普通订单
@@ -359,7 +374,12 @@ public class OrderService {
         po.setState(OrderStatus.PENDING_RECEIVE.getCode()); // 状态改为待发货
         po.setSubstate(OrderChildStatus.PAID.getCode()); // 状态改为已支付
 
-        return orderDao.modifyOrder(po);
+        boolean ok = orderDao.modifyOrder(po);
+        if (ok) {
+            return new APIReturnObject<>(HttpStatus.CREATED, ResponseCode.OK);
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -401,7 +421,7 @@ public class OrderService {
         PageInfo<OrderSimplePo> orderSimplePos = orderDao.getSimpleOrders(
                 orderSn, state, start, end, customerId, shopId, true);
         if (orderSimplePos == null) {
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 转为业务对象列表
         orders = orderSimplePos.getList().stream()
@@ -439,14 +459,19 @@ public class OrderService {
         // 检查订单状态是否允许修改
         if (!order.canModify()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
         // 自定义修改字段
         OrderEditPo po = new OrderEditPo();
         po.setId(id);
         po.setMessage(orderShopEditVo.getMessage());
 
-        return orderDao.modifyOrder(po);
+        boolean ok = orderDao.modifyOrder(po);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -514,14 +539,19 @@ public class OrderService {
         // 检查订单状态是否允许
         if (!order.canShopCancel()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo = new OrderEditPo();
         delPo.setState(OrderStatus.CANCELLED.getCode());
         delPo.setSubstate((byte) -1); // sub state 置为空
         delPo.setId(id);
 
-        return orderDao.modifyOrder(delPo);
+        boolean ok = orderDao.modifyOrder(delPo);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -549,7 +579,7 @@ public class OrderService {
         // 检查订单状态是否允许
         if (!order.canDeliver()) {
             // 方法不被允许【403 返回】
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         }
         delPo = new OrderEditPo();
         delPo.setShipmentSn(deliverSn);
@@ -557,7 +587,12 @@ public class OrderService {
         delPo.setSubstate(OrderChildStatus.SHIPPED.getCode());
         delPo.setId(id);
 
-        return orderDao.modifyOrder(delPo);
+        boolean ok = orderDao.modifyOrder(delPo);
+        if (ok) {
+            return new APIReturnObject<>();
+        } else {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -573,7 +608,7 @@ public class OrderService {
         String sn = Accessories.genSerialNumber();
 
         // 下单此刻时间
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
 
         // 在运算运费前，要提前获得商品模块 sku 信息，否则重复获取 sku 信息
         Map<Long, SkuInfo> skuInfoMap = new HashMap<>(orderNewVo.getOrderItems().size());
@@ -811,7 +846,7 @@ public class OrderService {
         String sn = Accessories.genSerialNumber();
 
         // 下单此刻时间
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
 
         // 订单项转为业务对象
         OrderItem theItem = new OrderItem(orderNewVo.getOrderItems().get(0));

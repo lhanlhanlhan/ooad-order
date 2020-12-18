@@ -1,6 +1,7 @@
 package cn.edu.xmu.ooad.order.order.dao;
 
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
+import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.order.order.mapper.OrderFullPoMapper;
 import cn.edu.xmu.ooad.order.order.mapper.OrderItemPoMapper;
 import cn.edu.xmu.ooad.order.order.mapper.OrderMapper;
@@ -60,10 +61,10 @@ public class OrderDao {
      * @return 分页的订单概要
      */
     public PageInfo<OrderSimplePo> getSimpleOrders(String orderSn, Byte state,
-                                                                    LocalDateTime beginTime, LocalDateTime endTime,
-                                                                    Long customerId,
-                                                                    Long shopId,
-                                                                    boolean includeDeleted) {
+                                                   LocalDateTime beginTime, LocalDateTime endTime,
+                                                   Long customerId,
+                                                   Long shopId,
+                                                   boolean includeDeleted) {
         // 创建 PoExample 对象，以实现多参数查询
         OrderSimplePoExample example = new OrderSimplePoExample();
         // 将查询字段放入 Example 对象的 查询规则 (Criteria) 里面去
@@ -198,7 +199,7 @@ public class OrderDao {
      *
      * @return 返回
      */
-    public APIReturnObject<?> modifyOrder(OrderEditPo po) {
+    public boolean modifyOrder(OrderEditPo po) {
         // 尝试修改
         int affected = 0;
         try {
@@ -209,9 +210,9 @@ public class OrderDao {
         // 检查修改结果
         if (affected <= 0) {
             logger.error("为啥没插进去？modifyOrder po=" + po);
-            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            return false;
         }
-        return new APIReturnObject<>();
+        return true;
     }
 
     /**
@@ -223,7 +224,7 @@ public class OrderDao {
         OrderItemPo po = new OrderItemPo();
         po.setId(itemId);
         po.setOrderId(newOrderId);
-        po.setGmtModified(LocalDateTime.now());
+        po.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         // 尝试修改
         int affected = 0;
         try {

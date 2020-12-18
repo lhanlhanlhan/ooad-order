@@ -133,7 +133,7 @@ public class IOtherOrderService17 implements IOtherOrderService {
     @Override
     public Long createASOrder(OtherOrderSend order) {
         // 创建售后订单
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
 
         // 创建订单
         OrderPo orderPo = new OrderPo();

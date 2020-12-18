@@ -160,7 +160,7 @@ public class OrderController {
         }
         if (regionId) {
             // 地区不可达
-            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.REGION_NOT_REACH));
+            return ResponseUtils.make(new APIReturnObject<>(ResponseCode.REGION_NOT_REACH));
         }
         return ResponseUtils.make(orderService.createNormalOrder(customerId, orderInfo));
     }
@@ -287,7 +287,7 @@ public class OrderController {
      * Created at 2020/11/5 15:50
      * Modified at 2020/11/5 15:50
      */
-    @ApiOperation(value = "买家取消 / 逻辑删除本人名下订单")
+    @ApiOperation(value = "买家将团购订单转为普通订单")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "Token", required = true, dataType = "String", paramType = "header"),
             @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path")

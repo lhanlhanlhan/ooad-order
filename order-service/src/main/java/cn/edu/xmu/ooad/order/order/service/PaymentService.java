@@ -76,7 +76,7 @@ public class PaymentService {
         // 看看现在的状态能不能支付及需要支付多少
         long shallPayPrice = simpleOrder.shallPayPrice();
         if (shallPayPrice == 0) {
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.ORDER_STATENOTALLOW);
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW);
         } else if (shallPayPrice <= -1) {
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
         }
@@ -84,7 +84,7 @@ public class PaymentService {
         // 看看有没有超额支付，要超额支付的话，不让支付
         if (paymentNewVo.getPrice() > shallPayPrice) {
             // 企图超额支付
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOTVALID, "支付超额");
+            return new APIReturnObject<>(ResponseCode.ORDER_STATENOTALLOW, "支付超额");
         }
 
         // 创建支付单Po对象:
@@ -96,7 +96,7 @@ public class PaymentService {
         paymentPo.setAmount(paymentNewVo.getPrice());
 
         // 设各种时间
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         paymentPo.setPayTime(nowTime);
         paymentPo.setBeginTime(nowTime);
         paymentPo.setEndTime(nowTime);
@@ -175,11 +175,11 @@ public class PaymentService {
             }
 
             // 写入订单变更
-            APIReturnObject<?> modifyRet = orderDao.modifyOrder(editPo);
-            if (modifyRet.getCode() != ResponseCode.OK) {
+            boolean ok = orderDao.modifyOrder(editPo);
+            if (!ok) {
                 // 改变状态失败，回滚
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return modifyRet;
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.INTERNAL_SERVER_ERR);
             }
         }
 
@@ -263,7 +263,7 @@ public class PaymentService {
         paymentPo.setOrderId(null);
 
         // 各种时间
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         paymentPo.setPayTime(nowTime);
         paymentPo.setBeginTime(nowTime);
         paymentPo.setEndTime(nowTime);
@@ -383,8 +383,8 @@ public class PaymentService {
         // 模拟支付环境的都是已经退款
         refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
         refundPo.setAmount(amount);
-        refundPo.setGmtCreate(LocalDateTime.now());
-        refundPo.setGmtModified(LocalDateTime.now());
+        refundPo.setGmtCreate(Accessories.secondTime(LocalDateTime.now()));
+        refundPo.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
         // 将退款单Po对象插入数据库
         try {
             int response = paymentDao.addRefund(refundPo);

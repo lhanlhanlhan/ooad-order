@@ -1,5 +1,7 @@
 package cn.edu.xmu.ooad.order.centre.utils;
 
+import java.time.format.DateTimeFormatter;
+
 /**
  * 常量定义
  *
@@ -9,4 +11,7 @@ package cn.edu.xmu.ooad.order.centre.utils;
  */
 public class Constants {
     public static final String LOGIN_TOKEN_KEY = "authorization";
+    public static final String outDateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String inDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+    public static final DateTimeFormatter outDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 }

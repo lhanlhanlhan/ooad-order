@@ -95,7 +95,7 @@ public class NormalOrder extends Order {
             shopsFreightList.put(shopId, thisShopFreight);
         }
         // 现在，已经获得在各店铺购买的物品，及各店铺获得的 money，可以分单
-        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
         ArrayList<Order> orderList = new ArrayList<>(shopsItemLists.size());
         shopsItemLists.forEach((shopId, shopOrderItems) -> {
             // 生成一笔 OrderPo
@@ -184,8 +184,20 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        // 只有未支付的才能被客户取消
-        return this.getState() == OrderStatus.PENDING_PAY;
+        // 只有未支付的才能被客户取消 [邱明：发货前都能取消，18/12/2020]
+        OrderStatus status = this.getState();
+        OrderChildStatus childStatus = this.getSubstate();
+        if (status == null) {
+            return false;
+        }
+        switch (status) {
+            case PENDING_PAY:
+                return true;
+            case PENDING_RECEIVE:
+                return childStatus != OrderChildStatus.SHIPPED;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -193,8 +205,20 @@ public class NormalOrder extends Order {
      */
     @Override
     public boolean canShopCancel() {
-        // 只有未支付的才能被商户取消
-        return this.getState() == OrderStatus.PENDING_PAY;
+        // 只有未支付的才能被商户取消 [邱明：发货前都能取消，18/12/2020]
+        OrderStatus status = this.getState();
+        OrderChildStatus childStatus = this.getSubstate();
+        if (status == null) {
+            return false;
+        }
+        switch (status) {
+            case PENDING_PAY:
+                return true;
+            case PENDING_RECEIVE:
+                return childStatus != OrderChildStatus.SHIPPED;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -244,8 +268,8 @@ public class NormalOrder extends Order {
             // 模拟支付环境的都是已经退款
             refundPo.setState(RefundStatus.ALREADY_REFUND.getCode());
             refundPo.setAmount(paymentPo.getAmount());
-            refundPo.setGmtCreate(LocalDateTime.now());
-            refundPo.setGmtModified(LocalDateTime.now());
+            refundPo.setGmtCreate(Accessories.secondTime(LocalDateTime.now()));
+            refundPo.setGmtModified(Accessories.secondTime(LocalDateTime.now()));
             // TODO - 如果是返点支付，应该把返点回充至账户中
             // 将退款单Po对象插入数据库
             try {
