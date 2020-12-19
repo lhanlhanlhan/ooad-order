@@ -76,10 +76,10 @@ public class OrderDao {
             criteria.andStateEqualTo(state);
         }
         if (beginTime != null) {
-            criteria.andGmtCreateGreaterThanOrEqualTo(beginTime);
+            criteria.andGmtCreateGreaterThan(beginTime);
         }
         if (endTime != null) {
-            criteria.andGmtCreateGreaterThanOrEqualTo(endTime);
+            criteria.andGmtCreateLessThan(endTime);
         }
         if (shopId != null) {
             criteria.andShopIdEqualTo(shopId);
@@ -174,10 +174,8 @@ public class OrderDao {
         }
 
         // 不获取已被逻辑删除及根本不存在的订单
-        if (!includeDeleted) {
-            if (orderPo == null || (orderPo.getBeDeleted() != null) && (orderPo.getBeDeleted() == 1)) {
-                return null;
-            }
+        if (orderPo == null || (!includeDeleted && orderPo.getBeDeleted() != null && orderPo.getBeDeleted() == 1)) {
+            return null;
         }
 
         // 创建订单业务对象

@@ -495,7 +495,7 @@ public class OrderController {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         String sn = body.get("freightSn");
-        if (null == sn) {
+        if (null == sn || sn.length() == 0) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID));
         }
         // 调用服务层

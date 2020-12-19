@@ -289,6 +289,7 @@ public class OrderService {
         if (ok) {
             return new APIReturnObject<>();
         } else {
+            logger.error("修改订单出现错误：delPo=" + delPo);
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
     }

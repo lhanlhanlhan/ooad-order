@@ -92,8 +92,16 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canModify() {
-        // 只有「未发货」才能让客户修改
-        return this.getSubstate() == OrderChildStatus.PAID;
+        // 只有「未发货」或「未支付」才能让客户修改
+        OrderStatus status = this.getState();
+        OrderChildStatus subState = this.getSubstate();
+        if (status == OrderStatus.PENDING_PAY) {
+            return true;
+        } else if (status == OrderStatus.PENDING_RECEIVE) {
+            return subState != OrderChildStatus.SHIPPED;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -109,8 +117,16 @@ public class GrouponOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        // 只有未支付的才能被客户取消
-        return this.getState() == OrderStatus.PENDING_PAY;
+        // 只有未发货的才能被客户取消
+        OrderStatus status = this.getState();
+        OrderChildStatus subState = this.getSubstate();
+        if (status == OrderStatus.PENDING_PAY) {
+            return true;
+        } else if (status == OrderStatus.PENDING_RECEIVE) {
+            return subState != OrderChildStatus.SHIPPED;
+        } else {
+            return false;
+        }
     }
 
     /**

@@ -116,8 +116,16 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canModify() {
-        // 只有「未发货」才能让客户修改
-        return this.getSubstate() == OrderChildStatus.PAID;
+        // 只有「未发货」或「未支付」才能让客户修改
+        OrderStatus status = this.getState();
+        OrderChildStatus subState = this.getSubstate();
+        if (status == OrderStatus.PENDING_PAY) {
+            return true;
+        } else if (status == OrderStatus.PENDING_RECEIVE) {
+            return subState != OrderChildStatus.SHIPPED;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -133,8 +141,16 @@ public class PreSaleOrder extends Order {
      */
     @Override
     public boolean canCustomerCancel() {
-        // 只有未支付的才能被客户取消
-        return this.getState() == OrderStatus.PENDING_PAY;
+        // 只有未发货的才能被客户取消
+        OrderStatus status = this.getState();
+        OrderChildStatus subState = this.getSubstate();
+        if (status == OrderStatus.PENDING_PAY) {
+            return true;
+        } else if (status == OrderStatus.PENDING_RECEIVE) {
+            return subState != OrderChildStatus.SHIPPED;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -189,14 +205,21 @@ public class PreSaleOrder extends Order {
         }
         // 获取预售活动的预付款金额，预付款不退 TODO  -是这么获取service的吗？
         IPreSaleService iPreSaleService = SpringUtils.getBean(IPreSaleService.class);
-        PreSaleActivityInfo psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
-        if (psai == null) {
-            // 失败
-            System.err.println("取消预售订单时，获取预售资讯失败！orderId=" + this.getId());
-            return 1;
-        }
-        // 获取预售价格
-        Long prePaidPrice = psai.getAdvancePayPrice();
+//        PreSaleActivityInfo psai;
+//        try {
+//            psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return 1;
+//        }
+//        if (psai == null) {
+//            // 失败
+//            System.err.println("取消预售订单时，获取预售资讯失败！orderId=" + this.getId());
+//            return 1;
+//        }
+//        // 获取预售价格
+//        Long prePaidPrice = psai.getAdvancePayPrice();
+        Long prePaidPrice = 0L;
         // 依次创建退款单
         for (PaymentPo paymentPo : poList) {
             // 是不是预付款？

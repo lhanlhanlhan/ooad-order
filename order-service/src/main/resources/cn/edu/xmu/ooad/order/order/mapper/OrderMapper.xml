@@ -53,7 +53,7 @@
         <!-- 用 <where> 构造一系列 where -->
         <where>
             id = #{param1}
-            <if test="includeDeleted == false">and be_deleted=0</if>
+            <if test="includeDeleted == false">and be_deleted!=1</if>
         </where>
     </select>
 
