@@ -238,6 +238,10 @@ public class PaymentService {
         if (trueOrder.getShopId() == null || !shopId.equals(trueOrder.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
+        // 看看售后单是不是本店铺的
+        if (shopId != 0 && !shopId.equals(trueOrder.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 获取支付单列表
         List<PaymentPo> paymentPoList = paymentDao.getPaymentByOrderId(orderId);
         if (paymentPoList == null) {
@@ -343,6 +347,11 @@ public class PaymentService {
         } else if (!shopId.equals(afterSaleInfo.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
+        // 看看售后单是不是本店铺的
+        if (shopId != 0 && !shopId.equals(afterSaleInfo.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
         // 給據查找
         List<PaymentPo> paymentPoList = paymentDao.getPaymentByAfterSaleId(aftersaleId);
         if (paymentPoList == null) {
@@ -379,7 +388,8 @@ public class PaymentService {
             if (order == null) {
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
             }
-            if (order.getShopId() == null || !shopId.equals(order.getShopId())) {
+            // 看看售后单是不是本店铺的
+            if (shopId != 0 && !shopId.equals(order.getShopId())) {
                 return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
             }
         } else if (aftersaleId != null) {
@@ -393,8 +403,9 @@ public class PaymentService {
             }
             if (afterSaleInfo == null) {
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else if (!shopId.equals(afterSaleInfo.getShopId())) {
-                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + paymentId);
+            }
+            // 看看售后单是不是本店铺的
+            if (shopId != 0 && !shopId.equals(afterSaleInfo.getShopId())) {
                 return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
             }
         } else {
@@ -443,7 +454,8 @@ public class PaymentService {
         if (order == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        if (order.getShopId() == null || !shopId.equals(order.getShopId())) {
+        // 看看售后单是不是本店铺的
+        if (shopId != 0 && !shopId.equals(order.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据订单号 查询退款单
@@ -477,8 +489,9 @@ public class PaymentService {
         }
         if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (!shopId.equals(afterSaleInfo.getShopId())) {
-            logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + aftersaleId);
+        }
+        // 看看售后单是不是本店铺的
+        if (shopId != 0 && !shopId.equals(afterSaleInfo.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据售后单号查询退款单
@@ -527,16 +540,31 @@ public class PaymentService {
         // 其他模塊，检查售后单是否属于买家
         AfterSaleInfo afterSaleInfo;
         try {
+            System.out.println("开始查询售后单");
             afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+            System.out.println("查询到售后单");
         } catch (Exception e) {
             logger.error("无法联系售后模块，错误：" + e.getMessage());
             return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
         }
         if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (!customerId.equals(afterSaleInfo.getCustomerId())) {
-            logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，afterSaleId=" + aftersaleId);
+        }
+        logger.info(customerId + ": " + afterSaleInfo);
+        if (!customerId.equals(afterSaleInfo.getCustomerId())) {
+            logger.info("企图查询不属于此买家的 payment，该 payment 所对应之【售后单】号不属于此买家，afterSaleId=" + aftersaleId + " customerId=" + afterSaleInfo.getCustomerId());
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+        // CaiXinLuTest: [即使 CustomerID 跟用户一致，但如果 OrderID 有，那就要检查 OrderID 的所属] 20/12/2020
+        if (afterSaleInfo.getOrderId() != null) {
+            Order order = orderDao.getSimpleOrder(afterSaleInfo.getOrderId(), false);
+            if (order == null) {
+                // 这张订单不存在，返回 404
+                return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            }
+            if (!customerId.equals(order.getCustomerId())) {
+                return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+            }
         }
         // 根据售后单号查询退款单
         RefundPo refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);

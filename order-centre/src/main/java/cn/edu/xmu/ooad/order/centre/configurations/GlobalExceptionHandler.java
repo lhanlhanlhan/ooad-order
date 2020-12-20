@@ -69,4 +69,17 @@ public class GlobalExceptionHandler {
                         ResponseCode.FIELD_NOTVALID,
                         defaultMessage));
     }
+
+    /**
+     * 捕获及处理【空指针】错误
+     */
+    @ExceptionHandler(NullPointerException.class)
+    public Object handleException(NullPointerException e) {
+        e.printStackTrace();
+        return ResponseUtils.make(
+                new APIReturnObject<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ResponseCode.INTERNAL_SERVER_ERR,
+                        "服务器未能理解及处理刚发生的错误，已将错误提交管理员处理。为防止您的信息丢失，请勿重复尝试！"));
+    }
 }

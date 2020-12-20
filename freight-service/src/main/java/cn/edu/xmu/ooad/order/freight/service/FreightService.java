@@ -85,19 +85,14 @@ public class FreightService {
             freightModelList.add(model);
         }
         // 2. 用每个模板计算所有物品的最大运费
-        AtomicReference<Boolean> calcSucceeded = new AtomicReference<>(true);
-        Optional<Long> freight = freightModelList.stream().map(model -> {
-            // 用该运费模板计算运费
-            long subFreight = model.calcFreight(regionId, orderItemList, skuInfoList);
-            if (subFreight == -1) {
-                // 包含禁寄物品
-                calcSucceeded.set(false);
-            }
-            return subFreight;
-        }).max(Long::compareTo);
+        Optional<Long> freight = freightModelList
+                .stream()
+                .map(model -> model.calcFreight(regionId, orderItemList, skuInfoList))
+                .max(Long::compareTo);
 
-        if (calcSucceeded.get() && freight.isPresent()) {
-            return freight.get();
+        if (freight.isPresent()) {
+            Long fr = freight.get();
+            return fr == -1 ? -3 : fr;
         } else {
             // 包含禁寄物品
             return -3;

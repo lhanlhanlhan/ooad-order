@@ -186,10 +186,7 @@ public class PaymentController {
                     "; adminId = " + adminId + "; adminShopId= " + adminShopId);
         }
         //检查是否具有查询对应店铺支付单的权限，若没有就返回404
-//        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
-//            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
-//        }
-        if (!shopId.equals(adminShopId) && adminShopId != 0) {
+        if (adminShopId != 0 && !shopId.equals(adminShopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
 
@@ -229,7 +226,7 @@ public class PaymentController {
         }
         if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (!customerId.equals(afterSaleInfo.getShopId())) {
+        } else if (!customerId.equals(afterSaleInfo.getCustomerId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
@@ -299,8 +296,8 @@ public class PaymentController {
             logger.debug("get states: shopId = " + shopId + "aftersaleId = " + id +
                     " adminId = " + adminId + " adminShopId " + adminShopId);
         }
-        //检查是否具有查询对应店铺支付单的权限，若没有就返回404
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+        // 校验 shopId 是否一致
+        if (adminShopId != 0 && !shopId.equals(adminShopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
 
@@ -336,8 +333,8 @@ public class PaymentController {
                     "; refundAmount =" + refundAmountVo +
                     "; adminId = " + adminId + "; adminShopId " + adminShopId);
         }
-        // 检查是否具有查询对应店铺支付单的权限，若没有就返回404
-        if (adminShopId != 0 && !adminShopId.equals(shopId)) {
+        // 校验 shopId 是否一致
+        if (adminShopId != 0 && !shopId.equals(adminShopId)) {
             return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         // 获取冀退款之金额
@@ -375,6 +372,10 @@ public class PaymentController {
             logger.debug("get states: shopId = " + shopId + "; orderId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
         }
+        // 校验 shopId 是否一致
+        if (adminShopId != 0 && !shopId.equals(adminShopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
+        }
         return ResponseUtils.make(paymentService.getRefundByOrderId(shopId, id));
     }
 
@@ -402,6 +403,10 @@ public class PaymentController {
         if (logger.isDebugEnabled()) {
             logger.debug("get states: shopId = " + shopId + "; aftersaleId = " + id +
                     "; adminId = " + adminId + "; adminShopId = " + adminShopId);
+        }
+        // 校验 shopId 是否一致
+        if (adminShopId != 0 && !shopId.equals(adminShopId)) {
+            return ResponseUtils.make(new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE));
         }
         return ResponseUtils.make(paymentService.getRefundByAftersaleId(shopId, id));
     }
