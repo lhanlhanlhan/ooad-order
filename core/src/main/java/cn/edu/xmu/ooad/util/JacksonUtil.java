@@ -10,6 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -222,6 +224,29 @@ public class JacksonUtil {
         if (node != null) {
             return mapper.convertValue(node, new TypeReference<List<T>>() {
             });
+        }
+        return null;
+    }
+
+    public static List<String> parseSubnodeToStringList(String body, String field) {
+        ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule());
+        JsonNode node;
+        try {
+            node = mapper.readTree(body);
+            JsonNode leaf = node.at(field);
+
+            if (leaf != null) {
+                List<JsonNode> retObj =mapper.convertValue(leaf, new TypeReference<List<JsonNode>>() {
+                });
+                List<String> ret = new ArrayList<>(retObj.size());
+                for (JsonNode item:retObj) {
+                    ret.add(item.toString());
+                }
+                return ret;
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
         }
         return null;
     }
