@@ -8,8 +8,8 @@ package cn.edu.xmu.ooad.order.order.enums;
  * Modified by  苗新宇 at  27/11/2020 9:26
  */
 public enum PaymentStatus {
-    PAID(0, "已支付"),
-    PENDING_PAY(1, "未支付"),
+    PAID(0, "未支付"),
+    PENDING_PAY(1, "已支付"),
     FAILED(2, "支付失败"),
     ;
     private final byte code;

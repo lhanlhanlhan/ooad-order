@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.order.model.vo;
 
+import cn.edu.xmu.ooad.order.centre.utils.Constants;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
@@ -27,7 +28,7 @@ public class OrderSimpleVo {
     private Long originPrice;
     private Byte state;
     private Byte subState;
-    private LocalDateTime gmtCreate;
+    private String gmtCreate;
     private Long grouponId;
     private Long presaleId;
     private String shipmentSn;
@@ -50,7 +51,7 @@ public class OrderSimpleVo {
         OrderChildStatus subState = order.getSubstate();
         this.state = state == null ? null : state.getCode();
         this.subState = order.getSubstate() == null ? null : order.getSubstate().getCode();
-        this.gmtCreate = order.getGmtCreated();
+        this.gmtCreate = order.getGmtCreated().format(Constants.outDateTimeFormatter);
 
         this.grouponId = order.getGrouponId();
         this.presaleId = order.getPresaleId();
@@ -73,7 +74,7 @@ public class OrderSimpleVo {
         this.originPrice = order.getOriginPrice();
         this.state = order.getState();
         this.subState = order.getSubstate();
-        this.gmtCreate = order.getGmtCreate();
+        this.gmtCreate = order.getGmtCreate().format(Constants.outDateTimeFormatter);;
 
         this.grouponId = order.getGrouponId();
         this.presaleId = order.getPresaleId();

@@ -65,7 +65,7 @@ public class WeightFreightModelRule extends FreightModelRule {
         // 3.2.3 超出最高门槛
 
         if (totalWeight <= 10000) { // 10 kg 以内
-            deltaWeightUnitInSection = (long) Math.ceil((deltaWeight - firstWeight) / unitFloat); // 在首重~10kg内的unit数
+            deltaWeightUnitInSection = (long) Math.ceil(deltaWeight / unitFloat); // 在首重~10kg内的unit数
             freight += deltaWeightUnitInSection * tenPrice;
             return freight;
         } else if (firstWeight <= 10000) { // 10 kg 以上，但是首重比 10 kg 小，那先加上本区间满额运费 (10kg-首重kg kg)

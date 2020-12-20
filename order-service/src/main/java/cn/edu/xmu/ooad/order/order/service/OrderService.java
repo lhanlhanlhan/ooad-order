@@ -5,6 +5,7 @@ import cn.edu.xmu.ooad.order.centre.interfaces.IFreightServiceInside;
 import cn.edu.xmu.ooad.order.centre.model.FreightCalcItem;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.Accessories;
+import cn.edu.xmu.ooad.order.centre.utils.Constants;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
@@ -117,13 +118,25 @@ public class OrderService {
         LocalDateTime start = null, end = null;
         try {
             if (beginTime != null) {
-                start = LocalDateTime.parse(beginTime);
+                try {
+                    start = LocalDateTime.parse(beginTime, Constants.inDateTimeFormatter);
+                } catch (Exception e) {
+                    start = LocalDateTime.parse(beginTime);
+                }
             }
             if (endTime != null) {
-                end = LocalDateTime.parse(endTime);
+                try {
+                    end = LocalDateTime.parse(endTime, Constants.inDateTimeFormatter);
+                } catch (Exception e) {
+                    end = LocalDateTime.parse(endTime);
+                }
             }
         } catch (Exception e) {
             return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始/结束日期时间格式错误");
+        }
+        // 看看开始时间、结束时间是否符合实际
+        if (start != null && end != null && end.isBefore(start)) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始日期时间不可晚于结束日期时间");
         }
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
@@ -174,17 +187,31 @@ public class OrderService {
         Order order = orderDao.getOrder(id, false);
         if (order == null) {
             // 捕獲到錯誤
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
+        CustomerInfo customer;
+        try {
+            customer = iCustomerService.getCustomerInfo(customerId);
+        } catch (Exception e) {
+            logger.error("无法联系用户模块！错误讯息：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        logger.debug(customer.toString());
         vo.setCustomer(customer);
 
         // 补充 Vo 的 Shop 信息：联系商品模块
         Long shopId = order.getShopId();
-        ShopInfo shop = iShopService.getShopInfo(shopId);
+        ShopInfo shop;
+        try {
+            shop = iShopService.getShopInfo(shopId);
+        } catch (Exception e) {
+            logger.error("无法联系商铺模块！错误讯息：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        logger.debug(customer.toString());
         vo.setShop(shop);
 
         // 封装并返回【标准返回】
@@ -404,15 +431,23 @@ public class OrderService {
                                             Integer page, Integer pageSize) {
         // parse datetime
         LocalDateTime start = null, end = null;
-        try {
-            if (beginTime != null) {
+        if (beginTime != null) {
+            try {
+                start = LocalDateTime.parse(beginTime, Constants.inDateTimeFormatter);
+            } catch (Exception e) {
                 start = LocalDateTime.parse(beginTime);
             }
-            if (endTime != null) {
+        }
+        if (endTime != null) {
+            try {
+                end = LocalDateTime.parse(endTime, Constants.inDateTimeFormatter);
+            } catch (Exception e) {
                 end = LocalDateTime.parse(endTime);
             }
-        } catch (Exception e) {
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始/结束日期时间格式错误");
+        }
+        // 看看开始时间、结束时间是否符合实际
+        if (start != null && end != null && end.isBefore(start)) {
+            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "起始日期时间不可晚于结束日期时间");
         }
         List<OrderSimpleVo> orders;
         Map<String, Object> returnObj = new HashMap<>();
@@ -504,12 +539,24 @@ public class OrderService {
         OrderVo vo = new OrderVo(order);
 
         // 补充 Vo 的 Customer 信息：联系其他模块
-//        CustomerInfo customer = iCustomerService.getCustomerInfo(id);
-//        vo.setCustomer(customer);
+        CustomerInfo customer;
+        try {
+            customer = iCustomerService.getCustomerInfo(order.getCustomerId());
+        } catch (Exception e) {
+            logger.error("无法联系用户模块！错误讯息：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        vo.setCustomer(customer);
 
-//        // 补充 Vo 的 Shop 信息：联系商品模块
-//        ShopInfo shop = iShopService.getShopInfo(shopId);
-//        vo.setShop(shop);
+        // 补充 Vo 的 Shop 信息：联系商品模块
+        ShopInfo shop;
+        try {
+            shop = iShopService.getShopInfo(shopId);
+        } catch (Exception e) {
+            logger.error("无法联系商铺模块！错误讯息：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
+        vo.setShop(shop);
 
         // 封装并返回【标准返回】
         return new APIReturnObject<>(vo);
@@ -614,7 +661,13 @@ public class OrderService {
         // 在运算运费前，要提前获得商品模块 sku 信息，否则重复获取 sku 信息
         Map<Long, SkuInfo> skuInfoMap = new HashMap<>(orderNewVo.getOrderItems().size());
         for (OrderItemVo orderItemVo : orderNewVo.getOrderItems()) {
-            SkuInfo skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
+            SkuInfo skuInfo;
+            try {
+                skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
+            } catch (Exception e) {
+                logger.error("无法联系商铺模块！错误讯息：" + e.getMessage());
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
             if (skuInfo == null) {
                 logger.debug("查无此商品, skuId=" + orderItemVo.getSkuId()); // TODO - 数据库穿透？
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "商品不存在");
@@ -631,10 +684,15 @@ public class OrderService {
         // 商品模块获得优惠卷信息
         final CouponInfo couponInfo;
         CouponInfo couponInfoDefer;
-        final CopyOnWriteArrayList<OrderItem> couponSuitableOrderItems;
+        List<OrderItem> couponSuitableOrderItems;
         if (orderNewVo.getCouponId() != null) {
             // 查询用户有无优惠券，如有，就查询该优惠券
-            couponInfoDefer = iCouponService.getCoupon(customerId, orderNewVo.getCouponId());
+            try {
+                couponInfoDefer = iCouponService.getCoupon(customerId, orderNewVo.getCouponId());
+            } catch (Exception e) {
+                logger.error("无法联系优惠卷模块，错误：" + e.getMessage());
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
             // 看看优惠券有无被使用及过期
             if (couponInfoDefer == null) { // 无此优惠券
                 orderNewVo.setCouponId(null);
@@ -657,8 +715,8 @@ public class OrderService {
         couponInfo = couponInfoDefer;
 
         // 从商品模块获取所有 item 的价格、名字、商店和所需求的优惠活动信息
-        ConcurrentMap<Long, CouponActivityInfo> allCouponActs = new ConcurrentHashMap<>();
-        orderItems.stream().forEach(orderItem -> {
+        Map<Long, CouponActivityInfo> allCouponActs = new ConcurrentHashMap<>();
+        for (OrderItem orderItem : orderItems) {
             // 商品模块获取 SkuInfo
             SkuInfo skuInfo = skuInfoMap.get(orderItem.getId());
             orderItem.setName(skuInfo.getName());
@@ -667,7 +725,14 @@ public class OrderService {
             orderItem.setShopId(skuInfo.getShopId()); // 为计算优惠作准备
             // 检查 OrderItem 是否可用于 优惠券 的优惠活动
             if (couponInfo != null) {
-                if (iCouponService.isSkuSuitsCouponActivity(orderItem.getSkuId(), couponInfo.getId())) {
+                boolean suitable;
+                try {
+                    suitable = iCouponService.isSkuSuitsCouponActivity(orderItem.getSkuId(), couponInfo.getId());
+                } catch (Exception e) {
+                    logger.error("无法联系优惠卷模块，错误：" + e.getMessage());
+                    return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                }
+                if (suitable) {
                     // SKU 可用该优惠卷，于是添加到计算适用该优惠卷的优惠金额的 list 当中去
                     couponSuitableOrderItems.add(orderItem);
                 }
@@ -677,21 +742,27 @@ public class OrderService {
             if (couponActId != null) {
                 if (allCouponActs.get(couponActId) == null) {
                     // 查询商品模块
-                    CouponActivityInfo cai = iCouponService.getCouponActivity(couponActId);
+                    CouponActivityInfo cai;
+                    try {
+                        cai = iCouponService.getCouponActivity(couponActId);
+                    } catch (Exception e) {
+                        logger.error("无法联系优惠卷模块：错误 " + e.getMessage());
+                        return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                    }
                     if (cai == null) { // 没有该活动，没必要放入 CouponActId
                         orderItem.setCouponActId(null);
-                        return;
+                        continue;
                     }
                     // 看看活动是否过期、是否开始
                     if (nowTime.isBefore(cai.getBeginTime()) || nowTime.isAfter(cai.getEndTime())) {
                         orderItem.setCouponActId(null);
-                        return;
+                        continue;
                     }
                     // 将活动放入总活动列表
                     allCouponActs.put(couponActId, cai);
                 } // 如果已经放过活动就没必要查找、放入了
             }
-        });
+        }
 
         // 重建优惠活动 (如有)，并计算优惠活动使用的商品的优惠金额
         if (allCouponActs.size() != 0) {
@@ -712,7 +783,14 @@ public class OrderService {
                 // 获取适用于该优惠活动的商品
                 List<OrderItem> couponActSuitableOrderItems = new LinkedList<>();
                 for (OrderItem oi : orderItems) {
-                    if (iCouponService.isSkuSuitsCouponActivity(oi.getSkuId(), cai.getId())) {
+                    boolean skuSuits;
+                    try {
+                        skuSuits = iCouponService.isSkuSuitsCouponActivity(oi.getSkuId(), cai.getId());
+                    } catch (Exception e) {
+                        logger.error("联系优惠卷模块失效！错误：" + e.getMessage());
+                        return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+                    }
+                    if (skuSuits) {
                         couponActSuitableOrderItems.add(oi);
                     }
                 }
@@ -851,7 +929,13 @@ public class OrderService {
 
         // 订单项转为业务对象
         OrderItem theItem = new OrderItem(orderNewVo.getOrderItems().get(0));
-        SkuInfo skuInfo = iShopService.getSkuInfo(theItem.getSkuId());
+        SkuInfo skuInfo;
+        try {
+            skuInfo = iShopService.getSkuInfo(theItem.getSkuId());
+        } catch (Exception e) {
+            logger.error("无法联系商铺模块！错误讯息：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        }
         if (skuInfo == null) {
             logger.debug("查无此商品, skuId=" + theItem.getSkuId()); // TODO - 数据库穿透？
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "商品不存在");
@@ -860,14 +944,26 @@ public class OrderService {
         // 查询团购、预售活动是否有效
         if (type == OrderType.GROUPON) {
             // 查询团购活动
-            GrouponActivityInfo gai = iGrouponService.getSkuGrouponActivity(theItem.getSkuId());
+            GrouponActivityInfo gai;
+            try {
+                gai = iGrouponService.getSkuGrouponActivity(theItem.getSkuId());
+            } catch (Exception e) {
+                logger.error("联系团购失败，错误：" + e.getMessage());
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
             if (gai == null || !gai.getId().equals(orderNewVo.getGrouponId())) {
                 // 团购活动无效
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "团购活动无效");
             }
         } else {
             // 查询预售活动
-            PreSaleActivityInfo psai = iPreSaleService.getSkuPreSaleActivity(theItem.getSkuId());
+            PreSaleActivityInfo psai;
+            try {
+                psai = iPreSaleService.getSkuPreSaleActivity(theItem.getSkuId());
+            } catch (Exception e) {
+                logger.error("无法联系预售模块：错误 " + e.getMessage());
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "预售活动无效");
+            }
             if (psai == null || !psai.getId().equals(orderNewVo.getGrouponId())) {
                 // 预售活动无效
                 return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.RESOURCE_ID_NOTEXIST, "预售活动无效");

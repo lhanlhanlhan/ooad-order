@@ -165,7 +165,14 @@ public class IOtherOrderService17 implements IOtherOrderService {
 
         // MyBatis: 填入刚刚创建的订单的 id，放入 orderItemPo 中，并且写入数据库
         OrderItemPo po = new OrderItemPo();
-        SkuInfo skuInfo = iShopService.getSkuInfo(order.getSkuId());
+        SkuInfo skuInfo;
+        try {
+            skuInfo = iShopService.getSkuInfo(order.getSkuId());
+        } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            log.error("无法联系商铺模块！错误讯息：" + e.getMessage());
+            return null;
+        }
         if (skuInfo == null) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("创建售后订单：查询 SKU 信息失败！skuId=" + order.getSkuId());

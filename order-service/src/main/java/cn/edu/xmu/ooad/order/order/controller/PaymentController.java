@@ -13,6 +13,7 @@ import cn.edu.xmu.ooad.order.order.model.vo.PaymentStatusVo;
 import cn.edu.xmu.ooad.order.order.model.vo.RefundVo;
 import cn.edu.xmu.ooad.order.order.service.PaymentService;
 import cn.edu.xmu.ooad.order.require.IAfterSaleService;
+import cn.edu.xmu.ooad.order.require.models.AfterSaleInfo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -219,14 +220,22 @@ public class PaymentController {
         }
 
         // 由其他模塊检查一下，这张售后单可不可以创建支付单
-        long repairPrice = iAfterSaleService.getRepairCost(id);
-        if (repairPrice == 0) { // 不必创建售后单支付
-            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOTVALID, "您不必为此售后单支付");
-        } else if (repairPrice == -1) { // 无此售后单
+        AfterSaleInfo afterSaleInfo;
+        try {
+            afterSaleInfo = iAfterSaleService.getAfterSaleInfo(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+        }
+        if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else if (repairPrice < -1) { // 504
-            logger.error("无法查询售后单资讯，因为其他模块报告错误：" + repairPrice);
-            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+        } else if (!customerId.equals(afterSaleInfo.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+        long repairPrice = afterSaleInfo.getPrice();
+        if (repairPrice >= 0) { // 不必创建售后单支付
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.FIELD_NOTVALID, "您不必为此售后单支付");
         }
 
         // 检查售后单支付金额是否足额支付

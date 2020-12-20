@@ -14,4 +14,5 @@ public class Constants {
     public static final String outDateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
     public static final String inDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public static final DateTimeFormatter outDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    public static final DateTimeFormatter inDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 }

@@ -81,7 +81,13 @@ public class FreightController {
         Map<Long, SkuInfo> skuInfoMap = new HashMap<>(items.size());
         List<FreightCalcItem> freightCalcItems = new ArrayList<>(items.size());
         for (FreightOrderItemVo orderItemVo : items) {
-            SkuInfo skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
+            SkuInfo skuInfo;
+            try {
+                skuInfo = iShopService.getSkuInfo(orderItemVo.getSkuId());
+            } catch (Exception e) {
+                logger.error("联系商品模块失败，错误：" + e.getMessage());
+                return ResponseUtils.make(new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系商品模块"));
+            }
             if (skuInfo == null) {
                 return ResponseUtils.make(new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST, "查无商品"));
             }

@@ -16,6 +16,7 @@ import cn.edu.xmu.ooad.order.order.model.vo.PaymentNewVo;
 import cn.edu.xmu.ooad.order.order.model.vo.PaymentVo;
 import cn.edu.xmu.ooad.order.order.model.vo.RefundVo;
 import cn.edu.xmu.ooad.order.require.IAfterSaleService;
+import cn.edu.xmu.ooad.order.require.models.AfterSaleInfo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
@@ -298,8 +299,17 @@ public class PaymentService {
      */
     public APIReturnObject<?> getPaymentByAftersaleId(Long aftersaleId, Long customerId) {
         // 其他模塊获取售后单，检查是否属于买家
-        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
+        AfterSaleInfo afterSaleInfo;
+        try {
+            afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+        } catch (Exception e) {
+            logger.error("无法联系售后模块，错误：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+        }
+        if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (!customerId.equals(afterSaleInfo.getCustomerId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
         // 給據查找
@@ -321,8 +331,17 @@ public class PaymentService {
      * @param aftersaleId 售后单ID
      */
     public APIReturnObject<?> getPaymentInfo(Long shopId, Long aftersaleId) {
-        if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+        AfterSaleInfo afterSaleInfo;
+        try {
+            afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+        } catch (Exception e) {
+            logger.error("无法联系售后模块，错误：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+        }
+        if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (!shopId.equals(afterSaleInfo.getShopId())) {
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 給據查找
         List<PaymentPo> paymentPoList = paymentDao.getPaymentByAfterSaleId(aftersaleId);
@@ -365,9 +384,18 @@ public class PaymentService {
             }
         } else if (aftersaleId != null) {
             // 查询售后 id 对应之售后单的信息是否是此商铺的
-            if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
-                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + paymentId);
+            AfterSaleInfo afterSaleInfo;
+            try {
+                afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+            } catch (Exception e) {
+                logger.error("无法联系售后模块，错误：" + e.getMessage());
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+            }
+            if (afterSaleInfo == null) {
                 return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+            } else if (!shopId.equals(afterSaleInfo.getShopId())) {
+                logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + paymentId);
+                return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
             }
         } else {
             // 订单、售后单均为空，则该 payment 是 dangling payment，打印出错信息并返回 500
@@ -440,8 +468,18 @@ public class PaymentService {
      */
     public APIReturnObject<?> getRefundByAftersaleId(Long shopId, Long aftersaleId) {
         // 其他模塊检查售后单是否属于店铺
-        if (!iAfterSaleService.isAfterSaleBelongsToShop(aftersaleId, shopId)) {
+        AfterSaleInfo afterSaleInfo;
+        try {
+            afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+        } catch (Exception e) {
+            logger.error("无法联系售后模块，错误：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+        }
+        if (afterSaleInfo == null) {
             return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (!shopId.equals(afterSaleInfo.getShopId())) {
+            logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，paymentId=" + aftersaleId);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 根据售后单号查询退款单
         RefundPo refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);
@@ -487,9 +525,19 @@ public class PaymentService {
      */
     public APIReturnObject<?> getCustomerRefundByAftersaleId(Long customerId, Long aftersaleId) {
         // 其他模塊，检查售后单是否属于买家
-//        if (!iAfterSaleService.isAfterSaleBelongsToCustomer(aftersaleId, customerId)) {
-//            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
-//        }
+        AfterSaleInfo afterSaleInfo;
+        try {
+            afterSaleInfo = iAfterSaleService.getAfterSaleInfo(aftersaleId);
+        } catch (Exception e) {
+            logger.error("无法联系售后模块，错误：" + e.getMessage());
+            return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR, "无法联系售后模块：" + e.getMessage());
+        }
+        if (afterSaleInfo == null) {
+            return new APIReturnObject<>(HttpStatus.NOT_FOUND, ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (!customerId.equals(afterSaleInfo.getCustomerId())) {
+            logger.info("企图查询不属于此商铺的 payment，该 payment 所对应之【售后单】号不属于此商铺，afterSaleId=" + aftersaleId);
+            return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 根据售后单号查询退款单
         RefundPo refundPo = paymentDao.getRefundByAfterSaleId(aftersaleId);
         if (refundPo == null) {

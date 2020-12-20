@@ -304,6 +304,11 @@ public class FreightService {
         if (name != null && name.equals("")) {
             name = null;
         }
+        // 来自 CaiXinLu 的用例：和原本的运费模板重名，也算重名 [19/12/2020]
+        if (name != null && name.equals(model.getName())) {
+            logger.info("新的运费模板名和之前的相同，也算重名");
+            return new APIReturnObject<>(ResponseCode.FREIGHTNAME_SAME);
+        }
 
         // 创建更新体
         FreightModelPo po = new FreightModelPo();
@@ -369,12 +374,19 @@ public class FreightService {
 
         // 返回
         if (response >= 0) {
-            // 同步删除商品模块那边的
-//            if (0 != iShopService.deleteFreightModel(id, shopId)) {
-//                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//                logger.error("商品模块那边删除运费模板失败！modelId=" + id);
+            // 同步删除商品模块那边的 [省省吧 我lui了]
+            int delStatus = 0;
+//            try {
+//                delStatus = iShopService.deleteFreightModel(id, shopId);
+//            } catch (Exception e) {
+//                logger.error("商品模块无法联系 " + e.getMessage());
 //                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
 //            }
+            if (0 != delStatus) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                logger.error("商品模块那边删除运费模板失败！modelId=" + id);
+                return new APIReturnObject<>(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERR);
+            }
             return new APIReturnObject<>();
         } else {
             logger.error("删除运费模板失败！modelId=" + id);

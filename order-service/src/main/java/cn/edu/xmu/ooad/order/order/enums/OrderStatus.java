@@ -9,7 +9,7 @@ package cn.edu.xmu.ooad.order.order.enums;
  */
 public enum OrderStatus {
 
-    PENDING_PAY(1, "待支付"),
+    PENDING_PAY(1, "待付款"),
     PENDING_RECEIVE(2, "待收货"),
     DONE(3, "已完成"),
     CANCELLED(4, "已取消"),

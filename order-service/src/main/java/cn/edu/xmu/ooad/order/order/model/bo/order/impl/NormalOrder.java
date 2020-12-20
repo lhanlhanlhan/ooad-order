@@ -17,6 +17,7 @@ import cn.edu.xmu.ooad.order.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
@@ -72,7 +73,14 @@ public class NormalOrder extends Order {
         for (OrderItem item : this.orderItemList) {
             // 获取商品的信息
             Long skuId = item.getSkuId();
-            SkuInfo skuInfo = iShopService.getSkuInfo(skuId);
+            SkuInfo skuInfo;
+            try {
+                skuInfo = iShopService.getSkuInfo(skuId);
+            } catch (Exception e) {
+                System.err.println("无法联系商铺模块！错误讯息：" + e.getMessage());
+                return null;
+            }
+
             Long shopId = skuInfo.getShopId();
 
             // 检查这个店铺的订购列表有没有创建，没有的话，就新建并放入一个该店铺的新列表

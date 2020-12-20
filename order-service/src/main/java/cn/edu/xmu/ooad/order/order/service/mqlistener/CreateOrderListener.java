@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.order.order.service.mqlistener;
 
 import cn.edu.xmu.ooad.order.centre.annotations.RedisOptimized;
 import cn.edu.xmu.ooad.order.centre.interfaces.IFreightServiceInside;
+import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.RedisUtils;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
@@ -13,6 +14,7 @@ import cn.edu.xmu.ooad.order.order.service.mqlistener.model.CreateOrderDemand;
 import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.require.*;
 import cn.edu.xmu.ooad.util.JacksonUtil;
+import cn.edu.xmu.ooad.util.ResponseCode;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -21,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -152,13 +155,21 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
         // 核销优惠券 (如有)
         if (demand.getCouponId() != null) {
-            iCouponService.setCouponUsed(demand.getCouponId());
+            try {
+                iCouponService.setCouponUsed(demand.getCouponId());
+            } catch (Exception e) {
+                logger.error("无法联系优惠卷模块：错误 " + e.getMessage());
+            }
         }
 
         // 下单成功，批量提交商品库存数据库写回，删购物车
         for (Long skuId : demand.getWriteBackQueue()) {
             mqService.sendWriteBackStockMessage(skuId);
-            iOtherService.delCartItem(demand.getCId(), skuId);
+            try {
+                iOtherService.delCartItem(demand.getCId(), skuId);
+            } catch (Exception e) {
+                logger.error("联系购物车服务失败，错误：" + e.getMessage());
+            }
         }
 
         // 返回成功
@@ -195,7 +206,11 @@ public class CreateOrderListener implements RocketMQListener<String> {
 
         // 下单成功，批量提交商品库存数据库写回
         mqService.sendWriteBackStockMessage(orderItemPo.getGoodsSkuId());
-        iOtherService.delCartItem(demand.getCId(), orderItemPo.getGoodsSkuId());
+        try {
+            iOtherService.delCartItem(demand.getCId(), orderItemPo.getGoodsSkuId());
+        } catch (Exception e) {
+            logger.error("联系购物车服务失败，错误：" + e.getMessage());
+        }
 
         return 0;
     }

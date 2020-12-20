@@ -1,5 +1,6 @@
 package cn.edu.xmu.ooad.order.order.model.vo;
 
+import cn.edu.xmu.ooad.order.centre.utils.Constants;
 import cn.edu.xmu.ooad.order.centre.utils.ResponseUtils;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
@@ -92,8 +93,8 @@ public class OrderVo {
         LocalDateTime gmtCreate = order.getGmtCreated();
         LocalDateTime gmtModified = order.getGmtModified();
         LocalDateTime confirmTime = order.getConfirmTime();
-        this.gmtCreate = gmtCreate == null ? ResponseUtils.UNIX_TIMESTAMP_START : gmtCreate.toString();
-        this.gmtModified = gmtModified == null ? this.gmtCreate : gmtModified.toString();
-        this.confirmTime = confirmTime == null ? null : confirmTime.toString();
+        this.gmtCreate = gmtCreate == null ? null : gmtCreate.format(Constants.outDateTimeFormatter);
+        this.gmtModified = gmtModified == null ? null : gmtModified.format(Constants.outDateTimeFormatter);
+        this.confirmTime = confirmTime == null ? null : confirmTime.format(Constants.outDateTimeFormatter);
     }
 }

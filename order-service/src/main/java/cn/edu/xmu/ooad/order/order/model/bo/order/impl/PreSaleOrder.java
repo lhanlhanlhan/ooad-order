@@ -15,6 +15,7 @@ import cn.edu.xmu.ooad.order.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.order.model.po.RefundPo;
 import cn.edu.xmu.ooad.order.require.IPreSaleService;
 import cn.edu.xmu.ooad.order.require.models.PreSaleActivityInfo;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
@@ -88,7 +89,13 @@ public class PreSaleOrder extends Order {
                 .sum();
 
         // 获取预售活动信息
-        PreSaleActivityInfo psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
+        PreSaleActivityInfo psai;
+        try {
+            psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
+        } catch (Exception e) {
+            System.err.println("无法联系预售模块：错误 " + e.getMessage());
+            return -1L;
+        }
         if (psai == null) {
             return -1L;
         }
@@ -205,6 +212,7 @@ public class PreSaleOrder extends Order {
         }
         // 获取预售活动的预付款金额，预付款不退 TODO  -是这么获取service的吗？
         IPreSaleService iPreSaleService = SpringUtils.getBean(IPreSaleService.class);
+        // 获取预售金额 [省省吧 我lui了]
 //        PreSaleActivityInfo psai;
 //        try {
 //            psai = iPreSaleService.getPreSaleActivity(this.getPresaleId());
