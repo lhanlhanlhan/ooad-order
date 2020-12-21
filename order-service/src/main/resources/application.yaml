@@ -22,7 +22,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-    initialization-mode: never
+    initialization-mode: always
     schema:
       - classpath:schema.sql
       - classpath:indexes.sql
