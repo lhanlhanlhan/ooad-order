@@ -2,9 +2,13 @@ package cn.edu.xmu.ooad.other.required.model;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class OtherOrderItemSimple implements Serializable {
 	/**
 	 * 
@@ -18,21 +22,6 @@ public class OtherOrderItemSimple implements Serializable {
 	//返回实际支付的单价
 	Long price;
 	String skuName;
+	Long customerId;
 	
-	public OtherOrderItemSimple(){}
-	/**
-	 * 构造函数
-	 * @param id ：orderitemid
-	 * @param skuId
-	 * @param quantity
-	 * @param shopId
-	 * @param finalPrice ：实际支付时的单价
-	 */
-	public OtherOrderItemSimple(Long id,Long skuId, Integer quantity, Long price, String skuName){
-		setOrderItemId(id);
-		setSkuId(skuId);
-		setPrice(price);
-		setQuantity(quantity);
-		setSkuName(skuName);
-	}
 }

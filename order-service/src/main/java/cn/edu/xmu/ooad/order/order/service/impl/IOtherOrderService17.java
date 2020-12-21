@@ -3,6 +3,7 @@ package cn.edu.xmu.ooad.order.order.service.impl;
 import cn.edu.xmu.ooad.order.centre.utils.APIReturnObject;
 import cn.edu.xmu.ooad.order.centre.utils.Accessories;
 import cn.edu.xmu.ooad.order.order.dao.OrderDao;
+import cn.edu.xmu.ooad.order.order.dao.PaymentDao;
 import cn.edu.xmu.ooad.order.order.enums.OrderChildStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderStatus;
 import cn.edu.xmu.ooad.order.order.enums.OrderType;
@@ -10,6 +11,7 @@ import cn.edu.xmu.ooad.order.order.model.bo.order.Order;
 import cn.edu.xmu.ooad.order.order.model.bo.order.OrderItem;
 import cn.edu.xmu.ooad.order.order.model.po.OrderItemPo;
 import cn.edu.xmu.ooad.order.order.model.po.OrderPo;
+import cn.edu.xmu.ooad.order.order.model.po.PaymentPo;
 import cn.edu.xmu.ooad.order.order.service.mqproducer.MQService;
 import cn.edu.xmu.ooad.order.require.IShopService;
 import cn.edu.xmu.ooad.order.require.models.SkuInfo;
@@ -41,6 +43,9 @@ public class IOtherOrderService17 implements IOtherOrderService {
 
     @Autowired
     private OrderDao orderDao;
+
+    @Autowired
+    private PaymentDao paymentDao;
 
     @DubboReference(check = false)
     private IShopService iShopService;
@@ -80,14 +85,22 @@ public class IOtherOrderService17 implements IOtherOrderService {
         }
         OtherOrderItemComplex orderItemComplex = new OtherOrderItemComplex();
         orderItemComplex.setOrderItemId(orderItem.getId());
-        orderItemComplex.setOrderId(orderItem.getOrderId());
-        orderItemComplex.setPrice(orderItem.getPrice());
         orderItemComplex.setQuantity(orderItem.getQuantity());
         orderItemComplex.setSkuId(orderItem.getSkuId());
         orderItemComplex.setSkuName(orderItem.getName());
 
         orderItemComplex.setOrderSn(order.getOrderSn());
         orderItemComplex.setShopId(order.getShopId());
+        orderItemComplex.setCustomerId(order.getCustomerId());
+        // 查找订单支付单
+        List<PaymentPo> paymentPos = paymentDao.getPaymentByOrderId(order.getId());
+        long totalCash = 0; // 支付总价
+        for (PaymentPo paymentPo : paymentPos) {
+            totalCash += paymentPo.getPaymentPattern().equals("002") ? paymentPo.getActualAmount() : 0;
+        }
+
+        orderItemComplex.setPayment(totalCash);
+        orderItemComplex.setSkuPrice(totalCash * orderItem.getPrice() / order.getOriginPrice());
         return orderItemComplex;
     }
 
@@ -203,6 +216,7 @@ public class IOtherOrderService17 implements IOtherOrderService {
         orderItemSimple.setQuantity(item.getQuantity());
         orderItemSimple.setSkuId(item.getSkuId());
         orderItemSimple.setSkuName(item.getName());
+        log.debug("orderItem: " + orderItemSimple);
         return orderItemSimple;
     }
 

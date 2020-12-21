@@ -27,7 +27,7 @@ public class PaymentVo {
     private Byte state;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
-    private Long afterSaleId;
+    private Long aftersaleId;
 
     /**
      * 从PaymentOrder PO 中提取所需信息，创建VO【共12个属性】
@@ -43,7 +43,7 @@ public class PaymentVo {
         this.state = paymentPo.getState();
         this.gmtCreate = paymentPo.getGmtCreate();
         this.gmtModified = paymentPo.getGmtModified();
-        this.afterSaleId = paymentPo.getAftersaleId();
+        this.aftersaleId = paymentPo.getAftersaleId();
         this.paymentPattern = paymentPo.getPaymentPattern();
     }
 

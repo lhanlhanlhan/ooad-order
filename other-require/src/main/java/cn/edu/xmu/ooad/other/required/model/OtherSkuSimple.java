@@ -2,24 +2,23 @@ package cn.edu.xmu.ooad.other.required.model;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class OtherSkuSimple implements Serializable{
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -6050705991352804495L;
-	Long skuId;
-	Long spuId;
-	String skuName;
+	Long id;
 	String skuSn;
-	Long pirce;
-	public OtherSkuSimple() {};
-	public OtherSkuSimple(Long id,Long spuId,String skuName,Long price) {
-		setSkuId(skuId);
-		setSpuId(spuId);
-		setSkuName(skuName);
-		setPirce(price);
-	}
+	String name;
+	String imageUrl;
+	Long inventory;
+	Long originalPrice;
+	Long price;
+	Boolean disable;
+	
 }

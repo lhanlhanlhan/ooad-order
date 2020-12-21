@@ -2,6 +2,7 @@ package cn.edu.xmu.ooad.other.required;
 
 import java.util.List;
 
+import cn.edu.xmu.ooad.other.required.model.CouponActivitySimple;
 import cn.edu.xmu.ooad.other.required.model.OtherOrderSend;
 import cn.edu.xmu.ooad.other.required.model.OtherSku;
 import cn.edu.xmu.ooad.other.required.model.OtherSkuComplex;
@@ -42,5 +43,10 @@ public interface IOtherGoodsService {
 	 */
 	public List<OtherSpu> getSpusbyShopId(Long shopId);
 	public OtherSpu getSpubySpuId(Long SpuId);
-
+	/**
+	 * 根据skuId 查询该商品的优惠券活动，若没回返回null
+	 * @param skuId
+	 * @return
+	 */
+	public List<CouponActivitySimple> getCouponActivityBySkuId(Long skuId);
 }

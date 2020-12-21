@@ -455,9 +455,10 @@ public class FreightService {
         if (model.getShopId() == null || !shopId.equals(model.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
-        if (model.getType() == null || model.getType() != 0) {
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "该模板不是重量模板！不能定义明细！");
-        }
+        // Ming Qiu : 不去查看是否是重量模板了~ [21/12/2020: 沒有衝突就可以]
+//        if (model.getType() == null || model.getType() != 0) {
+//            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "该模板不是重量模板！不能定义明细！");
+//        }
 
         WeightFreightModelPo weightFreightModelPo = new WeightFreightModelPo();
 
@@ -556,9 +557,10 @@ public class FreightService {
         if (model.getShopId() == null || !shopId.equals(model.getShopId())) {
             return new APIReturnObject<>(HttpStatus.FORBIDDEN, ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
-        if (model.getType() == null || model.getType() != 1) {
-            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "该模板不是件数模板！不能定义明细！");
-        }
+        // Ming Qiu : 不去查看是否是件數模板了~ [21/12/2020: 沒有衝突就可以]
+//        if (model.getType() == null || model.getType() != 1) {
+//            return new APIReturnObject<>(HttpStatus.BAD_REQUEST, ResponseCode.FIELD_NOTVALID, "该模板不是件数模板！不能定义明细！");
+//        }
 
         PieceFreightModelPo pieceFreightModelPo = new PieceFreightModelPo();
 
