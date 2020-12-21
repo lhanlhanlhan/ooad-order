@@ -42,12 +42,16 @@ public class FreightServiceApplication implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         logger.debug("========= 正在从 其他模块 获取所有地区资讯 =========");
         List<RegionInfo> regionInfoList;
-        try {
-            regionInfoList = iOtherService.getAllRegions();
-            logger.debug("========= 其他模块 获取所有地区资讯 成功 =========");
-            GlobalVariables.setRegionInfoList(regionInfoList);
-        } catch (Exception e) {
-            logger.error("*** 从 其他模块 获取所有地区资讯 失败 *** " + e.getMessage());
+        while (true) {
+            try {
+                regionInfoList = iOtherService.getAllRegions();
+                logger.debug("========= 其他模块 获取所有地区资讯 成功 =========");
+                GlobalVariables.setRegionInfoList(regionInfoList);
+                break;
+            } catch (Exception e) {
+                logger.error("*** 从 其他模块 获取所有地区资讯 失败 *** " + e.getMessage());
+
+            }
         }
     }
 }
