@@ -145,8 +145,18 @@ public class IOtherOrderService17 implements IOtherOrderService {
     @Transactional
     @Override
     public Long createASOrder(OtherOrderSend order) {
+        log.debug("售后模块申请创建一个售后订单：" + order);
         // 创建售后订单
         LocalDateTime nowTime = Accessories.secondTime(LocalDateTime.now());
+
+        // 获取 OrderItem
+        if (order.getOrderItemId() == null) {
+            return null;
+        }
+        OrderItem item = orderDao.getOrderItem(order.getOrderItemId());
+        if (item == null) {
+            return null;
+        }
 
         // 创建订单
         OrderPo orderPo = new OrderPo();
@@ -180,7 +190,7 @@ public class IOtherOrderService17 implements IOtherOrderService {
         OrderItemPo po = new OrderItemPo();
         SkuInfo skuInfo;
         try {
-            skuInfo = iShopService.getSkuInfo(order.getSkuId());
+            skuInfo = iShopService.getSkuInfo(item.getSkuId());
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("无法联系商铺模块！错误讯息：" + e.getMessage());
@@ -188,7 +198,7 @@ public class IOtherOrderService17 implements IOtherOrderService {
         }
         if (skuInfo == null) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            log.error("创建售后订单：查询 SKU 信息失败！skuId=" + order.getSkuId());
+            log.error("创建售后订单：查询 SKU 信息失败！skuId=" + item.getSkuId());
             return null;
         }
         po.setName(skuInfo.getName());

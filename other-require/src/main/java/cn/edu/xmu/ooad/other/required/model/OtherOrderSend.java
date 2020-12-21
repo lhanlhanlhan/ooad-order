@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OtherOrderSend {
-	Long skuId;
+public class OtherOrderSend implements Serializable {
+	Long orderItemId;
 	Long shopId;
 	Long regionId;
 	String consignee;
