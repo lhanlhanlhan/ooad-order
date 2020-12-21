@@ -53,7 +53,7 @@ CREATE TABLE `order_item` (
   `name` varchar(128) DEFAULT NULL,
   `coupon_activity_id` bigint DEFAULT NULL,
   `be_share_id` bigint DEFAULT NULL,
-  `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `gmt_create` datetime DEFAULT CURRENT_TIMESTAMP,
   `gmt_modified` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=39403 DEFAULT CHARSET=utf8;
@@ -91,7 +91,7 @@ CREATE TABLE `orders` (
   `state` tinyint DEFAULT NULL,
   `substate` tinyint DEFAULT NULL,
   `be_deleted` tinyint DEFAULT NULL,
-  `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `gmt_create` datetime DEFAULT CURRENT_TIMESTAMP,
   `gmt_modified` datetime DEFAULT NULL,
   `groupon_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`)
