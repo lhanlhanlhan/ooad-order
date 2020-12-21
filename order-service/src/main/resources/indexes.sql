@@ -15,4 +15,3 @@ ALTER TABLE `piece_freight_model`
 -- freight model name 上的唯一索引
 ALTER TABLE `freight_model`
     ADD UNIQUE INDEX `uni_shop_fmname` (`name`, `shop_id`);
-#     ADD UNIQUE INDEX `uni_shop_fmname` (`name`);
